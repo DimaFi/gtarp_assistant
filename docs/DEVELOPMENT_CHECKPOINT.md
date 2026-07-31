@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — T1: production quality benchmark
+## ACTIVE CHECKPOINT — автономная архитектура и P0.1 voice control plane
 
 Актуально на 31 июля 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.
 
@@ -18,20 +18,23 @@
 - исправлены ложные совпадения по общим словам, добавлены лёгкая русская нормализация и блокировка запросов запрещённой автоматизации/непроверяемых прогнозов;
 - benchmark включён в обязательный `eng/build.ps1`, отчёты сохраняются в `artifacts/product-benchmark`;
 - единая документация: `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md` и `PRODUCT_QUALITY_BENCHMARK.md`.
+- завершён аудит voice, STT, provider routing, runtime, ресурсов, памяти, Vision и knowledge lifecycle;
+- зафиксирована целевая автономная архитектура без обязательных LM Studio, Ollama, Python или cloud;
+- выбран следующий исполнимый срез P0.1: единый `VoiceInteractionCoordinator`, STT catalog и состояния hold/toggle/preview/cancel.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
 - 249 тестов: Core 80, Providers 20, Knowledge 68, Integration 32, App 32, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,56 мс;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server;
 - WPF smoke, keyboard/minimum-layout, 10 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `6994348acdab3aa1c153550b6660741776c010d8b543a9f5206d8365d6c25045`.
+- последний проверенный SHA-256 до архитектурного этапа: `284df5c4121df7bf09c008b63a0fc0eb779f30eec391441f34c6abe023dd8b70`.
 
-Следующий логический этап: M3 Push-to-Talk UX — hold/toggle, preview перед отправкой, ограничение длительности, тест микрофона и level meter. После M3: T2/T3 — первая волна top-250 knowledge coverage, исправление измеренных exploratory-пробелов (опечатки, сленг, транслит) и document-oriented Knowledge UI. Полная последовательность и критерии сохранены в `TOP1_PRODUCT_ROADMAP.md`.
+Следующий логический этап: P0.1 voice control plane — единый жизненный цикл захвата, STT, preview, подтверждения, отмены и передачи готового текста в существующий `AssistantSessionCoordinator`. Затем P0.2 добавляет встроенный STT pack, а P0.3 проверяет полный offline voice knowledge vertical. Полная архитектура, ресурсные цели, fallback и критерии сохранены в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
 
-Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
+Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 
 ---
 

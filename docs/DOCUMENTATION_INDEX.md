@@ -10,6 +10,7 @@
 4. [ARCHITECTURE](ARCHITECTURE.md) — границы проектов и направление зависимостей.
 5. [ASSISTANT_MEMORY_AND_CHAT_PLAN](ASSISTANT_MEMORY_AND_CHAT_PLAN.md) — состояние чата и контролируемой памяти.
 6. [TOP1_PRODUCT_ROADMAP](TOP1_PRODUCT_ROADMAP.md) — измеримая стратегия развития до лучшего GTA5RP-помощника.
+7. [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — аудит и целевая архитектура автономного voice-сценария без LM Studio.
 
 ## Для пользователя
 
@@ -21,6 +22,7 @@
 ## Архитектура и подсистемы
 
 - [ARCHITECTURE](ARCHITECTURE.md) — проекты, DI и главный pipeline.
+- [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — реализованное/отсутствующее, voice orchestrator, runtime, ресурсы, память и этапы P0–P10.
 - [AI_ROUTING](AI_ROUTING.md) — deterministic/provider/fallback/validator.
 - [AUDIO_PIPELINE](AUDIO_PIPELINE.md) — microphone, game audio, VAD и STT.
 - [PERFORMANCE](PERFORMANCE.md) — профили нагрузки и деградация.

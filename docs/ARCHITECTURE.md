@@ -46,3 +46,5 @@ SettingsService.EnableLongTermConversation
 UI работает только через `AssistantSessionCoordinator`/`IAssistantConversationStore`. SQLite не вызывается из ViewModel напрямую. Полная история и ограниченный model context являются разными задачами; в модель передаётся только bounded relevant snapshot.
 
 Подробная карта composition root, данных, сборки и восстановления: [PROJECT_HANDBOOK.md](PROJECT_HANDBOOK.md).
+
+Целевая автономная архитектура, результат аудита voice/runtime/resource/memory/Vision и выбранный следующий этап P0.1 описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md).
