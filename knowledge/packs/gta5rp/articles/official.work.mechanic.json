@@ -1,0 +1,20 @@
+{
+  "id": "official.work.mechanic", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа автомехаником", "category": "work", "mechanic": "mechanic",
+  "aliases": ["механик", "работа механиком", "механик кпк", "как начать механика", "эвакуатор механика", "требования механика"],
+  "summary": "Для механика нужны 4 уровень, права на легковой транспорт и 150$ на аренду; заказы открываются через M → Механик КПК.",
+  "facts": [
+    { "id": "official.work.mechanic.fact.1", "text": "Для работы механиком нужны минимум 4 уровень, права категории Легковой транспорт и 150$ на аренду рабочего автомобиля.", "verified": true },
+    { "id": "official.work.mechanic.fact.2", "text": "Найдите точку Механик на карте ESC, сядьте в свободный рабочий автомобиль и оплатите аренду.", "verified": true },
+    { "id": "official.work.mechanic.fact.3", "text": "Заказы открываются через M → Механик КПК; по прибытии нажмите G на игрока и выберите Работа, затем нужную услугу.", "verified": true },
+    { "id": "official.work.mechanic.fact.4", "text": "Механик может ремонтировать, заправлять и переворачивать машины, заряжать электромобили и буксировать транспорт; буксировка автоматически ремонтирует машину.", "verified": true },
+    { "id": "official.work.mechanic.fact.5", "text": "На 5 уровне навыка механика открывается эвакуатор.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для работы механиком", "answer": "Нужны минимум 4 уровень, права на легковой транспорт и 150$ на аренду рабочего автомобиля." },
+    { "questionPattern": "как открыть заказы механика", "answer": "Во время смены откройте M → Механик КПК." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Механик", "url": "https://wiki.gta5rp.com/docs/lic-work/mechanic" },
+  "version": 1, "updatedAt": "2026-05-03T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

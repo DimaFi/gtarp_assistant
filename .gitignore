@@ -1,0 +1,12 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+TestResults/
+artifacts/
+*.db
+*.db-shm
+*.db-wal
+settings.json
+logs/

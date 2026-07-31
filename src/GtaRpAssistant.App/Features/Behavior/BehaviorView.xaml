@@ -1,0 +1,63 @@
+<UserControl x:Class="GtaRpAssistant.App.Features.BehaviorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AutomationProperties.AutomationId="Page.Behavior">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel MaxWidth="760" HorizontalAlignment="Stretch" Margin="0,0,14,20">
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Приложение" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Общие параметры запуска и игрового профиля." />
+                    <CheckBox Content="Запускать вместе с Windows" IsChecked="{Binding Settings.StartWithWindows}" AutomationProperties.AutomationId="Behavior.StartWithWindows" />
+                    <CheckBox Content="Наблюдать за запуском и перезапуском GTA" IsChecked="{Binding Settings.WatchGta}" AutomationProperties.AutomationId="Behavior.WatchGta" />
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="Сервер" /><TextBox Text="{Binding Settings.Server}" AutomationProperties.AutomationId="Behavior.Server" /></StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource Text.Label}" Text="Язык" />
+                            <ComboBox SelectedValue="{Binding Settings.Language}" SelectedValuePath="Tag" AutomationProperties.AutomationId="Behavior.Language">
+                                <ComboBoxItem Content="Русский" Tag="ru" /><ComboBoxItem Content="English" Tag="en" />
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Оверлей" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Compact-режим не забирает фокус; expanded открывается только вручную." />
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Text.Label}" Text="Позиция" />
+                            <ComboBox SelectedValue="{Binding Settings.OverlayPosition}" SelectedValuePath="Tag" AutomationProperties.AutomationId="Behavior.OverlayPosition">
+                                <ComboBoxItem Content="Сверху справа" Tag="TopRight" /><ComboBoxItem Content="Сверху слева" Tag="TopLeft" />
+                                <ComboBoxItem Content="Снизу справа" Tag="BottomRight" /><ComboBoxItem Content="Снизу слева" Tag="BottomLeft" />
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="Время показа, секунд" /><TextBox Text="{Binding Settings.OverlaySeconds}" AutomationProperties.AutomationId="Behavior.OverlaySeconds" /></StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Surface.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Проактивность" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Автоматические подсказки ограничены cooldown и могут быть остановлены в любой момент." />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Wake word" /><TextBox Text="{Binding Settings.WakeWord}" AutomationProperties.AutomationId="Behavior.WakeWord" />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Режим" />
+                    <ComboBox SelectedIndex="{Binding Settings.ProactiveMode}" AutomationProperties.AutomationId="Behavior.ProactiveMode">
+                        <ComboBoxItem Content="Off" /><ComboBoxItem Content="Strict" /><ComboBoxItem Content="Balanced" /><ComboBoxItem Content="Experimental" />
+                    </ComboBox>
+                    <WrapPanel>
+                        <Button Style="{StaticResource Button.Ghost}" Content="Не беспокоить 5 минут" Command="{Binding SnoozeFiveMinutesCommand}" AutomationProperties.AutomationId="Behavior.SnoozeFive" />
+                        <Button Style="{StaticResource Button.Ghost}" Content="До конца сессии" Command="{Binding SnoozeSessionCommand}" AutomationProperties.AutomationId="Behavior.SnoozeSession" />
+                        <Button Content="Возобновить" Command="{Binding ResumeHintsCommand}" AutomationProperties.AutomationId="Behavior.Resume" />
+                    </WrapPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Button.Primary}" Content="Сохранить настройки" Command="{Binding SaveSettingsCommand}" Margin="0,6,0,6" AutomationProperties.AutomationId="Behavior.Save" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

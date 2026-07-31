@@ -1,0 +1,146 @@
+using GtaRpAssistant.App;
+using GtaRpAssistant.App.Features;
+using GtaRpAssistant.App.Services;
+using GtaRpAssistant.App.Shell;
+using GtaRpAssistant.Core;
+
+namespace GtaRpAssistant.App.Tests;
+
+public sealed class UiArchitectureTests
+{
+    [Fact]
+    public void FeatureRegistry_OrdersModulesByExplicitOrder()
+    {
+        var registry = new FeatureRegistry([
+            new ShellFeature("second", "Second", "2", 20, new object()),
+            new ShellFeature("first", "First", "1", 10, new object()),
+        ]);
+
+        Assert.Equal(["first", "second"], registry.Features.Select(x => x.Id));
+    }
+
+    [Fact]
+    public void FeatureRegistry_RejectsDuplicateIdsIgnoringCase()
+    {
+        Assert.Throws<InvalidOperationException>(() => new FeatureRegistry([
+            new ShellFeature("audio", "Audio", "A", 10, new object()),
+            new ShellFeature("AUDIO", "Duplicate", "D", 20, new object()),
+        ]));
+    }
+
+    [Fact]
+    public void FeatureRegistry_RequiresAtLeastOneModule() =>
+        Assert.Throws<InvalidOperationException>(() => new FeatureRegistry([]));
+
+    [Fact]
+    public void MainViewModel_DependsOnlyOnShellStateRegistryAndLifecycleCoordinator()
+    {
+        var constructor = Assert.Single(typeof(MainViewModel).GetConstructors());
+        Assert.Equal(
+            [typeof(ApplicationUiState), typeof(FeatureRegistry), typeof(ApplicationLifecycleCoordinator)],
+            constructor.GetParameters().Select(x => x.ParameterType));
+    }
+
+    [Theory]
+    [InlineData(1, GlobalHotkeyAction.ToggleOverlay)]
+    [InlineData(2, GlobalHotkeyAction.TogglePause)]
+    [InlineData(3, GlobalHotkeyAction.ManualVoice)]
+    [InlineData(4, GlobalHotkeyAction.ManualVision)]
+    [InlineData(99, GlobalHotkeyAction.None)]
+    public void GlobalHotkeyMap_UsesStableRegistrationContract(int registrationId, GlobalHotkeyAction expected) =>
+        Assert.Equal(expected, GlobalHotkeyMap.FromRegistrationId(registrationId));
+
+    [Fact]
+    public void TrayCommandCatalog_HasStableUniqueOrder()
+    {
+        Assert.Equal(
+            [TrayCommand.Open, TrayCommand.TogglePause, TrayCommand.Exit],
+            TrayCommandCatalog.Definitions.Select(x => x.Command));
+        Assert.Equal(TrayCommandCatalog.Definitions.Count, TrayCommandCatalog.Definitions.Select(x => x.Label).Distinct().Count());
+    }
+
+    [Theory]
+    [InlineData("TopLeft", 24, 60)]
+    [InlineData("TopRight", 676, 60)]
+    [InlineData("BottomLeft", 24, 576)]
+    [InlineData("BottomRight", 676, 576)]
+    public void OverlayPlacement_UsesRequestedWorkingAreaCorner(string position, double expectedX, double expectedY)
+    {
+        var point = OverlayPlacement.Calculate(new(0, 0, 1100, 800), new(400, 200), position);
+        Assert.Equal(expectedX, point.X);
+        Assert.Equal(expectedY, point.Y);
+    }
+
+    [Fact]
+    public void OverlayPlacement_ClampsOversizedOverlayInsideWorkingArea()
+    {
+        var point = OverlayPlacement.Calculate(new(100, 50, 300, 200), new(500, 400), "BottomRight");
+        Assert.Equal(new System.Windows.Point(100, 50), point);
+    }
+
+    [Fact]
+    public void ApplicationUiState_RecalculatesKnowledgeTotal()
+    {
+        var state = new ApplicationUiState { OfficialArticleCount = 37, CommunityArticleCount = 415 };
+        Assert.Equal(452, state.TotalArticleCount);
+    }
+
+    [Fact]
+    public void AboutDiagnostics_RefreshesCountsAndNeverIncludesSecrets()
+    {
+        var ui = new ApplicationUiState();
+        var workspace = new SettingsWorkspace
+        {
+            ApiKey = "local-secret",
+            CloudApiKey = "cloud-secret",
+        };
+        using var viewModel = new AboutFeatureViewModel(ui, workspace);
+        var changed = new List<string?>();
+        viewModel.PropertyChanged += (_, args) => changed.Add(args.PropertyName);
+
+        ui.OfficialArticleCount = 74;
+        ui.CommunityArticleCount = 415;
+
+        Assert.Equal("489", viewModel.KnowledgeCount);
+        Assert.Contains(nameof(AboutFeatureViewModel.KnowledgeCount), changed);
+        Assert.DoesNotContain("local-secret", viewModel.DiagnosticSummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("cloud-secret", viewModel.DiagnosticSummary, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OverlayPresentation_DetectsCommunityAnswer()
+    {
+        var answer = new AssistantAnswer(AnswerDecision.Show, "Награда", "По данным игроков: 25 BP", [], "Community", DateTimeOffset.UtcNow, false, "test");
+        var presentation = OverlayPresentationFactory.Create(answer);
+        Assert.True(presentation.IsCommunity);
+        Assert.Equal(OverlayTone.Success, presentation.Tone);
+    }
+
+    [Theory]
+    [InlineData(MicroModelState.Starting, "Запуск", OverlayTone.Neutral, OverlayActivity.Thinking)]
+    [InlineData(MicroModelState.Generating, "Формирование ответа", OverlayTone.Neutral, OverlayActivity.Thinking)]
+    [InlineData(MicroModelState.MemoryLimitExceeded, "Лимит памяти", OverlayTone.Warning, OverlayActivity.None)]
+    public void OverlayPresentation_MapsMicroModelLifecycle(
+        MicroModelState state,
+        string expectedStatus,
+        OverlayTone expectedTone,
+        OverlayActivity expectedActivity)
+    {
+        var presentation = OverlayPresentationFactory.Create(new MicroModelStatus(state, 123, "Состояние модели", DateTimeOffset.UtcNow));
+        Assert.Equal(expectedStatus, presentation.Status);
+        Assert.Equal(expectedTone, presentation.Tone);
+        Assert.Equal(expectedActivity, presentation.Activity);
+        Assert.Contains("MicroModel", presentation.Title);
+    }
+
+    [Fact]
+    public void OverlayPresentation_CreatesPrivacySafeListeningState()
+    {
+        var presentation = OverlayPresentationFactory.CreateListening();
+
+        Assert.Equal(OverlayActivity.Listening, presentation.Activity);
+        Assert.Equal(OverlayTone.Neutral, presentation.Tone);
+        Assert.Contains("20", presentation.Message);
+        Assert.Contains("не сохраняется", presentation.Updated, StringComparison.OrdinalIgnoreCase);
+    }
+}

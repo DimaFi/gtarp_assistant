@@ -1,0 +1,20 @@
+{
+  "id": "official.work.courier", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа курьером", "category": "work", "mechanic": "courier",
+  "aliases": ["курьер", "работа курьером", "postop", "как начать курьера", "требования курьера", "склад postop", "заказы курьера"],
+  "summary": "Профильная страница курьера указывает 4 уровень, легковые права и багажник от 60 кг; маршруты на пять точек выдаёт приложение PostOP.",
+  "facts": [
+    { "id": "official.work.courier.fact.1", "text": "По профильной странице Курьер нужны минимум 4 уровень, права на легковой транспорт и машина с багажником от 60 кг.", "verified": true },
+    { "id": "official.work.courier.fact.2", "text": "Груз загружается на одном из трёх складов PostOP: в порту, возле 3 LSC или в Палето-Бэй. Загрузка полного багажника длится 10 минут.", "verified": true },
+    { "id": "official.work.courier.fact.3", "text": "Один рейс требует 5 коробок по 12 кг; приложение PostOP отмечает на карте 5 адресов доставки.", "verified": true },
+    { "id": "official.work.courier.fact.4", "text": "Оплата зависит от длины маршрута и соблюдения рассчитанного времени; при опоздании она снижается, между рейсами действует пауза 5 минут.", "verified": true },
+    { "id": "official.work.courier.fact.5", "text": "Каждый завершённый рейс прокачивает навык; каждый уровень добавляет 25% к базовой оплате, а на 5 уровне точки получают нумерацию оптимального маршрута.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для работы курьером", "answer": "Профильная страница Курьер указывает минимум 4 уровень, легковые права и транспорт с багажником от 60 кг." },
+    { "questionPattern": "где взять заказы курьера", "answer": "Загрузитесь на одном из складов PostOP, затем откройте приложение PostOP: оно отметит 5 адресов доставки." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Курьер", "url": "https://wiki.gta5rp.com/docs/special-work/courier" },
+  "version": 1, "updatedAt": "2026-05-04T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

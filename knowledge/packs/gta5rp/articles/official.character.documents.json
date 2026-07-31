@@ -1,0 +1,27 @@
+{
+  "id": "official.character.documents",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Документы персонажа",
+  "category": "character",
+  "mechanic": "documents",
+  "aliases": ["где документы", "как показать паспорт", "как открыть паспорт", "лицензии", "техпаспорт", "удостоверение"],
+  "summary": "Свои документы открываются через M → Документы, а другому игроку показываются через G → Документы.",
+  "facts": [
+    { "id": "official.character.documents.fact.1", "text": "Свои документы можно посмотреть через M → Документы.", "verified": true },
+    { "id": "official.character.documents.fact.2", "text": "Чтобы показать документ другому игроку, нажмите G на игроке и выберите раздел Документы.", "verified": true },
+    { "id": "official.character.documents.fact.3", "text": "Паспорт содержит данные персонажа, статический ID, организацию и семейный статус.", "verified": true },
+    { "id": "official.character.documents.fact.4", "text": "Технический паспорт транспорта содержит модель, владельца, цвета, число владельцев и пробег.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как показать паспорт", "answer": "Нажмите G на нужном игроке, откройте раздел Документы и выберите паспорт." },
+    { "questionPattern": "где посмотреть свои документы", "answer": "Откройте M → Документы." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Документы", "url": "https://wiki.gta5rp.com/docs/character/docs" },
+  "version": 1,
+  "updatedAt": "2026-05-02T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

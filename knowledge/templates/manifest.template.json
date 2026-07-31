@@ -1,0 +1,9 @@
+{
+  "id": "REPLACE.project.server",
+  "project": "gta5rp",
+  "version": 1,
+  "createdAt": "REPLACE_WITH_UTC_TIMESTAMP",
+  "articleFiles": [
+    "articles/REPLACE.article.json"
+  ]
+}

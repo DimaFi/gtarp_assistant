@@ -1,0 +1,14 @@
+{
+  "id":"official.phone.brawl","project":"gta5rp","serverScope":["all"],"title":"Brawl","category":"phone","mechanic":"brawl",
+  "aliases":["brawl","канал brawl","голосовой канал","приватный канал","приглашение brawl","метки brawl","чат группы"],
+  "summary":"Brawl создаёт открытые или защищённые голосовые каналы с ролями, текстовым чатом и групповыми метками.",
+  "facts":[
+    {"id":"official.phone.brawl.fact.1","text":"Канал создаётся в приложении Brawl по имени; он существует, пока внутри остаётся хотя бы один участник.","verified":true},
+    {"id":"official.phone.brawl.fact.2","text":"Приглашение имеет формат brawl:название_канала: и в игровом чате превращается в кнопку подключения.","verified":true},
+    {"id":"official.phone.brawl.fact.3","text":"Настройки позволяют поставить пароль, закрыть новые входы, ограничить число участников, включить метки и режим Говорят только владельцы.","verified":true},
+    {"id":"official.phone.brawl.fact.4","text":"Клавиша голоса назначается в F10 → Настройки → Управление → Говорить в Brawl; текстовый чат канала открывается командой /g.","verified":true},
+    {"id":"official.phone.brawl.fact.5","text":"Метки ставятся колёсиком мыши, живут 15 секунд и видны на расстоянии до 300 метров в том же игровом пространстве.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как пригласить в brawl","answer":"Скопируйте ссылку вида brawl:название_канала: и отправьте её в игровой чат."},{"questionPattern":"какая кнопка говорить в brawl","answer":"Назначьте её в F10 → Настройки → Управление → Говорить в Brawl."}],
+  "source":{"title":"GTA5RP Wiki — Brawl","url":"https://wiki.gta5rp.com/docs/phone/brawl"},"version":1,"updatedAt":"2026-05-03T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

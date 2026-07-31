@@ -1,0 +1,13 @@
+{
+  "id":"official.transport.service","project":"gta5rp","serverScope":["all"],"title":"Обслуживание транспорта","category":"transport","mechanic":"vehicle-service",
+  "aliases":["износ машины","обслуживание авто","станция то","починить износ","проверить состояние машины","ремонт транспорта"],
+  "summary":"Износ проверяется через G → Смотреть и ремонтируется на станциях ТО в Ла-Месе и Сэнди-Шорс.",
+  "facts":[
+    {"id":"official.transport.service.fact.1","text":"Обслуживание выполняют станции ТО в Ла-Месе и Сэнди-Шорс; яхты и вертолёты можно обслужить в любом месте.","verified":true},
+    {"id":"official.transport.service.fact.2","text":"У станции нажмите G на автомобиле → Смотреть, чтобы увидеть проценты состояния систем и кнопки ремонта.","verified":true},
+    {"id":"official.transport.service.fact.3","text":"Износ влияет на скорость, торможение, сцепление, расход топлива, запуск и другие характеристики транспорта.","verified":true},
+    {"id":"official.transport.service.fact.4","text":"При слабом износе ремонт доступен самостоятельно; при значительном нужен механик подходящего уровня. Чем раньше обслуживание, тем оно дешевле.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как проверить износ машины","answer":"Подъедьте к станции ТО и выберите G → Смотреть — откроется состояние всех систем в процентах."},{"questionPattern":"где обслужить машину","answer":"На станции ТО в Ла-Месе или Сэнди-Шорс."}],
+  "source":{"title":"GTA5RP Wiki — Обслуживание","url":"https://wiki.gta5rp.com/docs/transport/service"},"version":1,"updatedAt":"2026-05-06T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

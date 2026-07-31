@@ -1,0 +1,35 @@
+<UserControl x:Class="GtaRpAssistant.App.Features.KnowledgeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AutomationProperties.AutomationId="Page.Knowledge">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel MaxWidth="760" HorizontalAlignment="Stretch" Margin="0,0,14,20">
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="База знаний" />
+                    <TextBlock Margin="0,4,0,16" Style="{StaticResource Text.Secondary}" Text="Официальные и community-данные индексируются отдельно и выбираются локальным FTS-поиском." />
+                    <UniformGrid Columns="3">
+                        <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,0,8,0">
+                            <StackPanel><TextBlock Style="{StaticResource Text.Display}" Text="{Binding TotalArticleCount}" AutomationProperties.AutomationId="Knowledge.Total" /><TextBlock Style="{StaticResource Text.Caption}" Text="ВСЕГО СТАТЕЙ" /></StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Surface.RaisedCard}" Margin="4,0">
+                            <StackPanel><TextBlock Style="{StaticResource Text.Display}" Text="{Binding OfficialArticleCount}" AutomationProperties.AutomationId="Knowledge.Official" /><TextBlock Style="{StaticResource Text.Caption}" Text="ОФИЦИАЛЬНЫЕ" /></StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Surface.RaisedCard}" Margin="8,0,0,0">
+                            <StackPanel><TextBlock Style="{StaticResource Text.Display}" Text="{Binding CommunityArticleCount}" AutomationProperties.AutomationId="Knowledge.Community" /><TextBlock Style="{StaticResource Text.Caption}" Text="ДАННЫЕ ИГРОКОВ" /></StackPanel>
+                        </Border>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Surface.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Правила доверия" />
+                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Body}" TextWrapping="Wrap" Text="Официальные статьи проходят source review и governance lint. Сведения сообщества всегда сопровождаются пометкой «По данным игроков:». Просроченный или конфликтный факт не используется для ответа." />
+                    <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,16,0,0">
+                        <TextBlock Style="{StaticResource Text.Secondary}" Text="{Binding PipelineStatus}" />
+                    </Border>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

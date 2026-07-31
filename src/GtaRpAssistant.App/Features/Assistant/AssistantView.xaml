@@ -1,0 +1,221 @@
+<UserControl x:Class="GtaRpAssistant.App.Features.AssistantView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls"
+             AutomationProperties.AutomationId="Page.Assistant">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="14" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Style="{StaticResource Surface.Card}" Padding="12">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Text.Heading}" Text="Диалоги" />
+                        <TextBlock Style="{StaticResource Text.Caption}" Text="Локальная история" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="＋" ToolTip="Новый диалог"
+                            Command="{Binding NewConversationCommand}" AutomationProperties.AutomationId="Assistant.NewConversation" />
+                </Grid>
+                <ListBox Grid.Row="1" Margin="0,12,0,12" Background="Transparent" BorderThickness="0"
+                         ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}"
+                         AutomationProperties.AutomationId="Assistant.ConversationList">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="9" />
+                            <Setter Property="Margin" Value="0,0,0,5" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource Brush.SurfaceHover}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Caption}">
+                                    <Run Text="{Binding MessageCount}" /><Run Text=" сообщений · " />
+                                    <Run Text="{Binding UpdatedAt, StringFormat={}{0:dd.MM HH:mm}}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <StackPanel Grid.Row="2">
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Название" />
+                    <TextBox Text="{Binding ConversationTitleDraft, UpdateSourceTrigger=PropertyChanged}"
+                             AutomationProperties.AutomationId="Assistant.ConversationTitle" />
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <Button Style="{StaticResource Button.Ghost}" Content="Сохранить" Command="{Binding RenameConversationCommand}"
+                                AutomationProperties.AutomationId="Assistant.RenameConversation" />
+                        <Button Grid.Column="1" Style="{StaticResource Button.Danger}" Content="Удалить" Command="{Binding DeleteConversationCommand}"
+                                AutomationProperties.AutomationId="Assistant.DeleteConversation" />
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="2" Style="{StaticResource Surface.Card}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Margin="0,0,0,16">
+                <TextBlock Style="{StaticResource Text.Heading}" Text="Задать вопрос" />
+                <TextBlock Margin="0,4,0,0" Style="{StaticResource Text.Secondary}"
+                           Text="Проверьте текст распознавания или введите вопрос вручную." />
+            </StackPanel>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Источник" />
+                    <ComboBox SelectedIndex="{Binding SelectedSourceIndex}" AutomationProperties.AutomationId="Assistant.Source">
+                        <ComboBoxItem Content="Микрофон" />
+                        <ComboBoxItem Content="Звук игры" />
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Вопрос" />
+                    <TextBox MinHeight="90" VerticalContentAlignment="Top" TextWrapping="Wrap" AcceptsReturn="True"
+                             AutomationProperties.AutomationId="Assistant.Question"
+                             Text="{Binding TranscriptText, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ProcessQuestionCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <WrapPanel HorizontalAlignment="Left">
+                    <Button Style="{StaticResource Button.Ghost}" Content="Добавить в контекст" Command="{Binding AddContextCommand}" AutomationProperties.AutomationId="Assistant.AddContext" />
+                    <Button Style="{StaticResource Button.Ghost}" Content="Повторить" Command="{Binding RetryQuestionCommand}" AutomationProperties.AutomationId="Assistant.Retry" />
+                    <Button Style="{StaticResource Button.Ghost}" Content="Копировать ответ" Command="{Binding CopyAnswerCommand}" AutomationProperties.AutomationId="Assistant.CopyAnswer" />
+                </WrapPanel>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource Button.Danger}" Content="Отмена" Command="{Binding CancelRequestCommand}" AutomationProperties.AutomationId="Assistant.Cancel" />
+                    <Button Style="{StaticResource Button.Primary}" Content="Получить ответ" Command="{Binding ProcessQuestionCommand}" Margin="0,6,0,6" AutomationProperties.AutomationId="Assistant.Ask" />
+                </WrapPanel>
+            </Grid>
+            <Border Grid.Row="3" Margin="0,14,0,0" AutomationProperties.AutomationId="Assistant.LastAnswer">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Surface.RaisedCard}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding LastAnswer}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="{Binding LastAnswer.Title, TargetNullValue=Ответ появится здесь}" />
+                    <design:MarkdownTextBlock Margin="0,6,0,0" Markdown="{Binding LastAnswer.Message, TargetNullValue=Задайте вопрос вручную или через микрофон.}" />
+                    <TextBlock Margin="0,8,0,2" Style="{StaticResource Text.Label}" Text="Шаги" />
+                    <ItemsControl ItemsSource="{Binding LastAnswer.ProblemSolution.Steps}">
+                        <ItemsControl.ItemTemplate><DataTemplate><TextBlock Margin="0,2" TextWrapping="Wrap"><Run Text="• " /><Run Text="{Binding}" /></TextBlock></DataTemplate></ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Secondary}" TextWrapping="Wrap"><Run Text="Источник: " /><Run Text="{Binding LastAnswer.SourceTitle, TargetNullValue=локальная база знаний}" /><Run Text=" · Провайдер: " /><Run Text="{Binding LastAnswer.ProviderId, TargetNullValue=не использован}" /><Run Text=" · Модель: " /><Run Text="{Binding LastAnswer.ModelId, TargetNullValue=—}" /><Run Text=" · Время: " /><Run Text="{Binding LastRequestDurationText, Mode=OneWay}" /></TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Grid.Row="4" Margin="0,10,0,0" MaxHeight="220">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource Surface.Card}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Conversation.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <TextBlock>
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Label}">
+                                <Setter Property="Text" Value="Текущий диалог · удалится после закрытия приложения" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Settings.EnableLongTermConversation}" Value="True">
+                                        <Setter Property="Text" Value="Текущий диалог · сохраняется локально" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Conversation}" AutomationProperties.AutomationId="Assistant.Conversation">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="10" Padding="10" Margin="0,4,0,0" MaxWidth="620">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="{DynamicResource Brush.Input}" />
+                                                <Setter Property="HorizontalAlignment" Value="Left" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Role}" Value="User">
+                                                        <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
+                                                        <Setter Property="HorizontalAlignment" Value="Right" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <TextBlock>
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+                                                        <Setter Property="Text" Value="Ассистент" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Role}" Value="User"><Setter Property="Text" Value="Вы" /></DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <design:MarkdownTextBlock Margin="0,3,0,0" Markdown="{Binding Text}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+            <Border Grid.Row="5" Style="{StaticResource Surface.RaisedCard}" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Состояние обработки" />
+                    <TextBlock Margin="0,7,0,0" Style="{StaticResource Text.Secondary}" Text="{Binding PipelineStatus}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </Grid>
+        </Border>
+    </Grid>
+</UserControl>

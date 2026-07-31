@@ -1,0 +1,27 @@
+{
+  "id": "official.character.level",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Уровень, опыт и доступ к работам",
+  "category": "character",
+  "mechanic": "level",
+  "aliases": ["как получить опыт", "как поднять уровень", "какой уровень для работы", "когда доступен 5vito", "уровень для организации", "уровень для клуба"],
+  "summary": "Опыт приходит через индивидуальный PayDay; нужный XP равен текущему уровню × 4. Уровни открывают работы и функции.",
+  "facts": [
+    { "id": "official.character.level.fact.1", "text": "Текущий уровень, прогресс опыта и время до PayDay показываются в F10 → Персонаж.", "verified": true },
+    { "id": "official.character.level.fact.2", "text": "Опыт начисляется через индивидуальный PayDay, а необходимый опыт до следующего уровня рассчитывается как текущий уровень × 4.", "verified": true },
+    { "id": "official.character.level.fact.3", "text": "На 2 уровне открываются 5VITO, лицензии, передача денег и использование оружия; на 5 уровне — вступление в организации; на 10 уровне — вступление в клубы.", "verified": true },
+    { "id": "official.character.level.fact.4", "text": "Начальные работы фермы, шахты, стройки и порта доступны с 1 уровня; такси и автобус — со 2; дайвинг — с 3; механик — с 4; инкассатор — с 5; дальнобойщик — с 7; пожарный — с 10. Для почты и курьера используйте их профильные статьи Wiki.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как получить опыт", "answer": "Оставайтесь в игре до индивидуального PayDay: именно через него начисляется опыт." },
+    { "questionPattern": "какой уровень нужен для организации", "answer": "Вступление в организацию доступно с 5 уровня." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Уровень и опыт", "url": "https://wiki.gta5rp.com/docs/character/lvl" },
+  "version": 1,
+  "updatedAt": "2026-05-03T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

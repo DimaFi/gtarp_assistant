@@ -1,0 +1,20 @@
+{
+  "id": "official.work.port", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа в порту", "category": "work", "mechanic": "port",
+  "aliases": ["порт", "работа в порту", "работа грузчиком", "как начать порт", "погрузчик контейнеров"],
+  "summary": "Порт доступен с 1 уровня без трудоустройства: начните смену у Прораба, переносите коробки между красными метками и проходите мини-игру.",
+  "facts": [
+    { "id": "official.work.port.fact.1", "text": "Работа в порту доступна с 1 уровня без предварительного трудоустройства; точка Порт находится на карте ESC.", "verified": true },
+    { "id": "official.work.port.fact.2", "text": "Смена начинается у NPC Прораба, после чего персонаж автоматически получает рабочую форму.", "verified": true },
+    { "id": "official.work.port.fact.3", "text": "Во время работы нужно брать коробки на первой красной метке, переносить ко второй и нажимать кнопку, когда зелёный ползунок находится в белой зоне.", "verified": true },
+    { "id": "official.work.port.fact.4", "text": "На 3 уровне навыка открывается работа на погрузчике контейнеров.", "verified": true },
+    { "id": "official.work.port.fact.5", "text": "Для завершения смены вернитесь к Прорабу; после снятия формы выдаётся заработок за смену.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как начать работу в порту", "answer": "Найдите Порт на карте ESC и начните смену у NPC Прораба." },
+    { "questionPattern": "когда открывается погрузчик в порту", "answer": "Работа на погрузчике контейнеров открывается на 3 уровне навыка." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Порт", "url": "https://wiki.gta5rp.com/docs/start-work/port" },
+  "version": 1, "updatedAt": "2026-05-03T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

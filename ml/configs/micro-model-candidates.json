@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "runtimeFamily": "llama.cpp",
+  "requiredFormat": "GGUF",
+  "thresholds": {
+    "softMemoryLimitMb": 750,
+    "hardMemoryLimitMb": 900,
+    "minimumStrictJsonRate": 0.98,
+    "minimumSchemaComplianceRate": 0.98,
+    "maximumHallucinatedFactRate": 0.0,
+    "maximumUnsupportedNumberRate": 0.0,
+    "minimumDecisionAccuracy": 0.8,
+    "minimumIntentAccuracy": 0.8,
+    "minimumRussianResponseRate": 0.8
+  },
+  "candidates": [
+    {
+      "id": "qwen3-0.6b",
+      "family": "Qwen3 instruct",
+      "parametersMillions": 600,
+      "format": "GGUF",
+      "quantizations": ["Q4_K_M", "Q4_0"],
+      "sourceUrl": "https://huggingface.co/Qwen/Qwen3-0.6B",
+      "licenseId": "Apache-2.0",
+      "licenseUrl": "https://huggingface.co/Qwen/Qwen3-0.6B/blob/main/LICENSE",
+      "licenseReview": "approved",
+      "distributionPolicy": "redistributable",
+      "russianSupport": "official-card-100-plus-languages-benchmark-required",
+      "disableThinking": true,
+      "benchmarkEnabled": true,
+      "benchmarkArtifactUrl": "https://huggingface.co/ggml-org/Qwen3-0.6B-GGUF/resolve/a41486f/Qwen3-0.6B-Q4_0.gguf?download=true",
+      "benchmarkArtifactRevision": "ggml-org/Qwen3-0.6B-GGUF@a41486f",
+      "benchmarkArtifactSha256": "da2572f16c06133561ce56accaa822216f2391ef4d37fba427801cd6736417d4",
+      "notes": "Первый кандидат. Проверять non-thinking prompt, строгий JSON и реальный private memory; использовать только собственную проверенную конверсию/квантизацию."
+    },
+    {
+      "id": "gemma-3-270m-it",
+      "family": "Gemma 3 instruction tuned",
+      "parametersMillions": 270,
+      "format": "GGUF",
+      "quantizations": ["Q4_K_M", "Q4_0"],
+      "sourceUrl": "https://huggingface.co/google/gemma-3-270m-it",
+      "licenseId": "Gemma-Terms",
+      "licenseUrl": "https://ai.google.dev/gemma/terms",
+      "licenseReview": "conditional",
+      "distributionPolicy": "redistributable-with-notice",
+      "russianSupport": "official-card-140-plus-languages-benchmark-required",
+      "disableThinking": true,
+      "benchmarkEnabled": true,
+      "notes": "Самый компактный кандидат. До поставки требуется отдельное принятие Gemma Terms, копия условий, Notice и проверка use restrictions."
+    },
+    {
+      "id": "smollm2-360m-instruct",
+      "family": "SmolLM2 instruct",
+      "parametersMillions": 360,
+      "format": "GGUF",
+      "quantizations": ["Q8_0", "Q4_K_M", "Q4_0"],
+      "sourceUrl": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct",
+      "licenseId": "Apache-2.0",
+      "licenseUrl": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct/blob/main/LICENSE",
+      "licenseReview": "approved",
+      "distributionPolicy": "redistributable",
+      "russianSupport": "unverified-card-says-primarily-english",
+      "disableThinking": true,
+      "benchmarkEnabled": true,
+      "benchmarkArtifactUrl": "https://huggingface.co/HuggingFaceTB/SmolLM2-360M-Instruct-GGUF/resolve/593b5a2e04c8f3e4ee880263f93e0bd2901ad47f/smollm2-360m-instruct-q8_0.gguf?download=true",
+      "benchmarkArtifactRevision": "HuggingFaceTB/SmolLM2-360M-Instruct-GGUF@593b5a2e04c8f3e4ee880263f93e0bd2901ad47f",
+      "benchmarkArtifactSha256": "48ab3034d0dd401fbc721eb1df3217902fee7dab9078992d66431f09b7750201",
+      "notes": "Контрольный кандидат. Не выбирать без сильного результата на русском: официальный model card прямо отмечает преимущественно английский язык."
+    }
+  ]
+}

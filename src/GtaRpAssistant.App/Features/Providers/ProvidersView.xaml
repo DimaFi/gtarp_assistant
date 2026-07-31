@@ -1,0 +1,158 @@
+<UserControl x:Class="GtaRpAssistant.App.Features.ProvidersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:components="clr-namespace:GtaRpAssistant.App.Components"
+             AutomationProperties.AutomationId="Page.Providers">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel MaxWidth="760" HorizontalAlignment="Stretch" Margin="0,0,14,20">
+            <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,0,0,14" AutomationProperties.AutomationId="Providers.LocalAiControlCenter">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Text.Heading}" Text="Локальный AI" />
+                            <TextBlock Margin="0,4,0,0" Style="{StaticResource Text.Secondary}" Text="Приложение само проверяет LM Studio, API, модель и безопасный профиль." />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Как это работает?" Command="{Binding ShowLocalAiHelpCommand}" AutomationProperties.AutomationId="Providers.LocalAiHelp" />
+                    </Grid>
+                    <Border Background="{StaticResource Brush.Input}" BorderBrush="{StaticResource Brush.BorderSubtle}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,14,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{Binding EngineStatus}" Margin="0,2" />
+                                <TextBlock Text="{Binding ApiStatus}" Margin="0,2" />
+                                <TextBlock Text="{Binding ModelStatus}" Margin="0,2" TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding RagStatus}" Margin="0,2" />
+                                <TextBlock Text="{Binding WhisperStatus}" Margin="0,2" />
+                                <TextBlock Text="{Binding VisionStatus}" Margin="0,2" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <WrapPanel>
+                        <Button Style="{StaticResource Button.Primary}" Content="Настроить автоматически" Command="{Binding AutoConfigureCommand}" AutomationProperties.AutomationId="Providers.AutoConfigure" />
+                        <Button Content="Обновить статус" Command="{Binding RefreshLocalAiCommand}" AutomationProperties.AutomationId="Providers.RefreshLocalAi" />
+                        <Button Content="Запустить API" Command="{Binding StartServerCommand}" AutomationProperties.AutomationId="Providers.StartServer" />
+                        <Button Content="Установить LM Studio" Command="{Binding InstallLmStudioCommand}" AutomationProperties.AutomationId="Providers.InstallLmStudio" />
+                        <Button Style="{StaticResource Button.Ghost}" Content="Отменить" Command="{Binding CancelLocalAiCommand}" AutomationProperties.AutomationId="Providers.CancelLocalAi" />
+                    </WrapPanel>
+                    <TextBlock Margin="0,12,0,2" Style="{StaticResource Text.Label}" Text="Установленная chat-модель" />
+                    <ComboBox ItemsSource="{Binding InstalledModels}" DisplayMemberPath="DisplayName" SelectedValuePath="Key" SelectedValue="{Binding PendingModelKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.InstalledModel" />
+                    <TextBlock Margin="0,4,0,0" Style="{StaticResource Text.Secondary}" Text="Список берётся напрямую из LM Studio; embedding-модели здесь не показываются." TextWrapping="Wrap" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button Style="{StaticResource Button.Primary}" Content="Использовать выбранную" Command="{Binding LoadModelCommand}" AutomationProperties.AutomationId="Providers.UseInstalledModel" />
+                        <Button Content="Выбрать GGUF-файл" Command="{Binding ImportGgufCommand}" AutomationProperties.AutomationId="Providers.ImportGguf" />
+                        <Button Content="Найти GGUF в папке" Command="{Binding FindGgufInFolderCommand}" AutomationProperties.AutomationId="Providers.FindGgufFolder" />
+                        <Button Content="Освободить память" Command="{Binding UnloadModelCommand}" AutomationProperties.AutomationId="Providers.UnloadModel" />
+                        <Button Content="Проверить" Command="{Binding TestCapabilityCommand}" AutomationProperties.AutomationId="Providers.SimpleCapabilityTest" />
+                    </WrapPanel>
+                    <TextBlock Margin="0,14,0,2" Style="{StaticResource Text.Label}" Text="Скачать рекомендуемую модель" />
+                    <ComboBox ItemsSource="{Binding RecommendedModels}" SelectedItem="{Binding SelectedRecommendedModel}" DisplayMemberPath="DisplayName" AutomationProperties.AutomationId="Providers.RecommendedModel" />
+                    <TextBlock Margin="0,5,0,0" Style="{StaticResource Text.Secondary}" Text="{Binding SelectedRecommendedModel.RecommendedUse}" TextWrapping="Wrap" />
+                    <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Secondary}" Text="{Binding ResourceForecast}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.ResourceForecast" />
+                    <WrapPanel Margin="0,6,0,0">
+                        <Button Content="Оценить нагрузку" Command="{Binding EstimateResourcesCommand}" AutomationProperties.AutomationId="Providers.EstimateResources" />
+                        <Button Content="Скачать" Command="{Binding DownloadModelCommand}" AutomationProperties.AutomationId="Providers.DownloadModel" />
+                    </WrapPanel>
+                    <Border Background="{StaticResource Brush.AccentMuted}" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding SetupProgress}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.SetupProgress" />
+                    </Border>
+                    <CheckBox Margin="0,12,0,0" Content="Расширенные настройки" IsChecked="{Binding Settings.LocalAiAdvancedMode}" AutomationProperties.AutomationId="Providers.AdvancedMode" />
+                </StackPanel>
+            </Border>
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers><DataTrigger Binding="{Binding Settings.LocalAiAdvancedMode}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger></Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Локальное подключение" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="OpenAI-compatible endpoint можно назначить primary или fallback отдельно для каждой задачи." />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Endpoint" />
+                    <TextBox Text="{Binding Settings.Endpoint}" AutomationProperties.AutomationId="Providers.LocalEndpoint" />
+                    <TextBlock Margin="0,10,0,2" Style="{StaticResource Text.Label}" Text="Путь к lms.exe (необязательно)" />
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Settings.LmStudioCliPath, UpdateSourceTrigger=PropertyChanged}" ToolTip="Оставьте пустым для автоматического поиска" AutomationProperties.AutomationId="Providers.LmStudioCliPath" />
+                        <Button Grid.Column="1" Margin="8,0,0,0" Content="Обзор…" Command="{Binding BrowseLmStudioCliCommand}" AutomationProperties.AutomationId="Providers.BrowseLmStudioCli" />
+                    </Grid>
+                    <TextBlock Margin="0,8,0,2" Style="{StaticResource Text.Label}" Text="Путь к LM Studio.exe (необязательно)" />
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Settings.LmStudioApplicationPath, UpdateSourceTrigger=PropertyChanged}" ToolTip="Нужен, если приложение установлено не в стандартную папку" AutomationProperties.AutomationId="Providers.LmStudioApplicationPath" />
+                        <Button Grid.Column="1" Margin="8,0,0,0" Content="Обзор…" Command="{Binding BrowseLmStudioApplicationCommand}" AutomationProperties.AutomationId="Providers.BrowseLmStudioApplication" />
+                    </Grid>
+                    <TextBlock Margin="0,6,0,0" Style="{StaticResource Text.Secondary}" Text="{Binding InstallationPaths}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.InstallationPaths" />
+                    <Button Margin="0,6,0,4" HorizontalAlignment="Left" Style="{StaticResource Button.Ghost}" Content="Вернуть автоматический поиск" Command="{Binding ClearLocalAiPathsCommand}" AutomationProperties.AutomationId="Providers.ClearLocalAiPaths" />
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                        <Button Content="Получить модели" Command="{Binding DiscoverModelsCommand}" Margin="0,0,8,0" AutomationProperties.AutomationId="Providers.DiscoverModels" />
+                        <Button Content="Capability-test" Command="{Binding TestCapabilityCommand}" AutomationProperties.AutomationId="Providers.CapabilityTest" />
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="Chat Model ID" /><ComboBox ItemsSource="{Binding AvailableModels}" Text="{Binding PendingModelKey, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsTextSearchEnabled="True" AutomationProperties.AutomationId="Providers.ChatModel" /></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="STT Model ID" /><TextBox Text="{Binding Settings.SttModel}" AutomationProperties.AutomationId="Providers.SttModel" /></StackPanel>
+                    </Grid>
+                    <TextBlock Style="{StaticResource Text.Label}" Text="API key — DPAPI CurrentUser" />
+                    <PasswordBox components:PasswordBoxBinding.IsEnabled="True" components:PasswordBoxBinding.Password="{Binding ApiKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.ApiKey" />
+                    <Button Content="Проверить endpoint" Command="{Binding CheckEndpointCommand}" HorizontalAlignment="Left" AutomationProperties.AutomationId="Providers.CheckEndpoint" />
+                    <Border Background="{StaticResource Brush.SurfaceRaised}" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding CapabilityStatus}" TextWrapping="Wrap" Style="{StaticResource Text.Secondary}" AutomationProperties.AutomationId="Providers.CapabilityStatus" />
+                    </Border>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Облачное подключение" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="После явного разрешения HTTPS-провайдер может быть primary или fallback выбранной задачи." />
+                    <CheckBox Content="Разрешить облачные маршруты" IsChecked="{Binding Settings.AllowCloud}" AutomationProperties.AutomationId="Providers.AllowCloud" />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Cloud endpoint" />
+                    <TextBox Text="{Binding Settings.CloudEndpoint}" AutomationProperties.AutomationId="Providers.CloudEndpoint" />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Cloud model" />
+                    <TextBox Text="{Binding Settings.CloudModel}" AutomationProperties.AutomationId="Providers.CloudModel" />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Cloud API key — DPAPI CurrentUser" />
+                    <PasswordBox components:PasswordBoxBinding.IsEnabled="True" components:PasswordBoxBinding.Password="{Binding CloudApiKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.CloudApiKey" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Независимые маршруты" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Режим выбирается отдельно для каждой задачи. Профиль производительности не меняет выбранного провайдера." TextWrapping="Wrap" />
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0"><TextBlock Style="{StaticResource Text.Label}" Text="Speech-to-text" /><ComboBox SelectedIndex="{Binding Settings.SttProviderMode}" AutomationProperties.AutomationId="Providers.SttMode"><ComboBoxItem Content="Disabled" /><ComboBoxItem Content="Cloud" /><ComboBoxItem Content="Local" /><ComboBoxItem Content="Automatic" /><ComboBoxItem Content="Custom" /></ComboBox></StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="Chat / reasoning" /><ComboBox SelectedIndex="{Binding Settings.ChatProviderMode}" AutomationProperties.AutomationId="Providers.ChatMode"><ComboBoxItem Content="Disabled" /><ComboBoxItem Content="Cloud" /><ComboBoxItem Content="Local" /><ComboBoxItem Content="Automatic" /><ComboBoxItem Content="Custom" /></ComboBox></StackPanel>
+                        <StackPanel Grid.Row="1"><TextBlock Style="{StaticResource Text.Label}" Text="Vision" /><ComboBox SelectedIndex="{Binding Settings.VisionProviderMode}" AutomationProperties.AutomationId="Providers.VisionMode"><ComboBoxItem Content="Disabled" /><ComboBoxItem Content="Cloud" /><ComboBoxItem Content="Local" /><ComboBoxItem Content="Automatic" /><ComboBoxItem Content="Custom" /></ComboBox></StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="Text-to-speech" /><ComboBox SelectedIndex="{Binding Settings.TtsProviderMode}" AutomationProperties.AutomationId="Providers.TtsMode"><ComboBoxItem Content="Disabled" /><ComboBoxItem Content="Cloud" /><ComboBoxItem Content="Local" /><ComboBoxItem Content="Automatic" /><ComboBoxItem Content="Custom" /></ComboBox></StackPanel>
+                        <StackPanel Grid.Row="2"><TextBlock Style="{StaticResource Text.Label}" Text="Embeddings" /><ComboBox SelectedIndex="{Binding Settings.EmbeddingsProviderMode}" AutomationProperties.AutomationId="Providers.EmbeddingsMode"><ComboBoxItem Content="Disabled" /><ComboBoxItem Content="Cloud" /><ComboBoxItem Content="Local" /><ComboBoxItem Content="Automatic" /><ComboBoxItem Content="Custom" /></ComboBox></StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Surface.Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Производительность" />
+                    <TextBlock Margin="0,4,0,10" Style="{StaticResource Text.Secondary}" Text="Профиль ограничивает ресурсоёмкие возможности при нагрузке, но не выбирает local/cloud." />
+                    <ComboBox SelectedIndex="{Binding Settings.PerformanceProfile}" AutomationProperties.AutomationId="Providers.PerformanceProfile">
+                        <ComboBoxItem Content="CloudLite" /><ComboBoxItem Content="Balanced" /><ComboBoxItem Content="LocalHybrid" /><ComboBoxItem Content="Custom" />
+                    </ComboBox>
+                    <TextBlock Margin="0,10,0,2" Style="{StaticResource Text.Label}" Text="Профиль локального AI" />
+                    <ComboBox SelectedIndex="{Binding Settings.LocalAiPerformanceProfile}" AutomationProperties.AutomationId="Providers.LocalAiPerformanceProfile">
+                        <ComboBoxItem Content="Компактный — меньше контекста и задержка" />
+                        <ComboBoxItem Content="Сбалансированный — рекомендуется" />
+                        <ComboBoxItem Content="Качество — больше контекста и времени" />
+                        <ComboBoxItem Content="Пользовательский" />
+                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Button.Primary}" Content="Сохранить и применить" Command="{Binding SaveSettingsCommand}" Margin="0,6,0,6" AutomationProperties.AutomationId="Providers.Save" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

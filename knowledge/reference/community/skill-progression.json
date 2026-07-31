@@ -1,0 +1,26 @@
+{
+  "schemaVersion":1,"trust":"community-confirmed","source":"player-created skill table","capturedAt":"2026-07-13",
+  "timeFields":"hours; regular/platinum VIP",
+  "skills":[
+    {"name":"Сила","actionsPerLevel":[100,200,300,400,500],"timeTo60Percent":"12/6","timeToLevel5":"30/15","benefits":"Рельеф мышц; +4% скорости бега и плавания за уровень; быстрее копание, лестницы и дольше дыхание под водой."},
+    {"name":"Стрельба","actionsPerLevel":[5,5,5,5,5,15,15,15,20],"timeTo60Percent":"60/30","timeToMaximum":"160/80","benefits":"Меньше разброс, доступ к двум стилям стрельбы из пистолетов."},
+    {"name":"Кулинария","actionsPerLevel":[50,100,150,200,250],"timeTo60Percent":"1/0.5","timeToLevel5":"2/1","benefits":"Новые блюда на каждом уровне."},
+    {"name":"Рыболовство","actionsPerLevel":[25,75,200,400,600,1000],"timeTo60Percent":"6/3","timeToMaximum":"16/8","benefits":"На 3–6 уровнях открываются новые виды рыб."},
+    {"name":"Охота","actionsPerLevel":[100,150,200,250,300],"timeTo60Percent":"60/30","timeToLevel5":"150/75","benefits":"Выше минимальное качество шкур и шанс сохранить нож."},
+    {"name":"Поиск сокровищ","actionsPerLevel":[100,200,300,400,500],"timeTo60Percent":"130/65","timeToLevel5":"350/170","benefits":"Меньше шанс хлама и +10% к цене скупщика за уровень."},
+    {"name":"Фермерство","actionsPerLevel":[500,750,1000,1000,1500],"timeTo60Percent":"28/14","timeToLevel5":"64/32","benefits":"2: трактор для прополки; 3: пшеница и комбайн; 5: самолёт для распыления."},
+    {"name":"Строитель","actionsPerLevel":[1500,2250,3000,3750,4500],"timeTo60Percent":"26/13","timeToLevel5":"56/28","benefits":"Оплата растёт; с 3 уровня доступен грузоподъёмник."},
+    {"name":"Шахтёр","actionsPerLevel":[1000,1500,2000,2500,3000],"timeTo60Percent":"32/16","timeToLevel5":"68/34","benefits":"Оплата растёт; с 3 уровня доступен бульдозер."},
+    {"name":"Порт","actionsPerLevel":[1500,2250,3000,3750,4500],"timeTo60Percent":"28/14","timeToLevel5":"60/30","benefits":"Оплата растёт; с 3 уровня доступен контейнерный погрузчик."},
+    {"name":"Таксист","actionsPerLevel":[100,200,300,400,500],"timeTo60Percent":"80/40","timeToLevel5":"200/100","benefits":"Улучшение рабочего транспорта по уровням; 5 уровень — Benefactor S-series W223."},
+    {"name":"Дайвер","actionsPerLevel":[85,170,255,340,425],"timeTo60Percent":"24/12","timeToLevel5":"60/30","benefits":"Оплата растёт; 3 уровень — лодка Sandy Shores; 5 — батискаф."},
+    {"name":"Инкассатор","actionsPerLevel":[40,80,120,160,200],"timeTo60Percent":"32/16","timeToLevel5":"80/40","benefits":"Оплата растёт."},
+    {"name":"Водитель автобуса","actionsPerLevel":[35,75,105,135,175],"timeTo60Percent":"26/13","timeToLevel5":"64/32","benefits":"Оплата растёт, открываются маршруты."},
+    {"name":"Механик","actionsPerLevel":[40,80,120,160,200],"timeTo60Percent":"26/13","timeToLevel5":"64/32","benefits":"Постепенное улучшение рабочего авто; 5 уровень — эвакуатор."},
+    {"name":"Пожарный","actionsPerLevel":[250,500,750,1000,1250],"timeTo60Percent":"24/12","timeToLevel5":"56/28","benefits":"Оплата растёт."},
+    {"name":"Дальнобойщик","actionsPerLevel":[40,80,120,160,200],"timeTo60Percent":"40/20","timeToLevel5":"100/50","benefits":"Оплата растёт."},
+    {"name":"Курьер","actionsPerLevel":[100,200,300,400,500],"timeTo60Percent":"60/30","timeToLevel5":"140/70","benefits":"Оплата растёт; 5 уровень — нумерация оптимального маршрута."},
+    {"name":"Почтальон","actionsPerLevel":[140,280,420,560,700],"timeTo60Percent":"14/7","timeToLevel5":"32/16","benefits":"+100$ за посылки на почте за уровень; 5 уровень — личный велосипед или мотоцикл."},
+    {"name":"Подрядчик","actionsPerLevel":[10,20,30,40,50],"timeTo60Percent":"120/60","timeToLevel5":"300/150","benefits":"+2% к шансу закрыть контракт за уровень."}
+  ]
+}

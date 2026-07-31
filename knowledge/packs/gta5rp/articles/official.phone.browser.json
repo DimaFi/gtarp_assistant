@@ -1,0 +1,14 @@
+{
+  "id":"official.phone.browser","project":"gta5rp","serverScope":["all"],"title":"Внутриигровой браузер и DASH","category":"phone","mechanic":"browser",
+  "aliases":["браузер","внутриигровой интернет","dash","создать сайт","купить домен","database gov","биография сайт"],
+  "summary":"Браузер открывает игровые сайты, а DASH позволяет создавать страницы, привязывать домены и обрабатывать формы.",
+  "facts":[
+    {"id":"official.phone.browser.fact.1","text":"Браузер телефона работает только с внутриигровым интернетом; на главной доступны важные серверные сайты, Forbes, DASH и законодательная база.","verified":true},
+    {"id":"official.phone.browser.fact.2","text":"Database.gov доступен сотрудникам государственных структур и содержит поиск правонарушителей и публикацию государственных новостей по правам доступа.","verified":true},
+    {"id":"official.phone.browser.fact.3","text":"DASH создаёт сайты из шаблона или с нуля; для публичного сайта нужна хотя бы одна страница и привязанный домен.","verified":true},
+    {"id":"official.phone.browser.fact.4","text":"Сайт с заголовком Биография доступен без покупки домена по адресу никнейм.bio и номер_паспорта.bio.","verified":true},
+    {"id":"official.phone.browser.fact.5","text":"Домены управляются в DASH: их можно пополнять для налога, передавать игроку и продавать через специальный раздел 5VITO.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как опубликовать сайт в dash","answer":"Создайте минимум одну страницу и привяжите к сайту домен — без обоих условий публикация недоступна."},{"questionPattern":"нужен ли домен для биографии","answer":"Нет, сайт с заголовком Биография получает адреса никнейм.bio и номер_паспорта.bio автоматически."}],
+  "source":{"title":"GTA5RP Wiki — Браузер","url":"https://wiki.gta5rp.com/docs/phone/browser"},"version":1,"updatedAt":"2026-05-03T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

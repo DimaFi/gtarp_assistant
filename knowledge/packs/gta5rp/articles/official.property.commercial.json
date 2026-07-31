@@ -1,0 +1,13 @@
+{
+  "id":"official.property.commercial","project":"gta5rp","serverScope":["all"],"title":"Коммерческая недвижимость","category":"property","mechanic":"commercial-property",
+  "aliases":["коммерческая недвижимость","коммерческое помещение","склад","теплица","лаборатория","аренда склада"],
+  "summary":"Через GPS можно арендовать одно коммерческое помещение и оборудовать его как склад, теплицу или лабораторию.",
+  "facts":[
+    {"id":"official.property.commercial.fact.1","text":"На карте пять точек аренды коммерческих помещений; найти их можно через Телефон → GPS, одновременно игрок арендует только одно помещение.","verified":true},
+    {"id":"official.property.commercial.fact.2","text":"При аренде выбирается один тип оборудования: склад, теплица или лаборатория.","verified":true},
+    {"id":"official.property.commercial.fact.3","text":"Склад доступен всем: стартовая вместимость 100 ячеек, расширение проходит в пять этапов до 600 ячеек.","verified":true},
+    {"id":"official.property.commercial.fact.4","text":"Теплица доступна только членам банд, а лаборатория — только членам мафий.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"сколько коммерческих помещений можно арендовать","answer":"Одновременно можно арендовать и оборудовать только одно коммерческое помещение."},{"questionPattern":"какой размер склада","answer":"Склад начинается со 100 ячеек и расширяется в пять этапов до 600."}],
+  "source":{"title":"GTA5RP Wiki — Коммерческая недвижимость","url":"https://wiki.gta5rp.com/docs/real-estate/commercials"},"version":1,"updatedAt":"2026-05-04T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

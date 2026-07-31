@@ -1,0 +1,25 @@
+{
+  "id": "official.clubs.car-meet-perks",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Перки Car Meet",
+  "category": "clubs",
+  "mechanic": "car-meet-perks",
+  "aliases": ["перки car meet", "перки автоклуба", "что дают ранги car meet", "скидка car meet", "диностенд", "автоматические ремни"],
+  "summary": "Привилегии пяти рангов автоклуба Car Meet.",
+  "facts": [
+    { "id": "official.clubs.car-meet-perks.fact.1", "text": "Первый ранг открывает Car Meet как место спавна и доступ к диностенду для замера скорости и мощности транспорта.", "verified": true },
+    { "id": "official.clubs.car-meet-perks.fact.2", "text": "Второй ранг открывает навык управления автомобилем и автоматическое пристёгивание ремней при посадке.", "verified": true },
+    { "id": "official.clubs.car-meet-perks.fact.3", "text": "Третий ранг открывает эксклюзивную одежду и настройку степени потери сцепления через стабилизацию.", "verified": true },
+    { "id": "official.clubs.car-meet-perks.fact.4", "text": "Четвёртый ранг даёт скидку 50% на эвакуацию и доставку личного автомобиля к ближайшей дороге раз в час.", "verified": true },
+    { "id": "official.clubs.car-meet-perks.fact.5", "text": "Пятый ранг даёт скидку 20% на установку и снятие модификаций, снижает аукционную комиссию за автомобили на 50% и открывает покупку эксклюзивных дрифт-автомобилей.", "verified": true }
+  ],
+  "preparedAnswers": [],
+  "source": { "title": "GTA5RP Wiki — Car Meet", "url": "https://wiki.gta5rp.com/docs/clubs/car-meet" },
+  "version": 1,
+  "updatedAt": "2026-05-19T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

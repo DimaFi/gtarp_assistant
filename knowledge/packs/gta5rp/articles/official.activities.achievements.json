@@ -1,0 +1,29 @@
+{
+  "id": "official.activities.achievements",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Достижения",
+  "category": "activities",
+  "mechanic": "achievements",
+  "aliases": ["достижения", "ачивки", "список достижений", "дружелюбный сосед", "игровой маньяк", "король дорог", "профессиональный ловец"],
+  "summary": "Где посмотреть достижения и официально раскрытые условия популярных достижений.",
+  "facts": [
+    { "id": "official.activities.achievements.fact.1", "text": "Список достижений находится в F10 → Достижения; часть достижений скрыта, а недоступные вынесены в отдельный перечень внизу страницы.", "verified": true },
+    { "id": "official.activities.achievements.fact.2", "text": "Администрация не раскрывает способы выполнения всех достижений, поэтому у части достижений официальное условие не указано.", "verified": true },
+    { "id": "official.activities.achievements.fact.3", "text": "Для достижения «Дружелюбный сосед» нужно пожать руку незнакомцам 1000 раз.", "verified": true },
+    { "id": "official.activities.achievements.fact.4", "text": "Для достижения «Игровой маньяк» нужно отыграть на сервере 15 часов за один день; отсчёт дня начинается в 07:00 МСК.", "verified": true },
+    { "id": "official.activities.achievements.fact.5", "text": "Для достижения «Король дорог» нужно выполнить 100 перевозок груза, работая дальнобойщиком.", "verified": true },
+    { "id": "official.activities.achievements.fact.6", "text": "Для достижения «Профессиональный ловец» нужно поймать 2000 рыб.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "где посмотреть достижения", "answer": "Откройте F10 → Достижения. Скрытые достижения не показываются в общем списке, а недоступные находятся в отдельном перечне внизу страницы." },
+    { "questionPattern": "как получить достижение король дорог", "answer": "Для достижения «Король дорог» выполните 100 перевозок груза, работая дальнобойщиком." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Достижения", "url": "https://wiki.gta5rp.com/docs/activities/achievements" },
+  "version": 1,
+  "updatedAt": "2026-05-21T00:00:00Z",
+  "validUntil": "2026-10-18T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

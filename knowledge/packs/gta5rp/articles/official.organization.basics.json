@@ -1,0 +1,28 @@
+{
+  "id": "official.organization.basics",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Неофициальная организация: создание и офис",
+  "category": "organization",
+  "mechanic": "organization_basics",
+  "aliases": ["как создать организацию", "как создать семью", "где зарегистрировать организацию", "офис организации", "зарплата организации", "слоты организации"],
+  "summary": "Организация регистрируется у Хэмфри в мэрии; офис нужен для склада, контрактов, магазина репутации и войны семей.",
+  "facts": [
+    { "id": "official.organization.basics.fact.1", "text": "Организация регистрируется у NPC Хэмфри в мэрии Лос-Сантоса; стоимость — 2 000 DP или 800 000$.", "verified": true },
+    { "id": "official.organization.basics.fact.2", "text": "В организации доступно до 20 групп с отдельными правами и зарплатой; максимальное расширение состава — 250 участников.", "verified": true },
+    { "id": "official.organization.basics.fact.3", "text": "Зарплата групп выплачивается в PayDay со счёта организации; если денег не хватает всем онлайн-участникам, выплата не производится никому.", "verified": true },
+    { "id": "official.organization.basics.fact.4", "text": "Офис обязателен для доступа к складу, магазину репутации, контрактам и войне семей.", "verified": true },
+    { "id": "official.organization.basics.fact.5", "text": "Организацию с имуществом распустить нельзя; при роспуске организации без имущества остаток банковского счёта переводится лидеру.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как создать организацию", "answer": "Найдите NPC Хэмфри в мэрии Лос-Сантоса. Регистрация стоит 2 000 DP или 800 000$." },
+    { "questionPattern": "зачем нужен офис организации", "answer": "Офис открывает склад, магазин репутации, контракты и войну семей." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Неофициальные организации", "url": "https://wiki.gta5rp.com/docs/inf-org/basics" },
+  "version": 1,
+  "updatedAt": "2026-07-07T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

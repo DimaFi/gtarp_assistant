@@ -1,0 +1,26 @@
+{
+  "id": "official.clubs.bikers-activities",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Активности мотоклубов",
+  "category": "clubs",
+  "mechanic": "bikers-activities",
+  "aliases": ["задания мотоклуба", "мотопробег", "топливо для души", "покорение вершин", "где купить алкоголь мотоклуб", "флаг мотоклуба"],
+  "summary": "Задания «Топливо для души», «Покорение вершин» и условия мотопробега.",
+  "facts": [
+    { "id": "official.clubs.bikers-activities.fact.1", "text": "Для задания «Топливо для души» купите 5 бутылок: саке в Oriental, арарат в Comedy Club, бароло в Bahama Mamas, медовуху в Vanilla Unicorn, текилу в Galaxy или ром в Cayo Perico Club — точный напиток указан в F10 → Задания.", "verified": true },
+    { "id": "official.clubs.bikers-activities.fact.2", "text": "Для «Покорения вершин» нужны 5 членов любого мотоклуба и флаг у бармена за 1 000$; флаг при установке должен лежать в инвентаре.", "verified": true },
+    { "id": "official.clubs.bikers-activities.fact.3", "text": "Мотопробег проводится раз в день и требует минимум 10 участников на мотоциклах с учётом пассажиров; за один пробег можно получить максимум 60 EXP.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "где купить алкоголь для топливо для души", "answer": "Саке продаётся в Oriental, арарат — в Comedy Club, бароло — в Bahama Mamas, медовуха — в Vanilla Unicorn, текила — в Galaxy, ром — в Cayo Perico Club." },
+    { "questionPattern": "сколько людей нужно для мотопробега", "answer": "Для мотопробега нужны минимум 10 участников на мотоциклах; пассажиры тоже учитываются." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Мотоклубы", "url": "https://wiki.gta5rp.com/docs/clubs/bikers" },
+  "version": 1,
+  "updatedAt": "2026-05-06T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

@@ -1,0 +1,13 @@
+{
+  "id":"official.property.apartment","project":"gta5rp","serverScope":["all"],"title":"Квартиры","category":"property","mechanic":"apartment",
+  "aliases":["квартира","апартаменты","купить квартиру","налог на квартиру","меню квартиры","аренда квартиры"],
+  "summary":"Квартира управляется через Телефон → Апартаменты; свободные варианты можно посмотреть у входов в апартаменты.",
+  "facts":[
+    {"id":"official.property.apartment.fact.1","text":"Меню квартиры открывается через Телефон → Апартаменты, а купленная квартира отмечается на карте.","verified":true},
+    {"id":"official.property.apartment.fact.2","text":"Налог обычно оплачивается максимум на 7 дней, с Gold или Platinum VIP — на 30; при неоплате квартира слетает. Через телефон комиссия 10%, в банке комиссии нет.","verified":true},
+    {"id":"official.property.apartment.fact.3","text":"Меню квартиры управляет дверями, ремонтом, мебелью, хранилищами, гаражом, жильцами, обменом и продажей государству за 50% госстоимости.","verified":true},
+    {"id":"official.property.apartment.fact.4","text":"Свободные квартиры показываются у входа в отмеченные на карте апартаменты; квартиру можно осмотреть до покупки и сдавать в аренду через 5VITO.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как оплатить налог на квартиру","answer":"Оплатите через Телефон → Банк с комиссией 10% или в отделении банка без комиссии."},{"questionPattern":"где купить квартиру","answer":"Найдите зелёную точку Апартаменты на карте, нажмите E у входа и выберите свободную квартиру."}],
+  "source":{"title":"GTA5RP Wiki — Квартиры","url":"https://wiki.gta5rp.com/docs/real-estate/apartment"},"version":1,"updatedAt":"2026-07-10T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

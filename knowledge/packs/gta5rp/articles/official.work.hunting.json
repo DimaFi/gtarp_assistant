@@ -1,0 +1,20 @@
+{
+  "id": "official.work.hunting", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Охота", "category": "work", "mechanic": "hunting",
+  "aliases": ["охота", "как охотиться", "лицензия на охоту", "охотничье ружье", "нож для свежевания", "где продать шкуры", "скупщик шкур"],
+  "summary": "Для полноценной охоты нужны оружейная и охотничья лицензии, охотничье ружьё, патроны, нож и бинокль; шкуры сдаёт скупщик в Гранд-Сеноре.",
+  "facts": [
+    { "id": "official.work.hunting.fact.1", "text": "Для охоты нужны лицензии на оружие и охоту, охотничье ружьё с патронами 12mm, нож для свежевания и бинокль.", "verified": true },
+    { "id": "official.work.hunting.fact.2", "text": "Без охотничьей лицензии добывать животных можно, но скупщик не примет шкуры.", "verified": true },
+    { "id": "official.work.hunting.fact.3", "text": "Животные встречаются вдоль реки Занкудо, на Кайо-Перико и в других зонах; искать их следует с биноклем.", "verified": true },
+    { "id": "official.work.hunting.fact.4", "text": "Выстрел охотничьим ружьём в голову с первого раза сохраняет целостность шкуры; после добычи нажмите E, имея нож в инвентаре.", "verified": true },
+    { "id": "official.work.hunting.fact.5", "text": "Шкуры сдаёт NPC в пустыне Гранд-Сенора: Телефон → GPS → Скупщик шкур. Каждые потерянные 10% целостности уменьшают стоимость на 10%.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для охоты", "answer": "Нужны оружейная и охотничья лицензии, охотничье ружьё, патроны 12mm, нож для свежевания и бинокль." },
+    { "questionPattern": "где продать шкуры", "answer": "Откройте Телефон → GPS → Скупщик шкур; NPC находится в пустыне Гранд-Сенора." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Охота", "url": "https://wiki.gta5rp.com/docs/special-work/hunting" },
+  "version": 1, "updatedAt": "2026-05-21T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

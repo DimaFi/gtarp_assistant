@@ -1,0 +1,62 @@
+<Window x:Class="GtaRpAssistant.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GTA RP Assistant"
+        Height="760" Width="1060" MinHeight="620" MinWidth="900"
+        Background="{DynamicResource Brush.Background}"
+        Foreground="{DynamicResource Brush.TextPrimary}"
+        FontFamily="Segoe UI"
+        AutomationProperties.AutomationId="Window.Main"
+        AutomationProperties.Name="GTA RP Assistant"
+        WindowStartupLocation="CenterScreen"
+        Loaded="OnLoaded">
+    <Grid x:Name="CaptureRoot" Background="{DynamicResource Brush.Background}">
+    <Grid Margin="{StaticResource Space.Window}">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Grid x:Name="HeaderRegion" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock Style="{StaticResource Text.Display}" FontSize="24" Text="GTA RP Assistant" VerticalAlignment="Center" />
+            <Border Grid.Column="1" Style="{StaticResource Status.Pill}" VerticalAlignment="Center">
+                <TextBlock Text="{Binding AppStatus}" Foreground="{DynamicResource Brush.Success}" FontSize="12" FontWeight="SemiBold"
+                           AutomationProperties.AutomationId="Status.Application" />
+            </Border>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="184" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Border x:Name="NavigationRegion" Style="{StaticResource Surface.Navigation}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="8,12,8,4">
+                        <TextBlock Style="{StaticResource Text.Caption}" Text="CTRL + ALT" />
+                        <TextBlock Margin="0,5,0,0" Style="{StaticResource Text.Caption}"
+                                   Text="Q  Оверлей  ·  A  Голос&#x0a;S  Vision     ·  P  Пауза" LineHeight="19" />
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding NavigationItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource Navigation.Button}" Command="{Binding SelectCommand}"
+                                        AutomationProperties.AutomationId="{Binding Id, StringFormat=Navigation.{0}}"
+                                        AutomationProperties.Name="{Binding Title}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" FontWeight="SemiBold" Text="{Binding Symbol}" />
+                                        <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" FontWeight="SemiBold" Text="{Binding Title}" />
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+            <ContentControl x:Name="FeatureHost" Grid.Column="2" Content="{Binding SelectedPage}"
+                            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                            AutomationProperties.AutomationId="Shell.FeatureHost" />
+        </Grid>
+        <Grid x:Name="FooterRegion" Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <TextBlock VerticalAlignment="Center" Style="{StaticResource Text.Caption}" Text="Локальная обработка · cloud только с разрешения" />
+            <Button Grid.Column="1" Style="{StaticResource Button.Ghost}" Margin="8,0,0,0" Content="Пауза · Ctrl+Alt+P"
+                    Command="{Binding TogglePauseCommand}" AutomationProperties.AutomationId="Action.TogglePause" />
+        </Grid>
+    </Grid>
+    </Grid>
+</Window>

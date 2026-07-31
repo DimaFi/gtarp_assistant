@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision", "intent", "presentationType", "title", "message", "usedFactIds", "evidenceTranscriptIds", "confidence", "needsVisualContext", "needsSmartModel"],
+  "properties": {
+    "decision": { "enum": ["show", "clarify", "abstain", "escalate"] },
+    "intent": { "enum": ["possible_robbery", "possible_police_stop", "rule_question", "mechanic_question", "none", "unknown"] },
+    "presentationType": { "enum": ["rule_warning", "next_step", "mechanic_help", "context_answer"] },
+    "title": { "type": "string", "maxLength": 80 },
+    "message": { "type": "string", "maxLength": 350 },
+    "usedFactIds": { "type": "array", "items": { "type": "string" }, "maxItems": 8, "uniqueItems": true },
+    "evidenceTranscriptIds": { "type": "array", "items": { "type": "string" }, "maxItems": 6, "uniqueItems": true },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "needsVisualContext": { "type": "boolean" },
+    "needsSmartModel": { "type": "boolean" }
+  }
+}

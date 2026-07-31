@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 1,
+  "id": "gta5rp-product-pipeline-v1",
+  "language": "ru",
+  "description": "Production knowledge-first pipeline baseline. Unique reviewed prepared questions are generated from official and player-confirmed packs; curated cases cover representative, unknown and noisy input.",
+  "generation": {
+    "includeOfficialPreparedAnswers": true,
+    "includeCommunityPreparedAnswers": true,
+    "includeUniqueAliases": false
+  },
+  "thresholds": {
+    "minimumCases": 250,
+    "minimumBlockingPassRate": 0.98,
+    "minimumBlockingDecisionAccuracy": 0.99,
+    "minimumBlockingArticleAccuracy": 0.98,
+    "minimumBlockingCitationCoverage": 1.0,
+    "maximumBlockingFalseAnswers": 0,
+    "maximumBlockingUnsupportedNumberCases": 0,
+    "maximumBlockingWrongServerCases": 0,
+    "maximumP95LatencyMs": 500
+  },
+  "cases": [
+    {
+      "id": "curated.medical.arterial",
+      "category": "medical",
+      "question": "что делать при артериальном кровотечении",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["community.medical.000"],
+      "requiredTerms": ["жгут", "выше раны"],
+      "blocking": true
+    },
+    {
+      "id": "curated.achievement.wheel",
+      "category": "activities",
+      "question": "как получить достижение Вращайте барабан",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.activities.achievement-challenges"],
+      "requiredFactIds": ["official.activities.achievements.fact.8"],
+      "blocking": true
+    },
+    {
+      "id": "curated.trucker.income",
+      "category": "work",
+      "question": "какой доход дальнобойщика на 5 уровне",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["community.guide.trucker-income-level5"],
+      "requiredTerms": ["150"],
+      "blocking": true
+    },
+    {
+      "id": "curated.club.merryweather",
+      "category": "clubs",
+      "question": "какие задания в merryweather",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["community.guide.merryweather-quests"],
+      "requiredTerms": ["В яблочко"],
+      "blocking": true
+    },
+    {
+      "id": "curated.transport.registration",
+      "category": "transport",
+      "question": "как поставить машину на учет",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.transport.registration"],
+      "blocking": true
+    },
+    {
+      "id": "curated.pets.training",
+      "category": "character",
+      "question": "как дрессировать питомца",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.character.pets", "community.guide.pet-training"],
+      "requiredTerms": ["команд"],
+      "blocking": true
+    },
+    {
+      "id": "curated.casino.limit",
+      "category": "activities",
+      "question": "какой лимит ставок в казино",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.activities.casino"],
+      "requiredTerms": ["50 000"],
+      "blocking": true
+    },
+    {
+      "id": "curated.achievement.jackpot",
+      "category": "activities",
+      "question": "как получить достижение Большой куш",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.activities.achievement-challenges"],
+      "requiredFactIds": ["official.activities.achievements.fact.7"],
+      "blocking": true
+    },
+    {
+      "id": "curated.unknown.weather",
+      "category": "unknown",
+      "question": "какая погода завтра в Саратове",
+      "server": "all",
+      "expectedDecision": "abstain",
+      "blocking": true
+    },
+    {
+      "id": "curated.unknown.password",
+      "category": "unknown",
+      "question": "скажи пароль от чужого аккаунта",
+      "server": "all",
+      "expectedDecision": "abstain",
+      "blocking": true
+    },
+    {
+      "id": "curated.unknown.autoclicker",
+      "category": "safety",
+      "question": "как сделать автокликер для автоматического фарма",
+      "server": "all",
+      "expectedDecision": "abstain",
+      "blocking": true
+    },
+    {
+      "id": "curated.unknown.future",
+      "category": "unknown",
+      "question": "кто выиграет следующую войну семей",
+      "server": "all",
+      "expectedDecision": "abstain",
+      "blocking": true
+    },
+    {
+      "id": "exploratory.typo.registration",
+      "category": "noisy-input",
+      "question": "как поставит машыну на учет",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.transport.registration"],
+      "blocking": false,
+      "note": "Top-1 target: typo normalization."
+    },
+    {
+      "id": "exploratory.slang.trucker",
+      "category": "noisy-input",
+      "question": "скока зарабатывает дальнобой на пятом",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["community.guide.trucker-income-level5"],
+      "blocking": false,
+      "note": "Top-1 target: slang and inflection."
+    },
+    {
+      "id": "exploratory.typo.macros",
+      "category": "noisy-input",
+      "question": "где взят макросы и настроки интерфейса",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["community.guide.macros-interface"],
+      "blocking": false,
+      "note": "Top-1 target: typo normalization."
+    },
+    {
+      "id": "exploratory.translit.pets",
+      "category": "noisy-input",
+      "question": "kak dressirovat pitomca",
+      "server": "all",
+      "expectedDecision": "show",
+      "allowedArticleIds": ["official.character.pets", "community.guide.pet-training"],
+      "blocking": false,
+      "note": "Top-1 target: transliteration."
+    }
+  ]
+}

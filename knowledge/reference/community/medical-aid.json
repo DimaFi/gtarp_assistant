@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "trust": "community-confirmed",
+  "source": "player-supplied medical cheat sheet",
+  "capturedAt": "2026-07-13",
+  "treatments": [
+    {"condition":"Артериальное кровотечение","treatment":"Жгут выше раны"},
+    {"condition":"Венозное кровотечение","treatment":"Жгут ниже раны"},
+    {"condition":"Вывих","treatment":"Наложить шину"},
+    {"condition":"Кислотный ожог","treatment":"Щелочной раствор"},
+    {"condition":"Недостаточность","treatment":"Таблетка"},
+    {"condition":"Обморожение","treatment":"Тепло"},
+    {"condition":"Огнестрельная рана","treatment":"Антисептическая повязка"},
+    {"condition":"Перелом","treatment":"Наложить шину"},
+    {"condition":"Рана","treatment":"Антисептическая повязка"},
+    {"condition":"Растяжение","treatment":"Тугая повязка"},
+    {"condition":"Термический ожог","treatment":"Холодный компресс"},
+    {"condition":"Ушиб","treatment":"Лёд или холодный компресс"},
+    {"condition":"Щелочной ожог","treatment":"Кислый раствор"}
+  ]
+}

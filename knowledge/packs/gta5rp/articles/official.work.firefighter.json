@@ -1,0 +1,20 @@
+{
+  "id": "official.work.firefighter", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа пожарным", "category": "work", "mechanic": "firefighter",
+  "aliases": ["пожарный", "работа пожарным", "fire department", "как начать пожарного", "требования пожарного", "как заправить пожарную машину"],
+  "summary": "Для пожарного нужны 10 уровень, военный билет, отсутствие варнов и госфракции; вызовы выбираются через Телефон → Fire Department.",
+  "facts": [
+    { "id": "official.work.firefighter.fact.1", "text": "Для работы пожарным нужны минимум 10 уровень, военный билет, отсутствие действующих варнов и отсутствие членства в государственной фракции.", "verified": true },
+    { "id": "official.work.firefighter.fact.2", "text": "В пожарной части переоденьтесь на жёлтом маркере, откройте свободную машину через G → Открыть или L и заведите её клавишей 2.", "verified": true },
+    { "id": "official.work.firefighter.fact.3", "text": "Перед вызовом заправьте машину водой через G → Работа → Заправить водой; без воды доступен только более медленный огнетушитель.", "verified": true },
+    { "id": "official.work.firefighter.fact.4", "text": "Вызовы выбираются через Телефон → Fire Department; оплата поступает на банковский счёт после тушения всех очагов.", "verified": true },
+    { "id": "official.work.firefighter.fact.5", "text": "Для завершения смены вернитесь в пожарную часть, припаркуйте машину и переоденьтесь на жёлтом маркере.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для работы пожарным", "answer": "Нужны минимум 10 уровень, военный билет, отсутствие варнов и членства в государственной фракции." },
+    { "questionPattern": "где взять вызов пожарного", "answer": "Во время смены откройте Телефон → Fire Department и выберите вызов." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Пожарный", "url": "https://wiki.gta5rp.com/docs/special-work/firefighter" },
+  "version": 1, "updatedAt": "2026-05-06T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

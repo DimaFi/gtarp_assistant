@@ -1,0 +1,13 @@
+{
+  "id":"official.transport.registration","project":"gta5rp","serverScope":["all"],"title":"Регистрация транспорта","category":"transport","mechanic":"vehicle-registration",
+  "aliases":["регистрация машины","поставить авто на учет","номерной знак","учет транспорта","доверенность на машину","снять с учета"],
+  "summary":"Сначала купите и установите номер возле LSPD, затем зарегистрируйте транспорт у NPC или сотрудника LSPD.",
+  "facts":[
+    {"id":"official.transport.registration.fact.1","text":"Точка регистрации находится через Телефон → GPS → Учёт транспортных средств на стоянке возле LSPD.","verified":true},
+    {"id":"official.transport.registration.fact.2","text":"Перед регистрацией купите у NPC номерной знак и установите его на транспорт; новый номер автоматически удаляет старую регистрацию.","verified":true},
+    {"id":"official.transport.registration.fact.3","text":"Поставить транспорт на учёт можно у NPC возле LSPD за 2 500$ или через сотрудника LSPD за 500$.","verified":true},
+    {"id":"official.transport.registration.fact.4","text":"Доверенность оформляется у NPC только на зарегистрированный транспорт и не заменяет ключ, необходимый для управления.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как поставить машину на учет","answer":"Купите и установите номер у NPC возле LSPD, затем зарегистрируйте авто там же или через сотрудника LSPD."},{"questionPattern":"заменяет ли доверенность ключ","answer":"Нет. Доверенность даёт отдельные полномочия, но для управления машиной всё равно нужен ключ."}],
+  "source":{"title":"GTA5RP Wiki — Регистрация транспорта","url":"https://wiki.gta5rp.com/docs/transport/registration"},"version":1,"updatedAt":"2026-05-06T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

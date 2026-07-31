@@ -1,0 +1,30 @@
+{
+  "id": "official.clubs.car-meet",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Автоклуб Car Meet",
+  "category": "clubs",
+  "mechanic": "car-meet",
+  "aliases": ["car meet", "кар мит", "автоклуб", "как вступить в car meet", "ранги car meet", "репутация car meet"],
+  "summary": "Требования, ранговая система и способы получения репутации в Car Meet.",
+  "facts": [
+    { "id": "official.clubs.car-meet.fact.1", "text": "Car Meet находится под землёй в промышленном районе Сайпресс-Флэтс; для вступления нужен 10-й уровень персонажа.", "verified": true },
+    { "id": "official.clubs.car-meet.fact.2", "text": "При выходе из Car Meet весь достигнутый ранговый прогресс теряется.", "verified": true },
+    { "id": "official.clubs.car-meet.fact.3", "text": "В Car Meet пять рангов, и для каждого следующего ранга требуется 1 000 репутации.", "verified": true },
+    { "id": "official.clubs.car-meet.fact.9", "text": "Для ежедневной гонки Car Meet нужны минимум 4 игрока и дистанция от 5 км; доступно до 10 гонок в день, награда составляет от 6 до 12 репутации по месту.", "verified": true },
+    { "id": "official.clubs.car-meet.fact.10", "text": "Квесты выдаёт Организатор раз в 2 часа после завершения предыдущего; награда — 10 репутации или 20 с Platinum VIP.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для вступления в car meet", "answer": "Для вступления в Car Meet нужен 10-й уровень персонажа; клуб находится под землёй в Сайпресс-Флэтс." },
+    { "questionPattern": "сколько рангов в car meet", "answer": "В Car Meet пять рангов, на каждый требуется 1 000 репутации." },
+    { "questionPattern": "как получать репутацию car meet", "answer": "Репутация выдаётся за ежедневные гонки и квесты Организатора; квест доступен раз в 2 часа и даёт 10 репутации или 20 с Platinum VIP." },
+    { "questionPattern": "что будет если выйти из car meet", "answer": "При выходе из Car Meet весь достигнутый ранговый прогресс теряется." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Car Meet", "url": "https://wiki.gta5rp.com/docs/clubs/car-meet" },
+  "version": 1,
+  "updatedAt": "2026-05-19T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

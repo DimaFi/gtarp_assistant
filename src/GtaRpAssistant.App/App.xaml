@@ -1,0 +1,19 @@
+﻿<Application x:Class="GtaRpAssistant.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:GtaRpAssistant.App"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DesignSystem/Tokens/Colors.xaml" />
+                <ResourceDictionary Source="DesignSystem/Tokens/Metrics.xaml" />
+                <ResourceDictionary Source="DesignSystem/Styles/Typography.xaml" />
+                <ResourceDictionary Source="DesignSystem/Styles/Buttons.xaml" />
+                <ResourceDictionary Source="DesignSystem/Styles/Inputs.xaml" />
+                <ResourceDictionary Source="DesignSystem/Styles/Surfaces.xaml" />
+                <ResourceDictionary Source="DesignSystem/Styles/Navigation.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

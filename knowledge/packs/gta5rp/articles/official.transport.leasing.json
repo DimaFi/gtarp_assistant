@@ -1,0 +1,13 @@
+{
+  "id":"official.transport.leasing","project":"gta5rp","serverScope":["all"],"title":"Лизинг транспорта","category":"transport","mechanic":"vehicle-leasing",
+  "aliases":["лизинг","машина в лизинг","платеж по лизингу","досрочно погасить лизинг","platinum автосалон"],
+  "summary":"Лизинг в Platinum автосалоне требует 20% первого взноса и оформляется на 90 или 180 дней.",
+  "facts":[
+    {"id":"official.transport.leasing.fact.1","text":"Лизинг оформляется в Platinum автосалоне: первый взнос 20%, срок 90 или 180 дней и после оформления не меняется.","verified":true},
+    {"id":"official.transport.leasing.fact.2","text":"Если долг превысит платежи за две недели, транспорт вернётся государству без возврата первого взноса и прежних платежей.","verified":true},
+    {"id":"official.transport.leasing.fact.3","text":"До полной оплаты транспорт нельзя передавать, продавать игроку, сдавать в аренду или делать дополнительные ключи; тюнинг разрешён.","verified":true},
+    {"id":"official.transport.leasing.fact.4","text":"Одновременно разрешён один транспорт в лизинге; обычное досрочное погашение недоступно без специального договора.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"какой первый взнос по лизингу","answer":"Первоначальный взнос составляет 20%, срок выбирается на 90 или 180 дней."},{"questionPattern":"можно ли досрочно погасить лизинг","answer":"Обычно нет; раньше срока его закрывает только специальный предмет Договор о досрочном погашении лизинга."}],
+  "source":{"title":"GTA5RP Wiki — Лизинг","url":"https://wiki.gta5rp.com/docs/transport/leasing"},"version":1,"updatedAt":"2026-05-06T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

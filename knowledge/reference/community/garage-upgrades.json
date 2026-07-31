@@ -1,0 +1,24 @@
+{
+  "schemaVersion":1,"trust":"community-confirmed","source":"player-created image tables","capturedAt":"2026-07-13",
+  "houseAndApartmentUpgradeCosts":[
+    {"type":"Дом","baseSlots":2,"upgrades":{"4":100000,"6":200000},"fullCost":300000},
+    {"type":"Дом","baseSlots":6,"upgrades":{"8":400000,"10":600000,"12":800000},"fullCost":1800000},
+    {"type":"Дом","baseSlots":10,"upgrades":{"12":800000,"14":1200000,"16":1600000,"18":2000000,"20":2500000},"fullCost":8100000},
+    {"type":"Квартира","baseSlots":1,"upgrades":{"2":50000,"4":100000},"fullCost":150000},
+    {"type":"Квартира","baseSlots":2,"upgrades":{"4":100000,"6":200000,"8":400000},"fullCost":700000},
+    {"type":"Квартира","baseSlots":4,"upgrades":{"6":200000,"8":400000,"10":600000,"12":800000,"14":1200000,"16":1600000,"18":2000000,"20":2500000},"fullCost":9300000}
+  ],
+  "apartmentClassUpgrades":[
+    {"class":"Эконом","baseSlots":1,"baseTaxPerHour":35,"steps":[{"slots":2,"cost":50000,"tax":55},{"slots":4,"cost":100000,"tax":55}],"fullCost":150000},
+    {"class":"Стандарт","baseSlots":1,"baseTaxPerHour":37,"steps":[{"slots":2,"cost":50000,"tax":57},{"slots":4,"cost":100000,"tax":57}],"fullCost":150000},
+    {"class":"Комфорт","baseSlots":1,"baseTaxPerHour":40,"steps":[{"slots":2,"cost":50000,"tax":60},{"slots":4,"cost":100000,"tax":60}],"fullCost":150000},
+    {"class":"Комфорт+","baseSlots":1,"baseTaxPerHour":45,"steps":[{"slots":2,"cost":50000,"tax":65},{"slots":4,"cost":100000,"tax":65}],"fullCost":150000},
+    {"class":"Бизнес","baseSlots":1,"baseTaxPerHour":50,"steps":[{"slots":2,"cost":50000,"tax":70},{"slots":4,"cost":100000,"tax":70}],"fullCost":150000},
+    {"class":"Комфорт","baseSlots":2,"baseTaxPerHour":45,"steps":[{"slots":4,"cost":100000,"tax":75},{"slots":6,"cost":200000,"tax":75},{"slots":8,"cost":400000,"tax":85}],"fullCost":700000},
+    {"class":"Бизнес","baseSlots":2,"baseTaxPerHour":50,"steps":[{"slots":4,"cost":100000,"tax":80},{"slots":6,"cost":200000,"tax":85},{"slots":8,"cost":400000,"tax":90}],"fullCost":700000},
+    {"class":"Премиум","baseSlots":2,"baseTaxPerHour":55,"steps":[{"slots":4,"cost":100000,"tax":75},{"slots":6,"cost":200000,"tax":85},{"slots":8,"cost":400000,"tax":95}],"fullCost":700000},
+    {"class":"Элитный","baseSlots":2,"baseTaxPerHour":60,"steps":[{"slots":4,"cost":100000,"tax":80},{"slots":6,"cost":200000,"tax":90},{"slots":8,"cost":400000,"tax":100}],"fullCost":700000},
+    {"class":"Люкс","baseSlots":4,"baseTaxPerHour":75,"steps":[{"slots":6,"cost":200000,"tax":105},{"slots":8,"cost":400000,"tax":115},{"slots":10,"cost":600000,"tax":125},{"slots":12,"cost":800000,"tax":135},{"slots":14,"cost":1200000,"tax":145},{"slots":16,"cost":1600000,"tax":155},{"slots":18,"cost":2000000,"tax":165},{"slots":20,"cost":2500000,"tax":175}],"fullCost":9300000},
+    {"class":"Платинум","baseSlots":4,"baseTaxPerHour":90,"steps":[{"slots":6,"cost":200000,"tax":120},{"slots":8,"cost":400000,"tax":130},{"slots":10,"cost":600000,"tax":140},{"slots":12,"cost":800000,"tax":150},{"slots":14,"cost":1200000,"tax":160},{"slots":16,"cost":1600000,"tax":170},{"slots":18,"cost":2000000,"tax":180},{"slots":20,"cost":2500000,"tax":190}],"fullCost":9300000}
+  ]
+}

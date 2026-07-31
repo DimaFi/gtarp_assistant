@@ -1,0 +1,13 @@
+{
+  "id":"official.property.home","project":"gta5rp","serverScope":["all"],"title":"Дома","category":"property","mechanic":"home",
+  "aliases":["дом","купить дом","налог на дом","меню дома","аренда дома","гараж дома"],
+  "summary":"Дом управляется через Телефон → Дом; налог оплачивается максимум на 7 дней, либо на 30 с Gold/Platinum VIP.",
+  "facts":[
+    {"id":"official.property.home.fact.1","text":"Меню собственного дома и жилья, где персонаж прописан, открывается через Телефон → Дом; такие дома отмечаются на карте.","verified":true},
+    {"id":"official.property.home.fact.2","text":"Налог обычно оплачивается максимум на 7 дней, с Gold или Platinum VIP — на 30; при неоплате дом слетает. Телефон → Банк берёт комиссию 10%, в отделении банка комиссии нет.","verified":true},
+    {"id":"official.property.home.fact.3","text":"В меню дома доступны двери, ремонт и мебель, хранилища, планировка, расширение гаража, права жильцов, обмен и продажа государству за 50% госстоимости.","verified":true},
+    {"id":"official.property.home.fact.4","text":"Свободные дома ищутся через Телефон → GPS → Агентство недвижимости; дом также можно арендовать через 5VITO на срок не дольше оплаченного налога.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как оплатить налог на дом","answer":"Оплатите через Телефон → Банк с комиссией 10% или в отделении банка без комиссии."},{"questionPattern":"где купить свободный дом","answer":"Откройте Телефон → GPS → Агентство недвижимости и получите информацию о свободных домах."}],
+  "source":{"title":"GTA5RP Wiki — Дома","url":"https://wiki.gta5rp.com/docs/real-estate/home"},"version":1,"updatedAt":"2026-07-10T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

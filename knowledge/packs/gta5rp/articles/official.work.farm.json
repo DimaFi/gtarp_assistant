@@ -1,0 +1,20 @@
+{
+  "id": "official.work.farm", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа на ферме", "category": "work", "mechanic": "farm",
+  "aliases": ["ферма", "работа фермером", "как начать ферму", "навык фермерство", "сбор апельсинов", "пшеничное поле"],
+  "summary": "Ферма в Грейпсиде доступна с 1 уровня без трудоустройства; ручные работы развивают навык Фермерство и открывают новые занятия.",
+  "facts": [
+    { "id": "official.work.farm.fact.1", "text": "Ферма доступна с 1 уровня без предварительного трудоустройства и находится в Грейпсиде; точка Ферма отмечена на карте ESC.", "verified": true },
+    { "id": "official.work.farm.fact.2", "text": "Начните смену у NPC Фермера; текущий навык Фермерство показывается в F10 → Персонаж → Навыки.", "verified": true },
+    { "id": "official.work.farm.fact.3", "text": "Доение коров, сбор апельсинов и ручные этапы капустного поля доступны с 0 уровня навыка.", "verified": true },
+    { "id": "official.work.farm.fact.4", "text": "Пшеничное поле открывается на 3 уровне навыка Фермерство.", "verified": true },
+    { "id": "official.work.farm.fact.5", "text": "Навык Фермерство растёт только при ручном труде; прополка трактором и сбор пшеницы комбайном навык не повышают.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как начать работу на ферме", "answer": "Найдите Ферму в Грейпсиде на карте ESC и начните смену у NPC Фермера." },
+    { "questionPattern": "почему не растет навык фермерства", "answer": "Навык растёт только на ручных работах; тракторная прополка и сбор комбайном его не повышают." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Ферма", "url": "https://wiki.gta5rp.com/docs/start-work/farm" },
+  "version": 1, "updatedAt": "2026-05-06T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

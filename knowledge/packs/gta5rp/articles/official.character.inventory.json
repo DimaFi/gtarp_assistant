@@ -1,0 +1,28 @@
+{
+  "id": "official.character.inventory",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Инвентарь и хранилища",
+  "category": "character",
+  "mechanic": "inventory",
+  "aliases": ["как открыть инвентарь", "сколько слотов", "вес инвентаря", "как разделить стак", "рюкзак", "патронташ"],
+  "summary": "Инвентарь открывается клавишей I; базовая сетка содержит 20 ячеек и выдерживает 10 кг, дополнительные сумки расширяют хранение.",
+  "facts": [
+    { "id": "official.character.inventory.fact.1", "text": "Основной инвентарь открывается клавишей I и содержит 20 ячеек с максимальным весом 10 кг.", "verified": true },
+    { "id": "official.character.inventory.fact.2", "text": "Для быстрого использования предмета нажмите по нему правой кнопкой мыши.", "verified": true },
+    { "id": "official.character.inventory.fact.3", "text": "Чтобы разделить стак, удерживайте CTRL и перетащите предмет левой кнопкой мыши в другую ячейку.", "verified": true },
+    { "id": "official.character.inventory.fact.4", "text": "Рюкзак может добавить до 10 ячеек и до 10 кг; точные значения зависят от модели рюкзака.", "verified": true },
+    { "id": "official.character.inventory.fact.5", "text": "Патронташ даёт 5 ячеек и до 6 кг только для патронов; его можно сочетать с рюкзаком, но не с рыболовной сумкой.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как открыть инвентарь", "answer": "Нажмите клавишу I." },
+    { "questionPattern": "как разделить предметы в стаке", "answer": "Зажмите CTRL и перетащите стак левой кнопкой мыши в другую ячейку." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Инвентарь", "url": "https://wiki.gta5rp.com/docs/character/inventory" },
+  "version": 1,
+  "updatedAt": "2026-07-07T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

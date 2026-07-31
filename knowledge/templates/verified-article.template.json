@@ -1,0 +1,37 @@
+{
+  "id": "REPLACE.category.mechanic",
+  "project": "gta5rp",
+  "serverScope": [
+    "REPLACE_WITH_EXACT_SERVER_ID"
+  ],
+  "title": "REPLACE",
+  "category": "REPLACE",
+  "mechanic": "REPLACE",
+  "aliases": [
+    "REPLACE_WITH_PLAYER_PHRASE"
+  ],
+  "summary": "REPLACE_WITH_SOURCE_GROUNDED_SUMMARY",
+  "facts": [
+    {
+      "id": "REPLACE.category.mechanic.fact.1",
+      "text": "REPLACE_WITH_ONE_ATOMIC_FACT",
+      "verified": false
+    }
+  ],
+  "preparedAnswers": [
+    {
+      "questionPattern": "REPLACE_WITH_NORMALIZED_QUESTION",
+      "answer": "REPLACE_WITH_ANSWER_SUPPORTED_BY_FACTS"
+    }
+  ],
+  "source": {
+    "title": "REPLACE_WITH_OFFICIAL_SOURCE_TITLE",
+    "url": "https://REPLACE_WITH_OFFICIAL_SOURCE"
+  },
+  "version": 1,
+  "updatedAt": "REPLACE_WITH_UTC_TIMESTAMP",
+  "validUntil": "REPLACE_WITH_REVIEW_DEADLINE",
+  "verified": false,
+  "demo": false,
+  "verifiedBy": null
+}

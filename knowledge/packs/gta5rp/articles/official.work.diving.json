@@ -1,0 +1,19 @@
+{
+  "id": "official.work.diving", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа дайвером", "category": "work", "mechanic": "diving",
+  "aliases": ["дайвинг", "работа дайвером", "как начать дайвинг", "где дайвинг", "батискаф", "костюм дайвера"],
+  "summary": "Дайвинг доступен с 3 уровня у плотины: возьмите костюм у Местного Дайвера, поднимите отмеченные предметы и вернитесь за оплатой.",
+  "facts": [
+    { "id": "official.work.diving.fact.1", "text": "Работа дайвером доступна с 3 уровня; точка Дайвинг находится у плотины и отмечена на карте ESC.", "verified": true },
+    { "id": "official.work.diving.fact.2", "text": "Начните работу у NPC Местный Дайвер, который выдаёт костюм; погружение выполняется клавишей Пробел.", "verified": true },
+    { "id": "official.work.diving.fact.3", "text": "Поднимите все предметы, отмеченные вопросительными знаками на миникарте, затем вернитесь к NPC для завершения и оплаты.", "verified": true },
+    { "id": "official.work.diving.fact.4", "text": "На 3 уровне навыка открывается озеро Аламо-Си, а на 5 уровне — работа на батискафе у пляжа Дель-Перро.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для работы дайвером", "answer": "Нужен минимум 3 уровень. Найдите точку Дайвинг у плотины и возьмите костюм у Местного Дайвера." },
+    { "questionPattern": "когда открывается батискаф", "answer": "Работа на батискафе у пляжа Дель-Перро открывается на 5 уровне навыка дайвера." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Дайвинг", "url": "https://wiki.gta5rp.com/docs/special-work/diving" },
+  "version": 1, "updatedAt": "2026-05-04T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

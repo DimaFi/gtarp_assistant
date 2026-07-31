@@ -1,0 +1,30 @@
+{
+  "id": "official.clubs.bikers",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Мотоклубы",
+  "category": "clubs",
+  "mechanic": "bikers",
+  "aliases": ["мотоклуб", "байкерский клуб", "bandidos", "angels of death", "lost mc", "ранги мотоклуба", "перки мотоклуба"],
+  "summary": "Клубы, ранги, привилегии и обычные задания мотоклубов.",
+  "facts": [
+    { "id": "official.clubs.bikers.fact.1", "text": "На проекте есть Bandidos, Angels of Death и Lost MC с одинаковыми привилегиями кроме символики; при выходе из мотоклуба весь прогресс рангов теряется.", "verified": true },
+    { "id": "official.clubs.bikers.fact.2", "text": "Первый ранг открывает символику клуба на части спортивной верхней одежды и фальшфейеры у бармена за 3 000$ с длительностью 40 секунд.", "verified": true },
+    { "id": "official.clubs.bikers.fact.3", "text": "Второй ранг открывает клуб как место спавна, бесплатную заправку личного мотоцикла раз в день и покупку кастетов у бармена за 10 000$.", "verified": true },
+    { "id": "official.clubs.bikers.fact.4", "text": "Третий ранг открывает навык управления мотоциклами, бесплатную аренду клубных байков и эксклюзивную верхнюю одежду.", "verified": true },
+    { "id": "official.clubs.bikers.fact.5", "text": "Четвёртый ранг открывает доставку личного байка раз в час за 300$, стрельбу с обычного и помпового обреза и сокращает штраф урона при стрельбе с байка с 90% до 50%.", "verified": true },
+    { "id": "official.clubs.bikers.fact.6", "text": "Задания мотоклуба выдаёт бармен раз в 2 часа после выполнения предыдущего; награда — 10 EXP или 20 EXP с Platinum VIP.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "какие есть мотоклубы", "answer": "Доступны Bandidos, Angels of Death и Lost MC; их привилегии одинаковы, кроме клубной символики." },
+    { "questionPattern": "как получать опыт мотоклуба", "answer": "Берите задания у бармена раз в 2 часа: награда составляет 10 EXP или 20 EXP с Platinum VIP." },
+    { "questionPattern": "что будет если выйти из мотоклуба", "answer": "При выходе из мотоклуба весь достигнутый прогресс рангов теряется." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Мотоклубы", "url": "https://wiki.gta5rp.com/docs/clubs/bikers" },
+  "version": 1,
+  "updatedAt": "2026-05-06T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

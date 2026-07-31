@@ -1,0 +1,14 @@
+{
+  "id":"official.phone.fivebets","project":"gta5rp","serverScope":["all"],"title":"Fivebets","category":"phone","mechanic":"fivebets",
+  "aliases":["fivebets","ставки","букмекер","ординар","экспресс","комиссия ставки","максимальный выигрыш"],
+  "summary":"Fivebets принимает ординары и экспрессы на доступные события, удерживает комиссию 3% и хранит историю купонов.",
+  "facts":[
+    {"id":"official.phone.fivebets.fact.1","text":"Fivebets показывает линию событий, коэффициенты и купон; текущие события и коэффициенты являются динамическими.","verified":true},
+    {"id":"official.phone.fivebets.fact.2","text":"Ординар содержит один исход одного события, экспресс — несколько исходов разных событий и выигрывает только при успехе всех выбранных исходов.","verified":true},
+    {"id":"official.phone.fivebets.fact.3","text":"Комиссия составляет 3% суммы ставки и показывается в купоне до подтверждения.","verified":true},
+    {"id":"official.phone.fivebets.fact.4","text":"Максимальный выигрыш составляет 10 000 000$; один и тот же исход одного события нельзя поставить несколько раз.","verified":true},
+    {"id":"official.phone.fivebets.fact.5","text":"Раздел Мои ставки показывает статистику, выплаты и детали активных и завершённых купонов.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"чем ординар отличается от экспресса","answer":"Ординар — один исход одного события; экспресс объединяет несколько исходов и выигрывает только при успехе каждого."},{"questionPattern":"какая комиссия fivebets","answer":"Комиссия составляет 3% от суммы ставки."}],
+  "source":{"title":"GTA5RP Wiki — Fivebets","url":"https://wiki.gta5rp.com/docs/phone/fivebets"},"version":1,"updatedAt":"2026-06-20T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

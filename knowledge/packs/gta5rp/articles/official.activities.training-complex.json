@@ -1,0 +1,29 @@
+{
+  "id": "official.activities.training-complex",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Тренировочный комплекс",
+  "category": "activities",
+  "mechanic": "training-complex",
+  "aliases": ["тренировочный комплекс", "дуэль один на один", "дуэль на деньги", "ставка в тренировочном комплексе", "рейтинговая дуэль"],
+  "summary": "Как найти тренировочный комплекс, создать дуэль, выбрать режим и сделать ставку.",
+  "facts": [
+    { "id": "official.activities.training-complex.fact.1", "text": "Тренировочный комплекс находится через Телефон → GPS → Тренировочный комплекс; меню открывается у одного из двух NPC с жёлтыми маркерами клавишей E.", "verified": true },
+    { "id": "official.activities.training-complex.fact.2", "text": "В меню есть вкладки Список, Подать заявку и Мой рейтинг; присоединение к чужому лобби требует подтверждения его создателя.", "verified": true },
+    { "id": "official.activities.training-complex.fact.3", "text": "Режим Тренировка не влияет на рейтинг, а результат режима Рейтинг записывается в статистику персонажа.", "verified": true },
+    { "id": "official.activities.training-complex.fact.4", "text": "Ставка в дуэли необязательна и может составлять от 100$ до 100 000$; победитель получает 80% от ставки соперника.", "verified": true },
+    { "id": "official.activities.training-complex.fact.5", "text": "Дуэль проходит в отдельном игровом пространстве до трёх выигранных раундов одного участника; после завершения игроки возвращаются в комплекс.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как найти тренировочный комплекс", "answer": "Откройте Телефон → GPS → Тренировочный комплекс, затем подойдите к NPC с жёлтым маркером и нажмите E." },
+    { "questionPattern": "какая ставка в тренировочном комплексе", "answer": "Ставка необязательна и может быть от 100$ до 100 000$; победитель получает 80% от ставки соперника." },
+    { "questionPattern": "чем тренировка отличается от рейтинга", "answer": "Тренировка не меняет рейтинг, а победа или поражение в режиме Рейтинг записывается в статистику." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Тренировочный комплекс", "url": "https://wiki.gta5rp.com/docs/activities/training-complex" },
+  "version": 1,
+  "updatedAt": "2026-05-06T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

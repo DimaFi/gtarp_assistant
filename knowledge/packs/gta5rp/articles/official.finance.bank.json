@@ -1,0 +1,27 @@
+{
+  "id": "official.finance.bank",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Банки, банкоматы и переводы",
+  "category": "finance",
+  "mechanic": "bank",
+  "aliases": ["где банк", "как снять деньги", "комиссия банкомата", "как пополнить счет", "оплатить дом", "банк в телефоне"],
+  "summary": "Банкоматы позволяют проверить баланс и снять наличные с комиссией 4%; восемь банков выполняют операции без комиссии.",
+  "facts": [
+    { "id": "official.finance.bank.fact.1", "text": "Банкомат открывается клавишей E, позволяет проверить баланс и снять наличные; комиссия за снятие составляет 4%.", "verified": true },
+    { "id": "official.finance.bank.fact.2", "text": "На карте расположено 8 банков; операции через банковскую стойку выполняются без комиссии.", "verified": true },
+    { "id": "official.finance.bank.fact.3", "text": "Ближайший банк можно найти через Телефон → GPS → Банки.", "verified": true },
+    { "id": "official.finance.bank.fact.4", "text": "В банке можно пополнять и снимать средства, оплачивать дом, квартиру, телефон и лизинг, а владельцу организации доступен отдельный счёт организации.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "какая комиссия в банкомате", "answer": "При снятии наличных банкомат удерживает 4%; проверка баланса бесплатна." },
+    { "questionPattern": "как найти банк", "answer": "Откройте Телефон → GPS → Банки и отметьте ближайший банк." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Банковская система", "url": "https://wiki.gta5rp.com/docs/basics/bank" },
+  "version": 1,
+  "updatedAt": "2026-07-10T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

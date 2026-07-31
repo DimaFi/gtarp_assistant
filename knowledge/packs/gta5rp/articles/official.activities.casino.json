@@ -1,0 +1,31 @@
+{
+  "id": "official.activities.casino",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Казино",
+  "category": "activities",
+  "mechanic": "casino",
+  "aliases": ["казино", "где казино", "фишки казино", "колесо удачи", "как крутить колесо удачи", "лимит ставок", "джекпот", "блэкджек", "мафия в казино"],
+  "summary": "Расположение казино, фишки, колесо удачи и основные игровые режимы.",
+  "facts": [
+    { "id": "official.activities.casino.fact.1", "text": "Казино находится через Телефон → GPS → Казино; оно расположено в Vinewood Hills на Vinewood Park Drive.", "verified": true },
+    { "id": "official.activities.casino.fact.2", "text": "Обычные фишки покупаются и обмениваются у NPC в центре входа; одна фишка стоит 100$.", "verified": true },
+    { "id": "official.activities.casino.fact.3", "text": "С 07:00 до 07:00 МСК действует дневной лимит ставок 50 000 фишек; игра в Джекпот этот лимит не расходует.", "verified": true },
+    { "id": "official.activities.casino.fact.4", "text": "Колесо удачи открывается через Телефон → Казино за каждые четыре полных часа игры; рестарты не сбрасывают таймер, а новый отсчёт начинается после прокрутки.", "verified": true },
+    { "id": "official.activities.casino.fact.6", "text": "В блэкджеке дилер останавливается на 17 и более очках; сплит и страховка недоступны, а блэкджек с двух карт оплачивается 3:2.", "verified": true },
+    { "id": "official.activities.casino.fact.7", "text": "В Джекпоте нет максимальной ставки, а шанс игрока на победу пропорционален его доле в общей сумме ставок.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "где находится казино", "answer": "Откройте Телефон → GPS → Казино. Казино находится в Vinewood Hills на Vinewood Park Drive." },
+    { "questionPattern": "как получить колесо удачи", "answer": "Колесо удачи доступно через Телефон → Казино за каждые четыре полных часа игры. Рестарты таймер не сбрасывают, а новый отсчёт начинается после прокрутки полученного колеса." },
+    { "questionPattern": "какой лимит ставок в казино", "answer": "Дневной лимит с 07:00 до 07:00 МСК — 50 000 фишек. Ставки в Джекпоте этот лимит не расходуют." },
+    { "questionPattern": "как считается шанс в джекпоте", "answer": "Шанс победы пропорционален вашей доле в общей сумме ставок." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Казино", "url": "https://wiki.gta5rp.com/docs/activities/casino" },
+  "version": 1,
+  "updatedAt": "2026-05-04T00:00:00Z",
+  "validUntil": "2026-10-18T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

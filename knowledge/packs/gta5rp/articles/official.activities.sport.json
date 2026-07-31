@@ -1,0 +1,27 @@
+{
+  "id": "official.activities.sport",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Спортзал и навык Силы",
+  "category": "activities",
+  "mechanic": "sport",
+  "aliases": ["спортзал", "где качать силу", "абонемент спортзал", "сколько стоит спортзал", "тренировка силы", "эспандер"],
+  "summary": "Расположение спортзалов, стоимость абонемента, тренировки и прокачка навыка Силы.",
+  "facts": [
+    { "id": "official.activities.sport.fact.1", "text": "Спортзал прокачивает навык Силы: он ускоряет подъём по лестницам, увеличивает время под водой и визуально меняет телосложение персонажа.", "verified": true },
+    { "id": "official.activities.sport.fact.2", "text": "Три спортзала находятся на пляже Веспуччи, в центральном Вайнвуде (Muscle) и в Рокфорд-Хиллз (Pump & Run Gymnasium); на карте используется значок чёрно-красного бицепса.", "verified": true },
+    { "id": "official.activities.sport.fact.3", "text": "Абонемент до рестарта в 07:00 стоит 250$ на пляже Веспуччи, 500$ в Muscle и 750$ в Pump & Run Gymnasium и открывает все тренажёры выбранного зала без ограничений.", "verified": true },
+    { "id": "official.activities.sport.fact.4", "text": "В спортзале есть пять видов тренировок, и между любыми подходами обязателен 30-секундный отдых; эспандер работает бесплатно с той же задержкой.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "сколько стоит абонемент в спортзал", "answer": "До рестарта в 07:00 абонемент стоит 250$ на пляже Веспуччи, 500$ в Muscle и 750$ в Pump & Run Gymnasium." },
+    { "questionPattern": "сколько отдыхать между подходами", "answer": "Между любыми подходами в спортзале или с эспандером нужен отдых 30 секунд." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Спорт", "url": "https://wiki.gta5rp.com/docs/activities/sport" },
+  "version": 1,
+  "updatedAt": "2026-05-05T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

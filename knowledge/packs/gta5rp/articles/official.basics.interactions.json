@@ -1,0 +1,27 @@
+{
+  "id": "official.basics.interactions",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Меню взаимодействий",
+  "category": "basics",
+  "mechanic": "interactions",
+  "aliases": ["меню взаимодействия", "радиальное меню", "кнопка g", "как взаимодействовать с игроком", "как открыть багажник", "как передать деньги"],
+  "summary": "Радиальное меню открывается клавишей G при наведении на игрока или транспорт; набор действий зависит от объекта, работы и фракции.",
+  "facts": [
+    { "id": "official.basics.interactions.fact.1", "text": "Для взаимодействия с игроком или транспортом наведитесь на объект и нажмите G — откроется радиальное меню.", "verified": true },
+    { "id": "official.basics.interactions.fact.2", "text": "Меню игрока содержит предложения, лечение, рабочие и криминальные действия, организацию, передачу денег, документы, имущество и анимации.", "verified": true },
+    { "id": "official.basics.interactions.fact.3", "text": "Рабочие и фракционные пункты формируются динамически и зависят от текущей работы или фракции персонажа.", "verified": true },
+    { "id": "official.basics.interactions.fact.4", "text": "Через меню транспорта доступны действия с багажником, капотом и дополнительные пункты для персонажа внутри автомобиля.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как открыть меню взаимодействия", "answer": "Наведитесь на игрока или транспорт и нажмите G." },
+    { "questionPattern": "почему нет действия в меню g", "answer": "Список действий формируется по объекту, текущей работе и фракции; неподходящие действия не показываются." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Меню взаимодействий", "url": "https://wiki.gta5rp.com/docs/basics/interactions" },
+  "version": 1,
+  "updatedAt": "2026-05-21T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

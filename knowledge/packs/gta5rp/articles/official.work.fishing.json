@@ -1,0 +1,20 @@
+{
+  "id": "official.work.fishing", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Рыбалка", "category": "work", "mechanic": "fishing",
+  "aliases": ["рыбалка", "как ловить рыбу", "лицензия на рыбалку", "где купить удочку", "рыболовный магазин", "снасти", "наживка"],
+  "summary": "Для рыбалки нужна лицензия и собранная удочка из удилища, катушки, лески и наживки; снасти 1–5 уровней продаются в магазине Сэнди-Шорс.",
+  "facts": [
+    { "id": "official.work.fishing.fact.1", "text": "Для законной рыбалки нужна лицензия, получаемая в мэрии после экзамена, и удочка из удилища, катушки, лески и наживки.", "verified": true },
+    { "id": "official.work.fishing.fact.2", "text": "Снасти 1–5 уровней продаются в Рыболовном магазине Сэнди-Шорс, который можно найти через Телефон → GPS → Рыболовный магазин.", "verified": true },
+    { "id": "official.work.fishing.fact.3", "text": "Снасти 6–10 уровней можно получить из рыболовного кейса или выиграть в турнирах.", "verified": true },
+    { "id": "official.work.fishing.fact.4", "text": "Зоны ловли делятся на пресные водоёмы, морскую территорию и тропический риф Кайо-Перико; улов зависит от места, наживки, сезона, погоды и времени суток.", "verified": true },
+    { "id": "official.work.fishing.fact.5", "text": "Без лицензии сотрудники государственных структур могут изъять улов.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для рыбалки", "answer": "Нужны лицензия и собранная удочка: удилище, катушка, леска и наживка." },
+    { "questionPattern": "где купить снасти для рыбалки", "answer": "Откройте Телефон → GPS → Рыболовный магазин; снасти 1–5 уровней продаются в Сэнди-Шорс." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Рыбалка", "url": "https://wiki.gta5rp.com/docs/special-work/fishing" },
+  "version": 1, "updatedAt": "2026-05-04T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

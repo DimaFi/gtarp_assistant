@@ -1,0 +1,30 @@
+{
+  "id": "official.activities.achievement-challenges",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Условия популярных достижений",
+  "category": "activities",
+  "mechanic": "achievement-challenges",
+  "aliases": ["вращайте барабан", "большой куш", "мастер навалить бочком", "прирожденный фермер", "король картинга", "заслуженный дрессировщик"],
+  "summary": "Официально раскрытые условия популярных достижений казино, работ, картинга и питомцев.",
+  "facts": [
+    { "id": "official.activities.achievements.fact.7", "text": "Для достижения «Большой куш» нужно сорвать джекпот, выбив 777 в любом автомате казино.", "verified": true },
+    { "id": "official.activities.achievements.fact.8", "text": "Для достижения «Вращайте барабан» нужно прокрутить колесо удачи 100 раз.", "verified": true },
+    { "id": "official.activities.achievements.fact.9", "text": "Для достижения «Мастер навалить бочком» нужно набрать 20 000 очков дрифта за раз; достижение доступно с 7-го уровня персонажа.", "verified": true },
+    { "id": "official.activities.achievements.fact.10", "text": "Для достижения «Прирождённый фермер» нужно выполнить 10 000 действий на ферме.", "verified": true },
+    { "id": "official.activities.achievements.fact.11", "text": "Для достижения «Король картинга» нужно победить в 100 заездах с шестью участниками.", "verified": true },
+    { "id": "official.activities.achievements.fact.12", "text": "Для достижения «Заслуженный дрессировщик» нужно достичь 100% дрессировки любого питомца.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как получить достижение вращайте барабан", "answer": "Для достижения «Вращайте барабан» прокрутите колесо удачи 100 раз." },
+    { "questionPattern": "как получить достижение большой куш", "answer": "Для достижения «Большой куш» нужно сорвать джекпот, выбив 777 в любом автомате казино." },
+    { "questionPattern": "как получить достижение заслуженный дрессировщик", "answer": "Для достижения «Заслуженный дрессировщик» достигните 100% дрессировки любого питомца." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Достижения", "url": "https://wiki.gta5rp.com/docs/activities/achievements" },
+  "version": 1,
+  "updatedAt": "2026-05-21T00:00:00Z",
+  "validUntil": "2026-10-18T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "official.work.construction", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа на стройке", "category": "work", "mechanic": "construction",
+  "aliases": ["стройка", "работа строителем", "как начать стройку", "как закончить стройку", "погрузчик на стройке"],
+  "summary": "Стройка доступна с 1 уровня без трудоустройства: найдите её на карте, начните смену у Прораба и выполняйте задания по белым меткам.",
+  "facts": [
+    { "id": "official.work.construction.fact.1", "text": "Стройка доступна с 1 уровня без предварительного трудоустройства; точка Стройка находится на карте ESC.", "verified": true },
+    { "id": "official.work.construction.fact.2", "text": "Для начала смены поговорите с NPC Прорабом: форма выдаётся автоматически, а задания появляются белыми метками на миникарте.", "verified": true },
+    { "id": "official.work.construction.fact.3", "text": "Основное задание — мини-игра, в которой нужно быстро нажимать указанную клавишу до заполнения шкалы.", "verified": true },
+    { "id": "official.work.construction.fact.4", "text": "На 3 уровне навыка строителя открывается работа на грузоподъёмнике с перевозкой коробок строительного мусора.", "verified": true },
+    { "id": "official.work.construction.fact.5", "text": "Чтобы завершить смену и получить оплату, вернитесь к Прорабу и выберите завершение работы.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как начать работу на стройке", "answer": "Найдите Стройку на карте ESC, приезжайте к NPC Прорабу и выберите начало работы." },
+    { "questionPattern": "как закончить работу на стройке", "answer": "Вернитесь к NPC Прорабу и выберите завершение работы." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Стройка", "url": "https://wiki.gta5rp.com/docs/start-work/construction" },
+  "version": 1, "updatedAt": "2026-05-03T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

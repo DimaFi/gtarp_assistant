@@ -1,0 +1,13 @@
+{
+  "id":"official.transport.types","project":"gta5rp","serverScope":["all"],"title":"Виды транспорта и управление","category":"transport","mechanic":"vehicle-types",
+  "aliases":["транспорт","авто в телефоне","эвакуировать машину","лодка на прицепе","коммерческий транспорт","виды транспорта"],
+  "summary":"Личным транспортом, порядком спавна и эвакуацией управляет приложение Авто; правила хранения зависят от категории.",
+  "facts":[
+    {"id":"official.transport.types.fact.1","text":"Личным транспортом, порядком его спавна и эвакуацией машин управляет приложение Авто в телефоне.","verified":true},
+    {"id":"official.transport.types.fact.2","text":"Автомобили и мотоциклы занимают обычные гаражные места и поддерживают систему износа; состояние систем открывается через G → Смотреть.","verified":true},
+    {"id":"official.transport.types.fact.3","text":"Лодка продаётся с прицепом и занимает одно гаражное место; снять её на воде можно через G → Прочее → Снять лодку.","verified":true},
+    {"id":"official.transport.types.fact.4","text":"Автомобили поддерживают полный тюнинг в LSC и Автомастерской, мотоциклы тюнингуются в LSC.","verified":true}
+  ],
+  "preparedAnswers":[{"questionPattern":"как эвакуировать свою машину","answer":"Откройте приложение Авто в телефоне и выберите эвакуацию нужного транспорта."},{"questionPattern":"как снять лодку с прицепа","answer":"Заедьте прицепом в воду и выберите G → Прочее → Снять лодку."}],
+  "source":{"title":"GTA5RP Wiki — Виды транспорта","url":"https://wiki.gta5rp.com/docs/transport/species"},"version":1,"updatedAt":"2026-06-16T00:00:00Z","validUntil":"2026-08-13T00:00:00Z","verified":true,"demo":false,"verifiedBy":"Codex source review — official GTA5RP Wiki"
+}

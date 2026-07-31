@@ -1,0 +1,20 @@
+{
+  "id": "official.work.mine", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа в шахте", "category": "work", "mechanic": "mine",
+  "aliases": ["шахта", "работа шахтером", "как начать шахту", "где вход в шахту", "экскаватор в шахте"],
+  "summary": "Шахта доступна с 1 уровня без трудоустройства: начните смену у Начальника шахты, добывайте камни по меткам и относите их на конвейер.",
+  "facts": [
+    { "id": "official.work.mine.fact.1", "text": "Шахта доступна с 1 уровня без предварительного трудоустройства; точка Шахта находится на карте ESC.", "verified": true },
+    { "id": "official.work.mine.fact.2", "text": "Смена начинается у NPC Начальника шахты, а вход в шахту расположен справа от него.", "verified": true },
+    { "id": "official.work.mine.fact.3", "text": "Выберите одну из трёх красных точек, пройдите мини-игру быстрых нажатий и отнесите добытый камень на конвейер.", "verified": true },
+    { "id": "official.work.mine.fact.4", "text": "На 3 уровне навыка шахтёра открывается работа на экскаваторе.", "verified": true },
+    { "id": "official.work.mine.fact.5", "text": "Чтобы завершить смену и получить оплату, вернитесь к Начальнику шахты.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "где вход в шахту", "answer": "Вход расположен справа от NPC Начальника шахты." },
+    { "questionPattern": "когда открывается экскаватор в шахте", "answer": "Экскаватор открывается на 3 уровне навыка шахтёра." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Шахта", "url": "https://wiki.gta5rp.com/docs/start-work/mine" },
+  "version": 1, "updatedAt": "2026-05-03T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

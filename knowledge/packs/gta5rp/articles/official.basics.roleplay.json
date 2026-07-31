@@ -1,0 +1,27 @@
+{
+  "id": "official.basics.roleplay",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Основы RolePlay и команды",
+  "category": "basics",
+  "mechanic": "roleplay",
+  "aliases": ["что такое rp", "команды rp", "как использовать me", "как использовать do", "что такое mg", "что такое dm", "что такое pg"],
+  "summary": "Краткая памятка по RP, IC/OOC, командам /me и /do и базовым терминам MG, DM, PG, RK и NRP.",
+  "facts": [
+    { "id": "official.basics.roleplay.fact.1", "text": "RolePlay означает действия в рамках характера и истории персонажа; IC-информация относится к игровому миру, OOC — к реальному миру вне роли.", "verified": true },
+    { "id": "official.basics.roleplay.fact.2", "text": "Команда /me описывает действие персонажа от первого лица в прошедшем времени и без точки в конце.", "verified": true },
+    { "id": "official.basics.roleplay.fact.3", "text": "Команда /do описывает детали мира или ситуацию; текст начинается с заглавной буквы и заканчивается точкой или вопросительным знаком.", "verified": true },
+    { "id": "official.basics.roleplay.fact.4", "text": "MG — использование OOC-информации в IC; DM — урон или убийство без IC-причины; PG — нереалистичное поведение без страха за жизнь; RK — возвращение на место смерти или месть за убийство.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как пользоваться командой me", "answer": "Введите /me и опишите действие персонажа от первого лица в прошедшем времени, без точки в конце." },
+    { "questionPattern": "как пользоваться командой do", "answer": "Введите /do и опишите ситуацию или деталь мира с заглавной буквы, завершив текст точкой или вопросом." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Основы RolePlay", "url": "https://wiki.gta5rp.com/docs/basics/roleplay" },
+  "version": 1,
+  "updatedAt": "2026-04-16T00:00:00Z",
+  "validUntil": "2026-08-13T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

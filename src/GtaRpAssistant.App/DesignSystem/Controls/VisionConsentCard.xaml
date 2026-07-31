@@ -1,0 +1,60 @@
+<UserControl x:Class="GtaRpAssistant.App.DesignSystem.Controls.VisionConsentCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AutomationProperties.AutomationId="Vision.ConsentCard">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Style="{StaticResource Text.Display}" FontSize="22" Text="Подтвердите снимок" />
+                <TextBlock Margin="0,5,0,0" Style="{StaticResource Text.Secondary}" TextWrapping="Wrap"
+                           Text="Будет отправлен только показанный ниже кадр. До подтверждения анализ не начинается." />
+            </StackPanel>
+            <Border Grid.Column="1" Margin="16,0,0,0" Padding="12,8" VerticalAlignment="Top"
+                    Style="{StaticResource Badge.Source}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Caption}" Text="НАЗНАЧЕНИЕ" />
+                    <TextBlock Margin="0,3,0,0" Foreground="{DynamicResource Brush.AccentHover}"
+                               FontWeight="SemiBold" Text="{Binding Destination, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                               AutomationProperties.AutomationId="Vision.Destination" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1" Style="{StaticResource Surface.Card}" Padding="8"
+                Background="{DynamicResource Brush.Input}">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image Stretch="Uniform" Source="{Binding PreviewSource, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       AutomationProperties.AutomationId="Vision.PreviewImage" />
+            </ScrollViewer>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Foreground="{DynamicResource Brush.Success}" FontWeight="SemiBold"
+                           Text="Только после подтверждения" />
+                <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Caption}" TextWrapping="Wrap"
+                           Text="Снимок не сохраняется на диск и удаляется из памяти после ответа." />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Style="{StaticResource Button.Ghost}" Content="Отмена" IsCancel="True"
+                        Click="Cancel_Click" AutomationProperties.AutomationId="Vision.Cancel" />
+                <Button Style="{StaticResource Button.Primary}" Content="Подтвердить отправку" IsDefault="True"
+                        Click="Confirm_Click" Margin="0,6,0,6" AutomationProperties.AutomationId="Vision.Confirm" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

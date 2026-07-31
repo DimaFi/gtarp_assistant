@@ -1,0 +1,20 @@
+{
+  "id": "official.work.treasures", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Поиск сокровищ", "category": "work", "mechanic": "treasures",
+  "aliases": ["сокровища", "поиск сокровищ", "клад", "металлоискатель", "где купить металлоискатель", "скупщик найденного"],
+  "summary": "Для поиска сокровищ нужны металлоискатель из Secret Shop и лопата из рыболовного магазина; найденное сдаётся скупщику в Дель-Перро.",
+  "facts": [
+    { "id": "official.work.treasures.fact.1", "text": "Металлоискатель продаётся в Secret Shop возле Миррор-Парка, а лопата — в рыболовном магазине Сэнди-Шорс.", "verified": true },
+    { "id": "official.work.treasures.fact.2", "text": "Возьмите металлоискатель через инвентарь I и ходите по местности: его радиус действия составляет 30 шагов.", "verified": true },
+    { "id": "official.work.treasures.fact.3", "text": "Зелёное кольцо и звук означают клад поблизости; при приближении кольцо краснеет, а сигнал учащается.", "verified": true },
+    { "id": "official.work.treasures.fact.4", "text": "Найдя точку, достаньте лопату и выберите ЛКМ → Копать; предмет появится в инвентаре.", "verified": true },
+    { "id": "official.work.treasures.fact.5", "text": "Находки принимает NPC возле ломбарда в Дель-Перро: Телефон → GPS → Скупщик найденного. Рост навыка снижает шанс хлама и повышает качество и выкуп.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для поиска сокровищ", "answer": "Нужны металлоискатель из Secret Shop возле Миррор-Парка и лопата из рыболовного магазина Сэнди-Шорс." },
+    { "questionPattern": "где продать сокровища", "answer": "Откройте Телефон → GPS → Скупщик найденного; NPC находится возле ломбарда в Дель-Перро." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Поиск сокровищ", "url": "https://wiki.gta5rp.com/docs/special-work/treasures" },
+  "version": 1, "updatedAt": "2026-05-21T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "demo.family.contracts",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Демонстрационная статья о контрактах",
+  "category": "family",
+  "mechanic": "family_contract",
+  "aliases": ["контракт семьи", "семейный контракт", "запустить контракт"],
+  "summary": "Демонстрационные данные. Не являются реальным правилом.",
+  "facts": [{
+    "id": "demo.family.contracts.fact.1",
+    "text": "Перед запуском механики необходимо проверить требования в актуальной статье.",
+    "verified": false
+  }],
+  "preparedAnswers": [{
+    "questionPattern": "почему не запускается контракт",
+    "answer": "Откройте актуальное описание механики и проверьте указанные требования."
+  }],
+  "source": { "title": "Demo", "url": null },
+  "version": 1,
+  "updatedAt": "2026-07-12T00:00:00Z",
+  "verified": false,
+  "demo": true
+}

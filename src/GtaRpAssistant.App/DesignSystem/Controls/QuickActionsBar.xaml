@@ -1,0 +1,21 @@
+<UserControl x:Class="GtaRpAssistant.App.DesignSystem.Controls.QuickActionsBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AutomationProperties.AutomationId="Overlay.QuickActions">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <WrapPanel>
+            <Button Style="{StaticResource Button.Ghost}" Content="Источник и факты" Click="TechnicalDetails_Click"
+                    AutomationProperties.AutomationId="Overlay.TechnicalDetails" />
+            <Button Style="{StaticResource Button.Ghost}" Content="Неверная подсказка" Click="Incorrect_Click"
+                    AutomationProperties.AutomationId="Overlay.Incorrect" />
+            <Button Style="{StaticResource Button.Ghost}" Content="Не беспокоить" Click="Snooze_Click"
+                    AutomationProperties.AutomationId="Overlay.Snooze" />
+        </WrapPanel>
+        <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Свернуть" Click="Collapse_Click"
+                Margin="12,6,0,6" AutomationProperties.AutomationId="Overlay.Collapse" />
+    </Grid>
+</UserControl>

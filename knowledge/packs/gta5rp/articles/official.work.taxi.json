@@ -1,0 +1,20 @@
+{
+  "id": "official.work.taxi", "project": "gta5rp", "serverScope": ["all"],
+  "title": "Работа в такси", "category": "work", "mechanic": "taxi",
+  "aliases": ["такси", "работа таксистом", "как начать такси", "такси кпк", "личная машина в такси", "требования такси"],
+  "summary": "Для такси нужны 2 уровень, права на легковой транспорт и 50$ на базовую аренду; заказы доступны через M → Такси КПК.",
+  "facts": [
+    { "id": "official.work.taxi.fact.1", "text": "Для работы в такси нужны минимум 2 уровень, права категории Легковой транспорт и 50$ на аренду базового автомобиля.", "verified": true },
+    { "id": "official.work.taxi.fact.2", "text": "Найдите Таксопарк на карте ESC, поговорите с NPC и арендуйте автомобиль — смена начнётся автоматически.", "verified": true },
+    { "id": "official.work.taxi.fact.3", "text": "Заказы других игроков открываются через M → Такси КПК и обновляются динамически.", "verified": true },
+    { "id": "official.work.taxi.fact.4", "text": "После посадки клиента он отмечает пункт назначения, а водитель предлагает цену от 25$ до 5 000$; клиент может согласиться или отказаться.", "verified": true },
+    { "id": "official.work.taxi.fact.5", "text": "На 5 уровне навыка таксиста можно зарегистрировать личный транспорт, если он стоит рядом с таксопарком при начале смены.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "что нужно для работы в такси", "answer": "Нужны минимум 2 уровень, права на легковой транспорт и 50$ на аренду базового такси." },
+    { "questionPattern": "как открыть заказы такси", "answer": "Во время смены откройте M → Такси КПК." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Такси", "url": "https://wiki.gta5rp.com/docs/lic-work/taxi" },
+  "version": 1, "updatedAt": "2026-05-03T00:00:00Z", "validUntil": "2026-08-13T00:00:00Z", "verified": true, "demo": false,
+  "verifiedBy": "Codex source review — official GTA5RP Wiki"
+}

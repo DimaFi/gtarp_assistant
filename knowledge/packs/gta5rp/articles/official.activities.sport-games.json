@@ -1,0 +1,26 @@
+{
+  "id": "official.activities.sport-games",
+  "project": "gta5rp",
+  "serverScope": ["all"],
+  "title": "Спортивные игры",
+  "category": "activities",
+  "mechanic": "sport-games",
+  "aliases": ["спорт", "спортивные игры", "теннис", "дартс", "армрестлинг", "как играть в теннис", "как играть в дартс"],
+  "summary": "Основные правила тенниса, дартса и армрестлинга.",
+  "facts": [
+    { "id": "official.activities.sport-games.fact.1", "text": "В теннисе один игрок тренируется без счёта против машинки, а два игрока проводят матч до двух выигранных сетов; текущий счёт открывается клавишей Tab.", "verified": true },
+    { "id": "official.activities.sport-games.fact.2", "text": "В дартс участвуют один или два игрока: партия начинается с 301 очка и продолжается до достижения нуля.", "verified": true },
+    { "id": "official.activities.sport-games.fact.3", "text": "В армрестлинге два участника поочерёдно нажимают A и D; каждый уровень навыка Силы даёт преимущество 5%.", "verified": true }
+  ],
+  "preparedAnswers": [
+    { "questionPattern": "как играть в дартс", "answer": "В партии участвуют один или два игрока: начните с 301 очка и уменьшайте счёт до нуля." },
+    { "questionPattern": "что дает сила в армрестлинге", "answer": "Каждый уровень навыка Силы даёт в армрестлинге преимущество 5%." }
+  ],
+  "source": { "title": "GTA5RP Wiki — Спорт", "url": "https://wiki.gta5rp.com/docs/activities/sport" },
+  "version": 1,
+  "updatedAt": "2026-05-05T00:00:00Z",
+  "validUntil": "2026-08-16T00:00:00Z",
+  "verified": true,
+  "demo": false,
+  "verifiedBy": "Official GTA5RP Wiki source review"
+}
