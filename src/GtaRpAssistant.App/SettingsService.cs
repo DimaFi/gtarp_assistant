@@ -43,7 +43,9 @@ public sealed record AppSettings(
     string LmStudioApplicationPath = "",
     bool EnableLongTermConversation = false,
     bool VoiceAutoSubmit = false,
-    int VoiceHotkeyMode = 0);
+    int VoiceHotkeyMode = 0,
+    bool EmbeddedSttEnabled = true,
+    string EmbeddedSttPackPath = "");
 
 public sealed class SettingsService
 {

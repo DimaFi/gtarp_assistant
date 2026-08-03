@@ -25,7 +25,7 @@ public sealed class SpeechToTextProviderRoute(
     }
 }
 
-public sealed class SpeechToTextProviderCatalog(ISecretStore secrets) : ISpeechToTextProviderCatalog
+public sealed class SpeechToTextProviderCatalog(ISecretStore secrets, ISpeechToTextProvider? embeddedProvider = null) : ISpeechToTextProviderCatalog
 {
     public async Task<SpeechToTextProviderRoute> CreateAvailableRouteAsync(
         AppSettings settings,
@@ -72,6 +72,9 @@ public sealed class SpeechToTextProviderCatalog(ISecretStore secrets) : ISpeechT
                 .Providers
                 .OfType<ISpeechToTextProvider>();
             var available = new List<ISpeechToTextProvider>();
+            if (value.EmbeddedSttEnabled && embeddedProvider is not null
+                && (await embeddedProvider.CheckHealthAsync(cancellationToken)).IsAvailable)
+                available.Add(embeddedProvider);
             foreach (var provider in configured)
             {
                 if (!provider.Capabilities.IsLocal && !value.AllowCloud) continue;

@@ -40,6 +40,8 @@ public sealed class SettingsEditor : ObservableObject
     private bool _enableLongTermConversation;
     private bool _voiceAutoSubmit;
     private int _voiceHotkeyMode;
+    private bool _embeddedSttEnabled = true;
+    private string _embeddedSttPackPath = "";
 
     public string Server { get => _server; set => Set(ref _server, value); }
     public string Endpoint { get => _endpoint; set => Set(ref _endpoint, value); }
@@ -79,6 +81,8 @@ public sealed class SettingsEditor : ObservableObject
     public bool EnableLongTermConversation { get => _enableLongTermConversation; set => Set(ref _enableLongTermConversation, value); }
     public bool VoiceAutoSubmit { get => _voiceAutoSubmit; set => Set(ref _voiceAutoSubmit, value); }
     public int VoiceHotkeyMode { get => _voiceHotkeyMode; set => Set(ref _voiceHotkeyMode, value); }
+    public bool EmbeddedSttEnabled { get => _embeddedSttEnabled; set => Set(ref _embeddedSttEnabled, value); }
+    public string EmbeddedSttPackPath { get => _embeddedSttPackPath; set => Set(ref _embeddedSttPackPath, value); }
 
     public static SettingsEditor From(AppSettings value)
     {
@@ -100,6 +104,8 @@ public sealed class SettingsEditor : ObservableObject
         EnableLongTermConversation = value.EnableLongTermConversation,
         VoiceAutoSubmit = value.VoiceAutoSubmit,
         VoiceHotkeyMode = value.VoiceHotkeyMode,
+        EmbeddedSttEnabled = value.EmbeddedSttEnabled,
+        EmbeddedSttPackPath = value.EmbeddedSttPackPath,
         };
     }
 
@@ -122,6 +128,8 @@ public sealed class SettingsEditor : ObservableObject
         EnableLongTermConversation = EnableLongTermConversation,
         VoiceAutoSubmit = VoiceAutoSubmit,
         VoiceHotkeyMode = Enum.IsDefined(typeof(GtaRpAssistant.Core.VoiceInteractionMode), VoiceHotkeyMode) ? VoiceHotkeyMode : 0,
+        EmbeddedSttEnabled = EmbeddedSttEnabled,
+        EmbeddedSttPackPath = EmbeddedSttPackPath.Trim(),
         ProviderRouting = routes with
         {
             SpeechToText = routes.SpeechToText with { Mode = Mode(SttProviderMode) },

@@ -18,6 +18,7 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
     private readonly AudioDeviceSelectionState _selection;
     private readonly IUiDispatcher _dispatcher;
     private readonly MicrophoneTestService _microphoneTest;
+    private readonly IAppDialogService _dialogs;
     private IReadOnlyList<MicrophoneDeviceInfo> _microphones = [];
     private IReadOnlyList<RenderDeviceInfo> _renderDevices = [];
     private readonly ICommand _saveSettingsCommand;
@@ -34,6 +35,7 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
         GameSessionMonitor gameMonitor,
         IUiDispatcher dispatcher,
         MicrophoneTestService microphoneTest,
+        IAppDialogService dialogs,
         ILogger<AudioFeatureViewModel> logger) : base(ui, workspace)
     {
         _ui = ui;
@@ -45,10 +47,12 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
         _gameMonitor = gameMonitor;
         _logger = logger;
         _microphoneTest = microphoneTest;
+        _dialogs = dialogs;
         _saveSettingsCommand = save.SaveCommand;
         RefreshDevicesCommand = new RelayCommand(RefreshDevices);
         ToggleListeningCommand = new AsyncRelayCommand(ToggleListeningAsync);
         TestMicrophoneCommand = new AsyncRelayCommand(TestMicrophoneAsync, () => !IsTestingMicrophone && !_audioSession.IsListening);
+        BrowseEmbeddedSttPackCommand = new RelayCommand(BrowseEmbeddedSttPack);
         audioSession.StatusChanged += (_, status) => _dispatcher.Invoke(() => _ui.PipelineStatus = status);
         audioSession.MicrophoneLevelChanged += (_, level) => _dispatcher.Invoke(() => MicrophoneLevel = level);
         audioSession.StateChanged += (_, _) => _dispatcher.Invoke(() =>
@@ -76,9 +80,16 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
     public ICommand RefreshDevicesCommand { get; }
     public ICommand ToggleListeningCommand { get; }
     public ICommand TestMicrophoneCommand { get; }
+    public ICommand BrowseEmbeddedSttPackCommand { get; }
     public ICommand SaveSettingsCommand => _saveSettingsCommand;
 
     public void Initialize() => RefreshDevices();
+
+    private void BrowseEmbeddedSttPack()
+    {
+        var selected = _dialogs.PickFolder("Выберите папку локального STT-пака", Settings.EmbeddedSttPackPath);
+        if (!string.IsNullOrWhiteSpace(selected)) Settings.EmbeddedSttPackPath = selected;
+    }
 
     public async Task<bool> BeginManualVoiceRequestAsync(VoiceInteractionMode mode)
     {

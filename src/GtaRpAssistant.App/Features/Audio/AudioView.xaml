@@ -24,6 +24,25 @@
                     <ComboBox ItemsSource="{Binding RenderDevices}" SelectedItem="{Binding SelectedRenderDevice}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AudioSettingsEnabled}" AutomationProperties.AutomationId="Audio.RenderDevice" />
                 </StackPanel>
             </Border>
+            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Локальное распознавание речи" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}"
+                               TextWrapping="Wrap"
+                               Text="Опциональный STT-пак работает без облака. Если он не установлен или не прошёл проверку, используется настроенный резервный provider." />
+                    <CheckBox Content="Использовать автономный STT-пак при наличии" IsChecked="{Binding Settings.EmbeddedSttEnabled}"
+                              IsEnabled="{Binding AudioSettingsEnabled}" AutomationProperties.AutomationId="Audio.EmbeddedSttEnabled" />
+                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Label}" Text="Папка STT-пака (пусто — стандартная папка)" />
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding Settings.EmbeddedSttPackPath, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding AudioSettingsEnabled}"
+                                 AutomationProperties.AutomationId="Audio.EmbeddedSttPackPath" />
+                        <Button Grid.Column="1" Content="Выбрать…" Command="{Binding BrowseEmbeddedSttPackCommand}" IsEnabled="{Binding AudioSettingsEnabled}"
+                                AutomationProperties.AutomationId="Audio.BrowseEmbeddedSttPack" />
+                    </Grid>
+                    <TextBlock Style="{StaticResource Text.Caption}" Text="Стандартно: %LOCALAPPDATA%\GtaRpAssistant\model-packs\stt" />
+                </StackPanel>
+            </Border>
             <Border Style="{StaticResource Surface.Card}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Text.Heading}" Text="Захват и память" />

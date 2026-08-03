@@ -163,7 +163,13 @@ public partial class App : System.Windows.Application
         services.AddSingleton<MicrophoneTestService>();
         services.AddSingleton<VoiceInteractionStateMachine>();
         services.AddSingleton<VoiceInteractionCoordinator>();
-        services.AddSingleton<ISpeechToTextProviderCatalog, SpeechToTextProviderCatalog>();
+        services.AddSingleton(sp => new EmbeddedSttPackLocator(
+            () => sp.GetRequiredService<SettingsService>().Current.EmbeddedSttPackPath,
+            Path.Combine(AppPaths.DataDirectory, "model-packs", "stt")));
+        services.AddSingleton<WhisperCppSpeechToTextProvider>();
+        services.AddSingleton<ISpeechToTextProviderCatalog>(sp => new SpeechToTextProviderCatalog(
+            sp.GetRequiredService<ISecretStore>(),
+            sp.GetRequiredService<WhisperCppSpeechToTextProvider>()));
         services.AddSingleton<AudioSessionController>();
         services.AddSingleton<IAppDialogService, AppDialogService>();
         services.AddSingleton<ILocalModelFileDiscovery, LocalModelFileDiscovery>();
