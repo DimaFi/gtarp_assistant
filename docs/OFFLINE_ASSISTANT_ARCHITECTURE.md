@@ -1,6 +1,6 @@
 # Архитектура автономного GTA RP Assistant
 
-Актуально на 31 июля 2026 года.
+Актуально на 3 августа 2026 года.
 
 Статус: архитектурный аудит завершён. Документ является главным планом автономного сценария без LM Studio. Детальные документы существующих подсистем сохраняют силу, если не противоречат зафиксированным здесь границам.
 
@@ -24,6 +24,17 @@
 
 LM Studio, Ollama, облачный API и встроенная chat-модель не являются обязательными. Если STT или AI pack отсутствует, ручной текст, knowledge search, sources и overlay продолжают работать.
 
+Конечный продукт — не только справочник. После отдельного включения автономного режима он наблюдает разрешённую область экрана, распознаёт текущую игровую ситуацию, сопоставляет её с временным контекстом и проверенной базой знаний, предлагает совет и может продолжить разговор. Отсутствие OCR/Vision, модели или разрешения на захват всегда понижает режим до обычного безопасного «вопрос → ответ».
+
+### Режимы продукта
+
+1. **Вопрос → ответ** — режим по умолчанию, без постоянного наблюдения и без долговременной памяти.
+2. **Продолжительное общение** — локальная opt-in история, follow-up и session context.
+3. **Экранный помощник** — opt-in capture только окна/области GTA, OCR/known-screen/Vision и советы с confidence/provenance.
+4. **Компаньон** — продолжительное общение плюс отдельно включаемые память и адаптивный характер.
+
+Настройки наблюдения, долговременной памяти и адаптивного характера независимы: включение одной функции не даёт разрешения остальным.
+
 ## 2. Результат аудита
 
 ### Реализовано и проверено
@@ -43,14 +54,14 @@ LM Studio, Ollama, облачный API и встроенная chat-модел�
 | Local AI management | LM Studio adapter, нестандартные пути, GGUF import, load/unload и capability-test |
 | Runtime isolation foundation | `MicroModelHost`, named pipe, TTL, очередь, cancellation и memory guard |
 | Performance degradation | Мониторинг собственного процесса и отключение game-audio/proactivity при нагрузке |
-| Quality gate | 249 тестов и production benchmark полного answer pipeline |
+| Quality gate | 262 теста и production benchmark полного answer pipeline |
 
 ### Реализовано частично
 
 | Область | Чего не хватает |
 |---|---|
 | Central orchestration | Coordinator начинается с готового transcript; capture, STT, preview, TTS и Vision управляются разными сервисами |
-| Push-to-Talk | Hotkey открывает 20-секундное окно manual activation, но нет hold/release, toggle state, cancel и preview gate |
+| Push-to-Talk | Toggle, повторная отмена, max duration, editable preview/confirm, auto-submit opt-in, level meter и microphone test готовы; hold/release и unplug/replug recovery отсутствуют |
 | VAD | Есть adaptive energy threshold, но нет полноценного speech/noise classifier и пользовательской калибровки |
 | Device lifecycle | Есть ручное обновление списка и game-process rebind, но нет автоматического microphone unplug/replug recovery |
 | Resource policy | Есть частные guards для WPF и MicroModel, но нет общего бюджета RAM/VRAM/CPU и workload leases |
@@ -234,7 +245,7 @@ knowledge.db
 
 assistant-data.db
     conversations/messages
-    future confirmed profile/memory tables
+    future confirmed profile/memory/personality tables
 
 in-memory SessionContextStore
     server, activity, goal, recent screen events, TTL
@@ -252,8 +263,21 @@ secrets/
 2. session context — in-memory, TTL, очищается по завершению GTA/сессии;
 3. conversation history — только по существующему opt-in;
 4. player profile — только explicit request или подтверждённый candidate.
+5. personality profile — отдельные ограниченные параметры общения, только после opt-in.
 
 Memory никогда не становится official knowledge. Каждый profile/memory item имеет category, value, source, confidence, confirmation state, created/confirmed/updated timestamps. Неподтверждённое не передаётся модели как факт.
+
+### Адаптивный характер
+
+Характер влияет только на стиль общения, инициативность, подробность, юмор и форму поддержки. Он не может изменять факты, safety policy, server scope, grounded validation или решение `abstain`.
+
+- по умолчанию характер нейтральный и не изменяется;
+- отдельная галочка включает адаптацию по подтверждённым сигналам использования;
+- изменение происходит медленно внутри заданных диапазонов, без свободной перезаписи system prompt;
+- пользователь видит текущие черты и причины изменений, может закрепить параметр, изменить его вручную или полностью сбросить;
+- запрещено выводить чувствительные характеристики, здоровье, политику, религию или психологический профиль;
+- personality profile хранится локально отдельно от knowledge и не отправляется в cloud без отдельного разрешения;
+- regression gate проверяет, что один и тот же grounded-факт остаётся одинаковым при разных характерах.
 
 ## 7. Голосовые состояния
 
@@ -285,6 +309,14 @@ Idle
 
 Screen context не является источником игровых правил. Числа/текст интерфейса маркируются как наблюдение, а ответы о механике всё равно grounded в knowledge.
 
+Для OCR зафиксирован Microsoft-first adapter chain:
+
+1. `Microsoft.Windows.AI.Imaging.TextRecognizer` из Windows AI APIs — предпочтительный локальный backend на поддерживаемых Copilot+ PC с NPU. Он возвращает текст, границы и confidence, но на текущем этапе официально не поддерживает CPU/GPU fallback.
+2. `Windows.Media.Ocr.OcrEngine` — legacy fallback только для установленной MSIX-версии с package identity. Текущий unpackaged portable ZIP не должен молча считать этот API доступным.
+3. На остальных ПК OCR остаётся отключённым до выбора и отдельного benchmark переносимого offline OCR pack. Отсутствие OCR не блокирует ручной screenshot preview и основной knowledge path.
+
+Перед созданием backend приложение обязано выполнять capability probe. Загрузка системного AI-компонента требует явного согласия, а результат OCR никогда не отправляется в cloud без отдельного разрешения. Исходные официальные ограничения: [Windows AI APIs](https://learn.microsoft.com/windows/ai/apis/), [Text Recognition](https://learn.microsoft.com/windows/ai/apis/text-recognition), [Windows.Media.Ocr](https://learn.microsoft.com/uwp/api/windows.media.ocr).
+
 ## 9. Начальные resource budgets
 
 Это цели для benchmark, а не уже достигнутые гарантии.
@@ -303,6 +335,8 @@ Screen context не является источником игровых пра�
 
 ### P0.1 — единый voice interaction control plane
 
+Статус: основной toggle/preview срез завершён 3 августа 2026 года. Остаток выделен в P0.1b.
+
 - Цель: убрать прямой путь `AudioSessionController → answer coordinator`.
 - Пользовательский результат: manual voice имеет наблюдаемые состояния, отмену и transcript preview перед отправкой.
 - Объём: `VoiceInteractionCoordinator`, STT catalog, state snapshot, hold/toggle commands и текущий provider fallback.
@@ -314,6 +348,13 @@ Screen context не является источником игровых пра�
 - Fallback: текущий текстовый ввод и текущий STT route.
 - Зависимости: существующие capture/STT/coordinator.
 - Не входит: встроенная STT-модель, OCR, chat runtime.
+
+### P0.1b — hold и device lifecycle hardening
+
+- Hold-to-talk через изолированный low-level key-up hook без ввода в GTA.
+- Conflict detection, переназначение клавиши и безопасный toggle fallback.
+- Microphone unplug/replug recovery, смена default device и понятная диагностика permission denied.
+- Gate: 100 start/cancel cycles, stuck-key test, unplug/replug test и отсутствие влияния на keyboard input игры.
 
 ### P0.2 — встроенный STT pack
 
@@ -364,18 +405,26 @@ Screen context не является источником игровых пра�
 ### P5 — временный игровой контекст
 
 - Отдельный in-memory `SessionContextStore` с TTL и явным provenance.
+- События экрана, OCR, голос и текущая цель объединяются в structured context, но не становятся официальными фактами.
 
 ### P6 — OCR и Vision
 
-- Frame diff → OCR → known screens → optional VLM.
+- Frame diff → `ITextRecognitionBackend` → known screens → optional VLM.
+- Primary: Microsoft Windows AI `TextRecognizer` на NPU; legacy MSIX fallback: `Windows.Media.Ocr`.
+- Capability probe, package-identity/NPU detection, consent перед model readiness и privacy-safe diagnostics обязательны.
+- Для обычных CPU-only portable-ПК нужен отдельный benchmark OCR-кандидатов; Windows AI OCR нельзя объявлять универсальным backend.
+- Gate: GTA UI dataset для русского/английского текста, confidence/bounds, latency/RAM и отсутствие regression основного capture preview.
 
 ### P7 — controlled memory
 
 - Confirmed profile, candidates, view/edit/delete/export и category opt-outs.
+- Отдельный `PersonalityProfile` с bounded traits, opt-in adaptation, журналом причин, pin/reset/export и запретом влиять на grounding.
 
 ### P8 — proactive assistant
 
 - Activity levels, cooldown, deduplication, reasons и resource-aware suppression.
+- Screen event → situation classifier → advice policy → grounded hint; пользователь всегда видит, почему совет появился.
+- Поддержка диалога после подсказки использует session context, а не бесконтрольную запись всего происходящего.
 
 ### P9 — публичный продукт
 
@@ -387,7 +436,7 @@ Screen context не является источником игровых пра�
 
 ## 11. Выбранная ближайшая точка
 
-Следующий исполнимый этап — **P0.1: единый voice interaction control plane**.
+Следующий исполнимый этап — **P0.1b: hold и device lifecycle hardening**.
 
 Причина выбора:
 
@@ -395,8 +444,8 @@ Screen context не является источником игровых пра�
 - локальный TTS уже существует;
 - главный разрыв находится между hotkey/capture/STT и готовым transcript;
 - подключение встроенного STT до устранения этого разрыва создаст дублирующий pipeline;
-- P0.1 можно проверить существующими providers без выбора или скачивания модели;
-- этап даёт немедленный UX-результат и является обязательной зависимостью автономного STT.
+- основной P0.1 toggle/preview уже проверен существующими providers без выбора или скачивания модели;
+- P0.1b закрывает аппаратные и hotkey-риски перед подключением автономного STT.
 
 ## 12. Намеренно не реализуется в P0.1
 
@@ -407,4 +456,3 @@ Screen context не является источником игровых пра�
 - автоматическое сохранение player profile;
 - управление GTA, чтение памяти, ввод или автокликеры;
 - обязательный cloud или сторонний runtime.
-

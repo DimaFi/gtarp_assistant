@@ -42,7 +42,7 @@ dotnet run --project src/GtaRpAssistant.App -c Release
 .\eng\build.ps1
 ```
 
-Скрипт фиксирует .NET SDK через `global.json`, выполняет build/tests, строгую проверку knowledge pack и блокирующий benchmark полного production pipeline, по умолчанию публикует self-contained `win-x64` вместе с отдельным mock `MicroModelHost`, запускает WPF navigation/overlay/vision smoke-test, проверяет установку в нестандартный каталог с пробелами, создаёт десять PNG-снимков feature pages и вспомогательных окон и формирует детерминированный ZIP, manifest файлов и `.sha256` в `artifacts/release`.
+Скрипт фиксирует .NET SDK через `global.json`, выполняет build/tests, строгую проверку knowledge pack и блокирующий benchmark полного production pipeline, по умолчанию публикует self-contained `win-x64` вместе с отдельным mock `MicroModelHost`, запускает WPF navigation/overlay/vision smoke-test, проверяет установку в нестандартный каталог с пробелами, создаёт одиннадцать PNG-снимков feature pages и вспомогательных окон и формирует ZIP, manifest файлов и `.sha256` в `artifacts/release`.
 
 Для десяти повторных startup/shutdown циклов и JSON-отчёта:
 
@@ -60,6 +60,7 @@ Release-папка также содержит user-scope скрипты install
 - единый `AssistantSessionCoordinator`, state machine, cancellation и single-flight;
 - монитор запуска/закрытия/перезапуска GTA с перепривязкой process loopback;
 - WASAPI microphone, process-specific/system loopback, VAD, bounded segmentation и OpenAI-compatible STT;
+- единый manual-voice control plane: toggle/cancel, max duration, редактируемый preview в основном окне и expanded overlay, opt-in автоотправка, уровень сигнала и тест микрофона;
 - SQLite/FTS5 knowledge packs, exact/prepared answers, server scope, conflict/outdated checks;
 - provider capabilities/registry и независимые primary/fallback routes для STT, Chat, Vision, TTS и Embeddings;
 - версионированная миграция старых endpoint/model-настроек без потери явного cloud opt-in;
@@ -75,14 +76,14 @@ Release-папка также содержит user-scope скрипты install
 - выбор любой установленной instruct/chat-модели LM Studio с сохранением между запусками и фильтрацией embedding-моделей;
 - безопасный импорт одиночного GGUF или файла из выбранной папки: проверка сигнатуры, offline dry-run, `--copy`, локальный repository ID, timeout/cancellation и capability gate;
 - менеджер диалогов: temporary/opt-in SQLite history, create/open/rename/delete, retry/copy/cancel, Enter/Shift+Enter и безопасный нативный Markdown;
-- compact overlay с краткими шагами и expanded overlay с планом, причинами, уточнениями и provider/model.
+- compact overlay с краткими шагами и expanded overlay с планом, причинами, уточнениями и provider/model;
 - отдельный on-demand `MicroModelHost` с named pipe, строгим mock JSON, one-active/one-queued policy, idle TTL и memory guard 750/900 МБ; настоящая модель пока не подключена;
 - воспроизводимый [`ModelBenchmark`](./docs/MICRO_MODEL_BENCHMARK.md): реальные Qwen3/SmolLM2 прогоны, strict JSON/grounding/license/memory gate и [`ADR-0001`](./docs/adr/ADR-0001-micro-model-candidate-benchmark.md), отклонивший оба базовых кандидата без включения весов в приложение.
 
 ## Горячие клавиши
 
 - `Ctrl+Alt+Q` — показать или скрыть помощника.
-- `Ctrl+Alt+A` — ручной голосовой вопрос; только этот сценарий может включить TTS.
+- `Ctrl+Alt+A` — ручной голосовой вопрос; повторное нажатие отменяет активную запись, распознавание или preview; только этот сценарий может включить TTS.
 - `Ctrl+Alt+S` — один снимок обнаруженного окна GTA с обязательным превью.
 - `Ctrl+Alt+P` — полная пауза.
 
@@ -92,9 +93,9 @@ Release-папка также содержит user-scope скрипты install
 
 ## Проверка
 
-Release-сборка проходит без предупреждений. Набор содержит 249 unit/integration тестов для Core, UI registry, безопасного Markdown, shell boundaries, privacy-safe diagnostics, hotkey/tray routing и DPI-aware overlay geometry, knowledge search и миграций SQLite, временной и opt-in постоянной истории диалогов, conversation/follow-up/repair, local AI management, нестандартных путей, provider routes, process loopback, MicroModel lifecycle/TTL/queue/memory guard, product/model benchmark gates и защитных ограничений. Блокирующий production benchmark проверяет 528 вопросов через реальный coordinator и SQLite retrieval: 524 обязательных сценария прошли на 100%, ложных ответов, неподтверждённых чисел и wrong-server ответов нет. Опубликованное приложение дополнительно проходит изолированный startup/navigation/keyboard/settings/tray/overlay/vision smoke-test, установку из нестандартного каталога, snapshot gate и 10 startup/shutdown циклов. Реальный двухпроцессный UI E2E LM Studio 0.4.19 с Qwen проверил выбор модели, capability gate и сохранение маршрута после перезапуска; отчёты находятся в `artifacts/local-ai-e2e`.
+Release-сборка проходит без предупреждений. Набор содержит 262 unit/integration теста для Core, voice interaction, STT privacy routing, UI registry, безопасного Markdown, shell boundaries, privacy-safe diagnostics, hotkey/tray routing и DPI-aware overlay geometry, knowledge search и миграций SQLite, временной и opt-in постоянной истории диалогов, conversation/follow-up/repair, local AI management, нестандартных путей, provider routes, process loopback, MicroModel lifecycle/TTL/queue/memory guard, product/model benchmark gates и защитных ограничений. Блокирующий production benchmark проверяет 528 вопросов через реальный coordinator и SQLite retrieval: 524 обязательных сценария прошли на 100%, ложных ответов, неподтверждённых чисел и wrong-server ответов нет. Опубликованное приложение дополнительно проходит изолированный startup/navigation/keyboard/settings/tray/overlay/vision/voice-preview smoke-test, установку из нестандартного каталога, gate из 11 snapshots и 10 startup/shutdown циклов. Реальный двухпроцессный UI E2E LM Studio 0.4.19 с Qwen проверил выбор модели, capability gate и сохранение маршрута после перезапуска; отчёты находятся в `artifacts/local-ai-e2e`.
 
-Текущий проверенный portable-релиз: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`, SHA-256 `6994348acdab3aa1c153550b6660741776c010d8b543a9f5206d8365d6c25045`.
+Текущий проверенный portable-релиз: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`, SHA-256 `45257d6d89865de77c595ee07108319bf03926b6eebc0cda719973e2f10f5b5c`.
 
 ## Ограничения
 
@@ -107,5 +108,3 @@ Release-сборка проходит без предупреждений. На�
 - `MicroModelHost` пока использует только mock runtime: реальный benchmark выполнен, но обе базовые модели не прошли quality/memory gate, поэтому GGUF/llama.cpp намеренно не подключены.
 - Современная визуальная доводка уже начата: compact/expanded/vision поверхности и минималистичная shell-навигация используют общую дизайн-систему. Оставшиеся UI-7 задачи зафиксированы в [`PRODUCT_AND_UI_PLAN.md`](./docs/PRODUCT_AND_UI_PLAN.md).
 - Self-contained portable `win-x64` ZIP и безопасные user-scope install/rollback/uninstall-скрипты подготовлены; MSIX, code signing и автоматическое обновление пока не подготовлены.
-#   g t a r p _ a s s i s t a n t  
- 

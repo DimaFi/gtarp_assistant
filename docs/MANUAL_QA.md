@@ -11,7 +11,8 @@
 - compact overlay не забирает фокус у GTA; «Раскрыть» открывает expanded overlay, `Esc` закрывает его, а «Свернуть» возвращает compact-представление;
 - expanded overlay остаётся в рабочей области экрана, прокручивает длинный ответ и показывает отдельную пометку для community-данных;
 - сохранение настроек, DPAPI round-trip и отсутствие ключей в `settings.json`/logs;
-- microphone start/stop, unplug/replug, default-device switch, STT timeout/cancellation;
+- microphone start/stop, трёхсекундный test/level meter, unplug/replug, default-device switch, STT timeout/cancellation;
+- manual voice toggle: повторный `Ctrl+Alt+A` отменяет capture/STT/preview; распознанный текст редактируется и отправляется только после подтверждения, а opt-in auto-submit пропускает preview;
 - после переходов между feature pages состояние введённого вопроса, выбранных audio devices и voice settings сохраняется в соответствующем модуле;
 - в обычном режиме создать два диалога, переключиться между ними, переименовать и удалить один с подтверждением; после перезапуска история должна отсутствовать;
 - включить **Долгосрочное общение**, повторить сценарий, закрыть и открыть приложение; current conversation, названия и сообщения должны восстановиться из `assistant-data.db`;
@@ -54,9 +55,9 @@ Smoke-режим создаёт окно и tray, инициализирует D
 .\eng\capture-ui.ps1 -Executable .\artifacts\publish\win-x64\GtaRpAssistant.App.exe
 ```
 
-Снимки `assistant.png`, `audio.png`, `providers.png`, `behavior.png`, `privacy.png`, `knowledge.png`, `about.png`, `overlay-compact.png`, `overlay-expanded.png` и `vision-preview.png` сохраняются в `artifacts/ui-snapshots`. Скрипт проверяет наличие и непустой рендер каждого файла. Полный `eng/build.ps1` запускает smoke и capture автоматически, если не указан `-SkipSmoke`.
+Снимки `assistant.png`, `audio.png`, `providers.png`, `behavior.png`, `privacy.png`, `knowledge.png`, `about.png`, `overlay-compact.png`, `overlay-expanded.png`, `vision-preview.png` и `voice-preview.png` сохраняются в `artifacts/ui-snapshots`. Скрипт проверяет наличие и непустой рендер каждого файла. Полный `eng/build.ps1` запускает smoke и capture автоматически, если не указан `-SkipSmoke`.
 
-WPF smoke дополнительно выполняет compact → expanded → compact → hidden и открывает vision preview для отдельных Cancel/Confirm сценариев. Используется сгенерированное тестовое изображение: provider не вызывается, сетевой запрос не выполняется.
+WPF smoke дополнительно выполняет compact → expanded → compact → hidden, открывает vision preview для отдельных Cancel/Confirm сценариев и проверяет редактируемый voice preview с подтверждением. Используется сгенерированное тестовое изображение и тестовый transcript: provider не вызывается, сетевой запрос не выполняется.
 
 Smoke и capture всегда запускаются с уникальным временным профилем. Они не читают пользовательский `%LocalAppData%\GtaRpAssistant`, не меняют Startup и не регистрируют глобальные сочетания клавиш. Внутри временного профиля проверяется сохранение endpoint, DPAPI round-trip тестового секрета и отсутствие секрета в `settings.json`.
 

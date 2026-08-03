@@ -1,8 +1,10 @@
 # Roadmap
 
-Стратегические метрики, конкурентные преимущества и порядок развития до уровня помощника №1 зафиксированы в [TOP1_PRODUCT_ROADMAP.md](TOP1_PRODUCT_ROADMAP.md). T1 production quality benchmark и аудит автономной архитектуры завершены; ближайший новый этап — P0.1 voice control plane. Целевая схема и этапы P0–P10 описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md).
+Стратегические метрики, конкурентные преимущества и порядок развития до уровня помощника №1 зафиксированы в [TOP1_PRODUCT_ROADMAP.md](TOP1_PRODUCT_ROADMAP.md). T1 production quality benchmark, аудит автономной архитектуры и основной P0.1 toggle/preview voice control plane завершены; ближайший новый этап — P0.1b hardening горячей клавиши и жизненного цикла микрофона. Целевая схема и этапы P0–P10 описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md).
 
 Подробное состояние уже реализованного продукта, визуальное направление и поэтапный план модульного редизайна сохранены в [PRODUCT_AND_UI_PLAN.md](PRODUCT_AND_UI_PLAN.md).
+
+Конечная цель: автономный локальный компаньон, который после отдельных opt-in разрешений понимает экранный и разговорный контекст, даёт grounded-советы, поддерживает продолжительное общение и может постепенно адаптировать прозрачный сбрасываемый характер. Режим по умолчанию остаётся «вопрос → ответ».
 
 Базовые шесть продуктовых итераций представлены работающими вертикальными срезами: text pipeline, microphone, game audio, proactive policy, manual vision и opt-in TTS.
 
@@ -24,7 +26,7 @@ T1 добавил версионированный gold-набор и блоки
 
 Следующие приоритеты:
 
-1. Реализовать P0.1: единый `VoiceInteractionCoordinator`, STT catalog, hold/toggle, preview, max duration, отмену, тест микрофона и level meter.
+1. Завершить P0.1b: hold-to-talk через изолированный key-up hook, обнаружение конфликтов горячих клавиш, безопасный toggle fallback и восстановление после unplug/replug микрофона. Основной P0.1 toggle/preview срез уже готов.
 2. Реализовать P0.2: optional встроенный CPU STT pack без зависимости от LM Studio, Python или cloud.
 3. Проверить P0.3: полный PTT → STT → knowledge → validation → overlay → Windows TTS на чистом Windows-профиле.
 4. Выполнить T2/T3: расширить source-reviewed core pack по реальной частоте вопросов, добавить freshness/change detection, нормализацию запросов и измеримое улучшение retrieval.
@@ -37,5 +39,6 @@ T1 добавил версионированный gold-набор и блоки
 11. Провести длительные тесты устройств: unplug/replug, sleep/resume, restart GTA/LM Studio, exclusive fullscreen, Windows 10/11 и несколько классов ПК.
 12. Выполнить T7: installer/MSIX, code signing, безопасное обновление, rollback, first-run wizard и проверку чистой установки.
 13. Выполнить T8: history/review для knowledge packs, privacy-safe feedback loop, публичный changelog и регулярный benchmark качества.
+14. В P6 реализовать OCR через общий adapter: Microsoft Windows AI `TextRecognizer` использовать первым на поддерживаемых NPU, `Windows.Media.Ocr` — только как MSIX/package-identity fallback; для portable CPU-only устройств выбрать отдельный offline backend по benchmark.
 
 Если для запроса нет актуального проверенного official или явно маркированного community-факта, приложение должно безопасно воздерживаться от фактической игровой подсказки.

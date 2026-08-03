@@ -1,8 +1,8 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — автономная архитектура и P0.1 voice control plane
+## ACTIVE CHECKPOINT — P0.1 toggle/preview voice control plane завершён
 
-Актуально на 31 июля 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.
+Актуально на 3 августа 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.
 
 Завершено:
 
@@ -20,19 +20,25 @@
 - единая документация: `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md` и `PRODUCT_QUALITY_BENCHMARK.md`.
 - завершён аудит voice, STT, provider routing, runtime, ресурсов, памяти, Vision и knowledge lifecycle;
 - зафиксирована целевая автономная архитектура без обязательных LM Studio, Ollama, Python или cloud;
-- выбран следующий исполнимый срез P0.1: единый `VoiceInteractionCoordinator`, STT catalog и состояния hold/toggle/preview/cancel.
+- добавлены `VoiceInteractionCoordinator`, отдельный `SpeechToTextProviderCatalog` и проверяемые состояния manual voice;
+- toggle-hotkey повторным нажатием отменяет capture/STT/ожидание preview;
+- распознанный текст по умолчанию не отправляется автоматически: его можно изменить и подтвердить в основном окне или expanded overlay;
+- auto-submit оставлен отдельной выключенной по умолчанию настройкой;
+- добавлены уровень сигнала и отдельный трёхсекундный тест выбранного микрофона;
+- voice preview включён в обязательный UI automation/snapshot gate;
+- исправлено startup-падение read-only WPF binding: индикатор уровня использует явный `OneWay`.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 249 тестов: Core 80, Providers 20, Knowledge 68, Integration 32, App 32, ModelBenchmark 13, ProductBenchmark 4;
+- 262 теста: Core 84, Providers 20, Knowledge 68, Integration 32, App 41, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server;
-- WPF smoke, keyboard/minimum-layout, 10 snapshots и custom-path install smoke прошли;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,46 мс;
+- WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- последний проверенный SHA-256 до архитектурного этапа: `284df5c4121df7bf09c008b63a0fc0eb779f30eec391441f34c6abe023dd8b70`.
+- SHA-256: `45257d6d89865de77c595ee07108319bf03926b6eebc0cda719973e2f10f5b5c`.
 
-Следующий логический этап: P0.1 voice control plane — единый жизненный цикл захвата, STT, preview, подтверждения, отмены и передачи готового текста в существующий `AssistantSessionCoordinator`. Затем P0.2 добавляет встроенный STT pack, а P0.3 проверяет полный offline voice knowledge vertical. Полная архитектура, ресурсные цели, fallback и критерии сохранены в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
+Следующий логический этап: P0.1b hardening — hold-to-talk через изолированный key-up hook, конфликт горячих клавиш и восстановление microphone unplug/replug. Затем P0.2 добавляет встроенный STT pack, а P0.3 проверяет полный offline voice knowledge vertical. Полная архитектура, ресурсные цели, fallback и критерии сохранены в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
 
 Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 
