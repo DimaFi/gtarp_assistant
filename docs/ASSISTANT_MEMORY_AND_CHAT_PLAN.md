@@ -2,7 +2,7 @@
 
 Актуально на 3 августа 2026 года.
 
-Статус: **M1, основной срез M2 и toggle/preview часть M3 завершены и прошли release gate**. Следующий voice-срез — hold-to-talk и device lifecycle hardening.
+Статус: **M1, основной срез M2 и программная часть M3 завершены и прошли Release-gate**. Для M3 остаётся ручная hardware-матрица и будущий встроенный STT pack.
 
 Документ фиксирует границу между обычным режимом «вопрос → ответ» и добровольно включаемым долгосрочным общением. База знаний GTA5RP и пользовательская память остаются разными подсистемами и разными файлами данных.
 
@@ -37,7 +37,7 @@
 ### Реализовано частично
 
 - Полный чат готов в основном окне; отдельный ввод текста прямо в compact overlay пока не добавлен.
-- Голос работает как manual request, но полноценный hold-to-talk, проверка перед отправкой и тест микрофона ещё не собраны в один UX.
+- Голосовой UX объединяет toggle/hold, cancellation, editable preview, auto-submit opt-in, тест/уровень микрофона и ограниченное восстановление выбранного устройства.
 - Knowledge UI показывает состояние каталога, но не является document reader/import manager.
 - Conversation context ограничен последними turns, но нет summary старой части.
 - Настройки приватности очищают временный контекст, но нет отдельного управления сохранённой историей и памятью.
@@ -98,12 +98,13 @@ UI и coordinator не обращаются к SQLite напрямую. Пере
 
 ### M3 — Push-to-Talk UX
 
-- [ ] hold mode через проверенный key-up hook;
+- [x] hold mode через проверенный key-up hook;
 - [x] toggle mode и повторная отмена;
 - [x] editable preview/confirm или отдельный auto-send opt-in;
 - [x] max duration и explicit cancellation states;
 - [x] тест микрофона и level meter;
-- [ ] unplug/replug recovery и hotkey conflict detection;
+- [x] unplug/replug recovery и hotkey conflict detection на уровне реализации и автоматических тестов;
+- [ ] ручная hardware-матрица unplug/replug, stuck-key, sleep/resume и Windows 10/11;
 - optional whisper.cpp adapter без тяжёлой модели в комплекте.
 
 ### M4 — document-oriented Knowledge UI

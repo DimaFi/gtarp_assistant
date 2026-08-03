@@ -1,6 +1,6 @@
 # Roadmap
 
-Стратегические метрики, конкурентные преимущества и порядок развития до уровня помощника №1 зафиксированы в [TOP1_PRODUCT_ROADMAP.md](TOP1_PRODUCT_ROADMAP.md). T1 production quality benchmark, аудит автономной архитектуры и основной P0.1 toggle/preview voice control plane завершены; ближайший новый этап — P0.1b hardening горячей клавиши и жизненного цикла микрофона. Целевая схема и этапы P0–P10 описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md).
+Стратегические метрики, конкурентные преимущества и порядок развития до уровня помощника №1 зафиксированы в [TOP1_PRODUCT_ROADMAP.md](TOP1_PRODUCT_ROADMAP.md). T1 production quality benchmark и программные этапы P0.1/P0.1b voice control plane завершены; ближайший этап разработки — P0.2 встроенный STT pack. Целевая схема и этапы P0–P10 описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md).
 
 Подробное состояние уже реализованного продукта, визуальное направление и поэтапный план модульного редизайна сохранены в [PRODUCT_AND_UI_PLAN.md](PRODUCT_AND_UI_PLAN.md).
 
@@ -26,7 +26,7 @@ T1 добавил версионированный gold-набор и блоки
 
 Следующие приоритеты:
 
-1. Завершить P0.1b: hold-to-talk через изолированный key-up hook, обнаружение конфликтов горячих клавиш, безопасный toggle fallback и восстановление после unplug/replug микрофона. Основной P0.1 toggle/preview срез уже готов.
+1. Провести ручную P0.1b hardware-матрицу: 100 start/cancel циклов, stuck-key, физический unplug/replug, sleep/resume и отсутствие влияния на ввод GTA.
 2. Реализовать P0.2: optional встроенный CPU STT pack без зависимости от LM Studio, Python или cloud.
 3. Проверить P0.3: полный PTT → STT → knowledge → validation → overlay → Windows TTS на чистом Windows-профиле.
 4. Выполнить T2/T3: расширить source-reviewed core pack по реальной частоте вопросов, добавить freshness/change detection, нормализацию запросов и измеримое улучшение retrieval.

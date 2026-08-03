@@ -54,7 +54,7 @@ LM Studio, Ollama, облачный API и встроенная chat-модел�
 | Local AI management | LM Studio adapter, нестандартные пути, GGUF import, load/unload и capability-test |
 | Runtime isolation foundation | `MicroModelHost`, named pipe, TTL, очередь, cancellation и memory guard |
 | Performance degradation | Мониторинг собственного процесса и отключение game-audio/proactivity при нагрузке |
-| Quality gate | 262 теста и production benchmark полного answer pipeline |
+| Quality gate | 270 тестов и production benchmark полного answer pipeline |
 
 ### Реализовано частично
 
@@ -351,9 +351,11 @@ Screen context не является источником игровых пра�
 
 ### P0.1b — hold и device lifecycle hardening
 
-- Hold-to-talk через изолированный low-level key-up hook без ввода в GTA.
-- Conflict detection, переназначение клавиши и безопасный toggle fallback.
-- Microphone unplug/replug recovery, смена default device и понятная диагностика permission denied.
+- Статус реализации: завершён 3 августа 2026 года; ручная hardware-матрица перед публичным релизом остаётся обязательной.
+- [x] Hold-to-talk через изолированный low-level key-up hook без ввода в GTA.
+- [x] Точный conflict detection, `MOD_NOREPEAT` и безопасный toggle fallback через настройки/основное окно.
+- [x] Ограниченное microphone unplug/replug recovery только для ранее выбранного устройства и понятная диагностика.
+- [ ] Физическая проверка смены default device, permission denied, sleep/resume и разных USB/Bluetooth устройств.
 - Gate: 100 start/cancel cycles, stuck-key test, unplug/replug test и отсутствие влияния на keyboard input игры.
 
 ### P0.2 — встроенный STT pack
@@ -436,16 +438,16 @@ Screen context не является источником игровых пра�
 
 ## 11. Выбранная ближайшая точка
 
-Следующий исполнимый этап — **P0.1b: hold и device lifecycle hardening**.
+Следующий исполнимый этап разработки — **P0.2: встроенный STT pack**. P0.1b реализован и прошёл автоматический Release-gate; его аппаратная матрица остаётся release-условием.
 
 Причина выбора:
 
 - answer orchestrator уже существует и прошёл production benchmark;
 - локальный TTS уже существует;
-- главный разрыв находится между hotkey/capture/STT и готовым transcript;
-- подключение встроенного STT до устранения этого разрыва создаст дублирующий pipeline;
-- основной P0.1 toggle/preview уже проверен существующими providers без выбора или скачивания модели;
-- P0.1b закрывает аппаратные и hotkey-риски перед подключением автономного STT.
+- hotkey/capture/preview/cancel теперь образуют единый проверяемый control plane;
+- toggle и hold используют отдельные безопасные Windows-механизмы и общий coordinator;
+- внешний STT route уже проверяет весь downstream pipeline;
+- следующий разрыв автономности — отсутствие встроенного offline STT pack.
 
 ## 12. Намеренно не реализуется в P0.1
 

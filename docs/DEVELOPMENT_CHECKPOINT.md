@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — P0.1 toggle/preview voice control plane завершён
+## ACTIVE CHECKPOINT — P0.1b voice hardening реализован и прошёл Release-gate
 
 Актуально на 3 августа 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.
 
@@ -27,18 +27,24 @@
 - добавлены уровень сигнала и отдельный трёхсекундный тест выбранного микрофона;
 - voice preview включён в обязательный UI automation/snapshot gate;
 - исправлено startup-падение read-only WPF binding: индикатор уровня использует явный `OneWay`.
+- добавлен выбор toggle/hold для `Ctrl+Alt+A`; настройка применяется после сохранения без перезапуска;
+- hold-to-talk использует изолированный read-only key-up hook, не блокирует и не создаёт клавиатурный ввод;
+- отпускание клавиши немедленно завершает активный речевой сегмент, а key repeat не создаёт повторные запросы;
+- `RegisterHotKey` теперь использует `MOD_NOREPEAT` и сообщает, какая именно команда конфликтует;
+- неожиданный обрыв WASAPI отменяет текущий voice request и до 10 раз ожидает возвращения именно выбранного микрофона;
+- автоматическое восстановление не переключает пользователя скрытно на другое аудиоустройство и отменяется при остановке сессии.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 262 теста: Core 84, Providers 20, Knowledge 68, Integration 32, App 41, ModelBenchmark 13, ProductBenchmark 4;
+- 270 тестов: Core 85, Providers 20, Knowledge 68, Integration 32, App 48, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,46 мс;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 1,06 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `45257d6d89865de77c595ee07108319bf03926b6eebc0cda719973e2f10f5b5c`.
+- SHA-256: `9041a0b0d4f72ac7467a0e42d6a64c04158111f8342ffc11ac7d2a972bf3200e`.
 
-Следующий логический этап: P0.1b hardening — hold-to-talk через изолированный key-up hook, конфликт горячих клавиш и восстановление microphone unplug/replug. Затем P0.2 добавляет встроенный STT pack, а P0.3 проверяет полный offline voice knowledge vertical. Полная архитектура, ресурсные цели, fallback и критерии сохранены в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
+Следующий логический этап разработки: P0.2 — выбрать и проверить встроенный CPU STT pack без зависимости от LM Studio, Python или cloud. До публичного релиза P0.1b требуется отдельная ручная hardware-матрица: физический unplug/replug, stuck-key, sleep/resume, Windows 10/11 и 100 start/cancel циклов. Полная архитектура, ресурсные цели, fallback и критерии сохранены в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
 
 Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 
