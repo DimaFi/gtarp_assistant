@@ -29,6 +29,7 @@ public sealed class AboutFeatureViewModel : FeatureViewModel, IDisposable
         ?? "неизвестна";
 
     public string Platform => $"{RuntimeInformation.OSDescription.Trim()} · {RuntimeInformation.ProcessArchitecture}";
+    public string DisplayVersion => Version.Split('+', 2)[0];
     public string Runtime => $".NET {Environment.Version}";
     public string Knowledge => $"{_ui.TotalArticleCount} статей · {_ui.OfficialArticleCount} официальных · {_ui.CommunityArticleCount} community";
     public string KnowledgeCount => _ui.TotalArticleCount.ToString(System.Globalization.CultureInfo.InvariantCulture);

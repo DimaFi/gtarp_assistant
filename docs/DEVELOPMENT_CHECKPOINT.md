@@ -48,16 +48,20 @@
 - `eng/compare-stt-candidates.ps1` выполняет preflight всех WAV, одинаковый прогон двух паков, формирует единое решение и запускает 100 lifecycle-циклов только для кандидата после PASS;
 - три lifecycle-цикла `base-q8_0` прошли за 2,66–3,08 с при peak private 773 MiB; `small-q5_1` — за 8,04–8,32 с при 992 MiB; orphan processes: 0;
 - отдельный ZIP `small-q5_1` прошёл hash-verified установку и реальный запуск из нестандартного пути с пробелами; это техническая проверка runtime, не русского качества.
+- реализован следующий независимый UI-7 срез: общие `FeaturePageHeader`, `FeatureSection` и `MetricCard` подключены к дизайн-системе;
+- **О приложении**, **База знаний** и **Приватность** переведены на общие компоненты с сохранением bindings и AutomationId;
+- исправлено переполнение карточки версии: краткая версия отделена от полного диагностического informational version;
+- обновлённые About/Knowledge/Privacy snapshots просмотрены вручную; layout и доступные действия сохранены.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 289 тестов: Core 85, Providers 20, Knowledge 68, Integration 49, App 50, ModelBenchmark 13, ProductBenchmark 4;
+- 290 тестов: Core 85, Providers 20, Knowledge 68, Integration 49, App 51, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,66 мс;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,82 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `0587f4ecde6d51bbb0c42912877881b09c5e5190682366ac3a5ca0024fee3207`.
+- SHA-256: `f675de743187336e57c10a97b1bba8acc29047ccd03255c30c73edbfb5377593`.
 
 Текущий логический срез завершён на границе, не требующей имитации данных: два кандидата собраны, технически сравнены, а весь comparative/lifecycle gate автоматизирован и защищён fingerprint-проверкой. Production quality gate остаётся открытым только до записи живой русской речи. Дальше нужен полный 40-case набор WAV и запуск одной команды `eng/compare-stt-candidates.ps1 -RunLifecycle`; затем weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
 

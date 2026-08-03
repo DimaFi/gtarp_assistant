@@ -2,7 +2,7 @@
 
 > Этот файл детализирует UI и overlay. Общий порядок архитектурных работ задаёт [`полныое ТЗ по улучшению.md`](./полныое%20ТЗ%20по%20улучшению.md), а фактические расхождения с кодом зафиксированы в [`MASTER_SPEC_AUDIT.md`](./MASTER_SPEC_AUDIT.md).
 
-Актуально на 18.07.2026.
+Актуально на 03.08.2026.
 
 Текущий Local AI/conversation цикл и точная граница его готовности зафиксированы в [`LOCAL_AI_QUALITY_AND_CONVERSATION_PLAN.md`](./LOCAL_AI_QUALITY_AND_CONVERSATION_PLAN.md).
 
@@ -10,6 +10,10 @@
 
 ### Текущий прогресс редизайна
 
+- Добавлены общие `FeaturePageHeader`, `FeatureSection` и `MetricCard`: заголовки, секции и показатели feature pages теперь собираются из единых компонентов и токенов дизайн-системы.
+- Страницы **О приложении**, **База знаний** и **Приватность** переведены на новые компоненты без изменения команд, bindings и стабильных `AutomationId`.
+- Карточка версии показывает короткую версию без переполнения, а полный informational version с commit SHA остаётся в диагностике.
+- Контракты dependency properties защищены App-тестом; обновлённые страницы прошли WPF smoke, minimum-layout и визуальную проверку 11 snapshots.
 - Начат UI-7: добавлен переиспользуемый `OverlayCardShell`, который централизует прозрачную поверхность, тень, радиус и semantic accent для `Neutral`, `Success` и `Warning`.
 - Compact и expanded overlay переведены на общий shell; дублированный выбор status brush удалён из code-behind, source/community badge вынесены в общие стили.
 - Automation smoke отдельно проверяет warning tone и фактический `Brush.Warning`; обновлённые compact/expanded snapshots визуально подтверждены.

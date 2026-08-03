@@ -12,6 +12,7 @@
                 <ResourceDictionary Source="DesignSystem/Styles/Buttons.xaml" />
                 <ResourceDictionary Source="DesignSystem/Styles/Inputs.xaml" />
                 <ResourceDictionary Source="DesignSystem/Styles/Surfaces.xaml" />
+                <ResourceDictionary Source="DesignSystem/Styles/FeatureComponents.xaml" />
                 <ResourceDictionary Source="DesignSystem/Styles/Navigation.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

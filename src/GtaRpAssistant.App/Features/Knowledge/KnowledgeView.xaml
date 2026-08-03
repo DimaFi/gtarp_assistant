@@ -1,35 +1,40 @@
 <UserControl x:Class="GtaRpAssistant.App.Features.KnowledgeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls"
              AutomationProperties.AutomationId="Page.Knowledge">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel MaxWidth="760" HorizontalAlignment="Stretch" Margin="0,0,14,20">
-            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+        <StackPanel MaxWidth="820" HorizontalAlignment="Stretch" Margin="0,0,14,20">
+            <design:FeaturePageHeader Style="{StaticResource Feature.PageHeader}"
+                                      Title="База знаний"
+                                      Description="Проверенные официальные статьи и отдельно маркированные сведения игроков — локально и без обязательной модели." />
+
+            <UniformGrid Columns="3" Margin="0,0,0,12">
+                <design:MetricCard Style="{StaticResource Feature.MetricCard}" Margin="0,0,6,0"
+                                   Label="ВСЕГО СТАТЕЙ" Value="{Binding TotalArticleCount}"
+                                   AccentBrush="{DynamicResource Brush.Accent}"
+                                   AutomationProperties.AutomationId="Knowledge.Total" />
+                <design:MetricCard Style="{StaticResource Feature.MetricCard}" Margin="6,0"
+                                   Label="ОФИЦИАЛЬНЫЕ" Value="{Binding OfficialArticleCount}"
+                                   AccentBrush="{DynamicResource Brush.Success}"
+                                   AutomationProperties.AutomationId="Knowledge.Official" />
+                <design:MetricCard Style="{StaticResource Feature.MetricCard}" Margin="6,0,0,0"
+                                   Label="ДАННЫЕ ИГРОКОВ" Value="{Binding CommunityArticleCount}"
+                                   AccentBrush="{DynamicResource Brush.Warning}"
+                                   AutomationProperties.AutomationId="Knowledge.Community" />
+            </UniformGrid>
+
+            <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0"
+                                   Title="Правила доверия"
+                                   Description="Источник и актуальность проверяются до формирования ответа.">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="База знаний" />
-                    <TextBlock Margin="0,4,0,16" Style="{StaticResource Text.Secondary}" Text="Официальные и community-данные индексируются отдельно и выбираются локальным FTS-поиском." />
-                    <UniformGrid Columns="3">
-                        <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,0,8,0">
-                            <StackPanel><TextBlock Style="{StaticResource Text.Display}" Text="{Binding TotalArticleCount}" AutomationProperties.AutomationId="Knowledge.Total" /><TextBlock Style="{StaticResource Text.Caption}" Text="ВСЕГО СТАТЕЙ" /></StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource Surface.RaisedCard}" Margin="4,0">
-                            <StackPanel><TextBlock Style="{StaticResource Text.Display}" Text="{Binding OfficialArticleCount}" AutomationProperties.AutomationId="Knowledge.Official" /><TextBlock Style="{StaticResource Text.Caption}" Text="ОФИЦИАЛЬНЫЕ" /></StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource Surface.RaisedCard}" Margin="8,0,0,0">
-                            <StackPanel><TextBlock Style="{StaticResource Text.Display}" Text="{Binding CommunityArticleCount}" AutomationProperties.AutomationId="Knowledge.Community" /><TextBlock Style="{StaticResource Text.Caption}" Text="ДАННЫЕ ИГРОКОВ" /></StackPanel>
-                        </Border>
-                    </UniformGrid>
-                </StackPanel>
-            </Border>
-            <Border Style="{StaticResource Surface.Card}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="Правила доверия" />
-                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Body}" TextWrapping="Wrap" Text="Официальные статьи проходят source review и governance lint. Сведения сообщества всегда сопровождаются пометкой «По данным игроков:». Просроченный или конфликтный факт не используется для ответа." />
+                    <TextBlock Style="{StaticResource Text.Body}" TextWrapping="Wrap"
+                               Text="Официальные статьи проходят source review и governance lint. Сведения сообщества всегда сопровождаются пометкой «По данным игроков:». Просроченный или конфликтный факт не используется для ответа." />
                     <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,16,0,0">
-                        <TextBlock Style="{StaticResource Text.Secondary}" Text="{Binding PipelineStatus}" />
+                        <TextBlock Style="{StaticResource Text.Secondary}" Text="{Binding PipelineStatus}" TextWrapping="Wrap" />
                     </Border>
                 </StackPanel>
-            </Border>
+            </design:FeatureSection>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

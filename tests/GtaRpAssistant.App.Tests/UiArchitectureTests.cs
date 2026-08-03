@@ -1,4 +1,5 @@
 using GtaRpAssistant.App;
+using GtaRpAssistant.App.DesignSystem.Controls;
 using GtaRpAssistant.App.Features;
 using GtaRpAssistant.App.Services;
 using GtaRpAssistant.App.Shell;
@@ -8,6 +9,18 @@ namespace GtaRpAssistant.App.Tests;
 
 public sealed class UiArchitectureTests
 {
+    [Fact]
+    public void FeaturePageComponents_ExposeStableDependencyPropertyContracts()
+    {
+        Assert.Equal(typeof(string), FeaturePageHeader.TitleProperty.PropertyType);
+        Assert.Equal(typeof(string), FeaturePageHeader.DescriptionProperty.PropertyType);
+        Assert.Equal(typeof(System.Windows.Input.ICommand), FeaturePageHeader.ActionCommandProperty.PropertyType);
+        Assert.Equal(typeof(string), FeatureSection.TitleProperty.PropertyType);
+        Assert.Equal(typeof(string), FeatureSection.DescriptionProperty.PropertyType);
+        Assert.Equal(typeof(string), MetricCard.ValueProperty.PropertyType);
+        Assert.Equal(typeof(System.Windows.Media.Brush), MetricCard.AccentBrushProperty.PropertyType);
+    }
+
     [Fact]
     public void FeatureRegistry_OrdersModulesByExplicitOrder()
     {
@@ -102,6 +115,8 @@ public sealed class UiArchitectureTests
         ui.CommunityArticleCount = 415;
 
         Assert.Equal("489", viewModel.KnowledgeCount);
+        Assert.DoesNotContain('+', viewModel.DisplayVersion);
+        Assert.StartsWith(viewModel.DisplayVersion, viewModel.Version, StringComparison.Ordinal);
         Assert.Contains(nameof(AboutFeatureViewModel.KnowledgeCount), changed);
         Assert.DoesNotContain("local-secret", viewModel.DiagnosticSummary, StringComparison.Ordinal);
         Assert.DoesNotContain("cloud-secret", viewModel.DiagnosticSummary, StringComparison.Ordinal);

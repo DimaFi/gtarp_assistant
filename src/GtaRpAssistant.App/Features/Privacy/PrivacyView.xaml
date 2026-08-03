@@ -1,49 +1,72 @@
 <UserControl x:Class="GtaRpAssistant.App.Features.PrivacyView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls"
              AutomationProperties.AutomationId="Page.Privacy">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel MaxWidth="760" HorizontalAlignment="Stretch" Margin="0,0,14,20">
-            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+        <StackPanel MaxWidth="820" HorizontalAlignment="Stretch" Margin="0,0,14,20">
+            <design:FeaturePageHeader Style="{StaticResource Feature.PageHeader}"
+                                      Title="Приватность"
+                                      Description="Вы сами решаете, что хранится локально и какие данные могут покинуть компьютер." />
+
+            <design:FeatureSection Style="{StaticResource Feature.Section}"
+                                   Title="История общения"
+                                   Description="По умолчанию каждый запуск работает как обычный вопрос–ответ.">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="История общения" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="По умолчанию каждый запуск работает как обычный вопрос–ответ. Включите опцию, только если хотите продолжать сохранённые диалоги после перезапуска." TextWrapping="Wrap" />
-                    <CheckBox Content="Долгосрочное общение (хранить диалоги локально)" IsChecked="{Binding Settings.EnableLongTermConversation}" AutomationProperties.AutomationId="Privacy.LongTermConversation" />
-                    <TextBlock Margin="24,2,0,0" Style="{StaticResource Text.Secondary}" Text="История сохраняется только на этом компьютере в assistant-data.db и не отправляется в облако сама по себе." TextWrapping="Wrap" />
+                    <CheckBox Content="Долгосрочное общение (хранить диалоги локально)"
+                              IsChecked="{Binding Settings.EnableLongTermConversation}"
+                              AutomationProperties.AutomationId="Privacy.LongTermConversation" />
+                    <TextBlock Margin="24,2,0,0" Style="{StaticResource Text.Secondary}"
+                               Text="История сохраняется только на этом компьютере в assistant-data.db и не отправляется в облако сама по себе."
+                               TextWrapping="Wrap" />
                 </StackPanel>
-            </Border>
-            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+            </design:FeatureSection>
+
+            <design:FeatureSection Style="{StaticResource Feature.Section}"
+                                   Title="Временные данные"
+                                   Description="Аудио, transcript и снимки не записываются на диск приложением.">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="Приватность" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Аудио, transcript и снимки не записываются на диск приложением." />
-                    <CheckBox Content="Разрешить отправку game audio в облачный STT" IsChecked="{Binding Settings.AllowGameAudioCloud}" AutomationProperties.AutomationId="Privacy.AllowGameAudioCloud" />
+                    <CheckBox Content="Разрешить отправку game audio в облачный STT"
+                              IsChecked="{Binding Settings.AllowGameAudioCloud}"
+                              AutomationProperties.AutomationId="Privacy.AllowGameAudioCloud" />
                     <CheckBox Content="Сохранять расшифровки — не поддерживается" IsChecked="False" IsEnabled="False" />
-                    <Button Style="{StaticResource Button.Danger}" Content="Очистить временный контекст" Command="{Binding ClearContextCommand}" HorizontalAlignment="Left" AutomationProperties.AutomationId="Privacy.ClearContext" />
+                    <Button Style="{StaticResource Button.Danger}" Content="Очистить временный контекст"
+                            Command="{Binding ClearContextCommand}" HorizontalAlignment="Left"
+                            AutomationProperties.AutomationId="Privacy.ClearContext" />
                 </StackPanel>
-            </Border>
-            <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
+            </design:FeatureSection>
+
+            <design:FeatureSection Style="{StaticResource Feature.Section}"
+                                   Title="Голосовые ответы"
+                                   Description="TTS запускается только для явно начатого голосового вопроса.">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="Голосовые ответы" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="TTS запускается только для явно начатого голосового вопроса." />
                     <TextBlock Style="{StaticResource Text.Label}" Text="Режим" />
-                    <ComboBox SelectedIndex="{Binding Settings.VoiceMode}" AutomationProperties.AutomationId="Privacy.VoiceMode"><ComboBoxItem Content="Выключены" /><ComboBoxItem Content="Только после Ctrl+Alt+A" /></ComboBox>
-                    <TextBlock Style="{StaticResource Text.Label}" Text="Голос Windows" /><ComboBox ItemsSource="{Binding Voices}" SelectedItem="{Binding Settings.VoiceName}" AutomationProperties.AutomationId="Privacy.Voice" />
+                    <ComboBox SelectedIndex="{Binding Settings.VoiceMode}" AutomationProperties.AutomationId="Privacy.VoiceMode">
+                        <ComboBoxItem Content="Выключены" /><ComboBoxItem Content="Только после Ctrl+Alt+A" />
+                    </ComboBox>
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Голос Windows" />
+                    <ComboBox ItemsSource="{Binding Voices}" SelectedItem="{Binding Settings.VoiceName}" AutomationProperties.AutomationId="Privacy.Voice" />
                     <TextBlock Style="{StaticResource Text.Label}" Text="Устройство вывода" />
-                    <ComboBox ItemsSource="{Binding VoiceOutputDevices}" DisplayMemberPath="Name" SelectedValuePath="Id" SelectedValue="{Binding Settings.VoiceOutputDevice}" AutomationProperties.AutomationId="Privacy.VoiceOutput" />
-                    <Button Content="Обновить голоса и устройства" Command="{Binding RefreshVoiceDevicesCommand}" HorizontalAlignment="Left" AutomationProperties.AutomationId="Privacy.RefreshVoices" />
+                    <ComboBox ItemsSource="{Binding VoiceOutputDevices}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                              SelectedValue="{Binding Settings.VoiceOutputDevice}" AutomationProperties.AutomationId="Privacy.VoiceOutput" />
+                    <Button Content="Обновить голоса и устройства" Command="{Binding RefreshVoiceDevicesCommand}"
+                            HorizontalAlignment="Left" AutomationProperties.AutomationId="Privacy.RefreshVoices" />
                 </StackPanel>
-            </Border>
-            <Border Style="{StaticResource Surface.Card}">
+            </design:FeatureSection>
+
+            <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0"
+                                   Title="Ручной vision"
+                                   Description="Снимок отправляется только после отдельного превью и подтверждения.">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="Ручной vision" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Снимок отправляется только после отдельного превью и подтверждения." />
-                    <CheckBox Content="Разрешить ручной vision после превью" IsChecked="{Binding Settings.VisionEnabled}" AutomationProperties.AutomationId="Privacy.VisionEnabled" />
-                    <TextBlock Style="{StaticResource Text.Label}" Text="Vision model" /><TextBox Text="{Binding Settings.VisionModel}" AutomationProperties.AutomationId="Privacy.VisionModel" />
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Style="{StaticResource Button.Primary}" Content="Сохранить настройки" Command="{Binding SaveSettingsCommand}" Margin="0,6,0,6" AutomationProperties.AutomationId="Privacy.Save" />
-                    </StackPanel>
+                    <CheckBox Content="Разрешить ручной vision после превью" IsChecked="{Binding Settings.VisionEnabled}"
+                              AutomationProperties.AutomationId="Privacy.VisionEnabled" />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Vision model" />
+                    <TextBox Text="{Binding Settings.VisionModel}" AutomationProperties.AutomationId="Privacy.VisionModel" />
+                    <Button Style="{StaticResource Button.Primary}" Content="Сохранить настройки"
+                            Command="{Binding SaveSettingsCommand}" HorizontalAlignment="Right" Margin="0,6,0,6"
+                            AutomationProperties.AutomationId="Privacy.Save" />
                 </StackPanel>
-            </Border>
+            </design:FeatureSection>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
