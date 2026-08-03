@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using GtaRpAssistant.Core;
@@ -10,6 +11,8 @@ if (args.Length == 1 && string.Equals(args[0], "devices", StringComparison.Ordin
     return SttDatasetRecorder.ListDevices();
 if (args.Length > 0 && string.Equals(args[0], "lifecycle", StringComparison.OrdinalIgnoreCase))
     return await SttLifecycleBenchmark.RunAsync(args[1..]);
+if (args.Length > 0 && string.Equals(args[0], "compare", StringComparison.OrdinalIgnoreCase))
+    return await SttComparison.RunAsync(args[1..]);
 
 if (args.Length != 4 || !string.Equals(args[0], "evaluate", StringComparison.OrdinalIgnoreCase))
 {
@@ -18,6 +21,7 @@ if (args.Length != 4 || !string.Equals(args[0], "evaluate", StringComparison.Ord
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark record <dataset.json> [device-id] [--overwrite]");
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark devices");
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark lifecycle <pack-directory> <audio.wav> <iterations> <report.json>");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark compare <first-report.json> <second-report.json> <comparison.json>");
     return 1;
 }
 
@@ -52,13 +56,13 @@ await using (var provider = new WhisperCppSpeechToTextProvider(packLocator))
             var wordErrorRate = SttTextMetrics.WordErrorRate(item.Reference, result.Text);
             var termRecall = SttTextMetrics.TermRecall(item.RequiredTerms, result.Text);
             cases.Add(new(item.Id, item.AudioFile, item.Reference, result.Text, wordErrorRate, termRecall,
-                stopwatch.Elapsed.TotalMilliseconds, metrics.WorkingSetBytes, metrics.PrivateBytes, null));
+                stopwatch.Elapsed.TotalMilliseconds, metrics.WorkingSetBytes, metrics.PrivateBytes, null, item.RequiredTerms));
         }
         catch (Exception exception)
         {
             stopwatch.Stop();
             cases.Add(new(item.Id, item.AudioFile, item.Reference, "", 1, 0, stopwatch.Elapsed.TotalMilliseconds, 0, 0,
-                $"{exception.GetType().Name}: {exception.Message}"));
+                $"{exception.GetType().Name}: {exception.Message}", item.RequiredTerms));
         }
         finally
         {
@@ -89,7 +93,10 @@ var report = new SttBenchmarkReport(
     failures,
     memoryPeak.WorkingSetBytes,
     memoryPeak.PrivateBytes,
-    cases);
+    cases,
+    await ComputeSha256Async(datasetPath),
+    dataset.Cases.Count,
+    dataset.Gate);
 Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
 await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(report, JsonOptions(writeIndented: true)));
 Console.WriteLine($"STT gate: {(passed ? "PASS" : "FAIL")}; WER={averageWer:P1}; terms={averageTermRecall:P1}; p95={p95Latency:F0} ms; failures={failures}; private={memoryPeak.PrivateBytes / 1024d / 1024d:F0} MiB");
@@ -156,6 +163,13 @@ static JsonSerializerOptions JsonOptions(bool writeIndented = false) => new()
     WriteIndented = writeIndented,
 };
 
+static async Task<string> ComputeSha256Async(string path)
+{
+    await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024,
+        FileOptions.Asynchronous | FileOptions.SequentialScan);
+    return Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant();
+}
+
 public sealed record SttDataset(string Id, SttGate Gate, IReadOnlyList<SttCase> Cases);
 public sealed record SttGate(
     int MinimumCases = 12,
@@ -166,11 +180,12 @@ public sealed record SttGate(
 public sealed record SttCase(string Id, string AudioFile, string Reference, IReadOnlyList<string> RequiredTerms);
 public sealed record SttCaseReport(
     string Id, string AudioFile, string Reference, string Transcript, double WordErrorRate, double TermRecall,
-    double LatencyMs, long WorkingSetBytes, long PrivateBytes, string? Error);
+    double LatencyMs, long WorkingSetBytes, long PrivateBytes, string? Error, IReadOnlyList<string> RequiredTerms);
 public sealed record SttBenchmarkReport(
     DateTimeOffset CreatedAt, string PackId, string ModelId, string DatasetId, bool Passed,
     double AverageWordErrorRate, double TermRecall, double P95LatencyMs, int Failures,
-    long PeakWorkingSetBytes, long PeakPrivateBytes, IReadOnlyList<SttCaseReport> Cases);
+    long PeakWorkingSetBytes, long PeakPrivateBytes, IReadOnlyList<SttCaseReport> Cases,
+    string DatasetSha256, int DatasetCaseCount, SttGate Gate, int SchemaVersion = 2);
 
 public sealed class MemoryPeak
 {

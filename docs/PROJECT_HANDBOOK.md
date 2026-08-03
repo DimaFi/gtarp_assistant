@@ -87,7 +87,7 @@ STT, Chat, Vision, TTS и Embeddings имеют независимые марш�
 
 LM Studio — внешний backend, а не обязательная часть приложения. Пользователь может указать нестандартные пути к `lms.exe`/`LM Studio.exe`, выбрать установленную chat-модель или импортировать GGUF. Новая модель становится активной только после capability-test; прежний маршрут сохраняется при провале.
 
-Embedded STT — отдельный `whisper.cpp` provider в `Infrastructure.Windows`, а не часть LM Studio. `EmbeddedSttPackLocator` проверяет manifest/size/SHA; `WhisperCppSpeechToTextProvider` владеет loopback process, single request, timeout/cancel/memory watchdog и idle unload. Pack строится/устанавливается отдельными `eng/build-stt-pack.ps1` и `eng/install-stt-pack.ps1`, не входит в основной ZIP до PASS русского gate. Подробности: `EMBEDDED_STT.md`.
+Embedded STT — отдельный `whisper.cpp` provider в `Infrastructure.Windows`, а не часть LM Studio. `EmbeddedSttPackLocator` проверяет manifest/size/SHA; `WhisperCppSpeechToTextProvider` владеет loopback process, single request, timeout/cancel/memory watchdog и idle unload. Pack строится/устанавливается отдельными `eng/build-stt-pack.ps1` и `eng/install-stt-pack.ps1`, не входит в основной ZIP до PASS русского gate. `GtaRpAssistant.SttBenchmark` записывает consent-based датасет, считает WER/term recall и валидирует отчёты; `eng/compare-stt-candidates.ps1` гарантирует одинаковый dataset SHA/cases, выбирает кандидата по зафиксированной политике и запускает lifecycle только после PASS. Подробности: `EMBEDDED_STT.md`.
 
 Комплектный `MicroModelHost` остаётся mock fallback. Реальные Qwen3-0.6B и SmolLM2-360M отклонены ADR-0001 по quality/memory gate. Не добавлять веса или реальный headless runtime без нового успешного ADR.
 

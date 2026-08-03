@@ -44,20 +44,22 @@
 - сборщик поддерживает два pinned-кандидата: `base-q8_0` и `small-q5_1`; оба веса проверяются по точному размеру и SHA-256;
 - добавлен закрытый манифест из 40 русских GTA5RP-фраз, интерактивная локальная запись с явным действием пользователя, выбор любого активного microphone device ID и защита от неявной перезаписи;
 - benchmark теперь валидирует gate, обязательные поля и уникальность case IDs; отдельная lifecycle-команда проверяет start/transcribe/dispose, память, p95 и отсутствие orphan process;
+- каждый quality-отчёт содержит SHA-256, gate и полное определение датасета; compare-команда перепроверяет transcript-level и aggregate metrics и отклоняет разные/повреждённые отчёты;
+- `eng/compare-stt-candidates.ps1` выполняет preflight всех WAV, одинаковый прогон двух паков, формирует единое решение и запускает 100 lifecycle-циклов только для кандидата после PASS;
 - три lifecycle-цикла `base-q8_0` прошли за 2,66–3,08 с при peak private 773 MiB; `small-q5_1` — за 8,04–8,32 с при 992 MiB; orphan processes: 0;
 - отдельный ZIP `small-q5_1` прошёл hash-verified установку и реальный запуск из нестандартного пути с пробелами; это техническая проверка runtime, не русского качества.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 281 тест: Core 85, Providers 20, Knowledge 68, Integration 41, App 50, ModelBenchmark 13, ProductBenchmark 4;
+- 289 тестов: Core 85, Providers 20, Knowledge 68, Integration 49, App 50, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,79 мс;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,66 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `f6c0cc9da7a75ce49090299b888c08c24404795fda416811afa76e2ee3f46125`.
+- SHA-256: `0587f4ecde6d51bbb0c42912877881b09c5e5190682366ac3a5ca0024fee3207`.
 
-Текущий логический срез завершён на границе, не требующей имитации данных: два кандидата собраны и технически сравнены, но production quality gate остаётся открытым до записи живой русской речи. Дальше нужен полный 40-case датасет, сравнение на одинаковых WAV, затем 100 lifecycle cycles победившего кандидата, weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
+Текущий логический срез завершён на границе, не требующей имитации данных: два кандидата собраны, технически сравнены, а весь comparative/lifecycle gate автоматизирован и защищён fingerprint-проверкой. Production quality gate остаётся открытым только до записи живой русской речи. Дальше нужен полный 40-case набор WAV и запуск одной команды `eng/compare-stt-candidates.ps1 -RunLifecycle`; затем weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
 
 Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 

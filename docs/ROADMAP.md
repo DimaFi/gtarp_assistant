@@ -27,7 +27,7 @@ T1 добавил версионированный gold-набор и блоки
 Следующие приоритеты:
 
 1. Провести ручную P0.1b hardware-матрицу: 100 start/cancel циклов, stuck-key, физический unplug/replug, sleep/resume и отсутствие влияния на ввод GTA.
-2. Завершить P0.2: собрать русский speech dataset, сравнить `base-q8_0`/`small-q5_1`, выполнить lifecycle gate и принять ADR; runtime, manifest/hash, отдельный installer и fallback уже реализованы.
+2. Завершить P0.2: записать подготовленный русский speech dataset, запустить автоматический comparative gate `base-q8_0`/`small-q5_1`, выполнить lifecycle победителя и принять ADR; runtime, manifest/hash, recorder, compare policy, отдельный installer и fallback уже реализованы.
 3. Проверить P0.3: полный PTT → STT → knowledge → validation → overlay → Windows TTS на чистом Windows-профиле.
 4. Выполнить T2/T3: расширить source-reviewed core pack по реальной частоте вопросов, добавить freshness/change detection, нормализацию запросов и измеримое улучшение retrieval.
 5. Собрать M4 document-oriented Knowledge UI: список источников, чтение документа/chunks, import, review и точные citations.
