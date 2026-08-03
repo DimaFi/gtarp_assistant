@@ -1,5 +1,7 @@
 [CmdletBinding()]
 param(
+    [ValidateSet('base-q8_0', 'small-q5_1')]
+    [string]$Candidate = 'base-q8_0',
     [string]$Destination,
     [string]$DownloadDirectory,
     [switch]$SkipArchive,
@@ -8,7 +10,26 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-if ([string]::IsNullOrWhiteSpace($Destination)) { $Destination = Join-Path $root 'artifacts\stt\pack-base-q8_0' }
+$candidates = @{
+    'base-q8_0' = [ordered]@{
+        FileName = 'ggml-base-q8_0.bin'
+        Sha256 = 'c577b9a86e7e048a0b7eada054f4dd79a56bbfa911fbdacf900ac5b567cbb7d9'
+        SizeBytes = 81768585L
+        PackId = 'gta-rp-assistant-stt-base-q8_0'
+        ModelId = 'whisper-base-q8_0-multilingual'
+        HardMemoryLimitBytes = 1153433600L
+    }
+    'small-q5_1' = [ordered]@{
+        FileName = 'ggml-small-q5_1.bin'
+        Sha256 = 'ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb'
+        SizeBytes = 190085487L
+        PackId = 'gta-rp-assistant-stt-small-q5_1'
+        ModelId = 'whisper-small-q5_1-multilingual'
+        HardMemoryLimitBytes = 1153433600L
+    }
+}
+$selected = $candidates[$Candidate]
+if ([string]::IsNullOrWhiteSpace($Destination)) { $Destination = Join-Path $root "artifacts\stt\pack-$Candidate" }
 if ([string]::IsNullOrWhiteSpace($DownloadDirectory)) { $DownloadDirectory = Join-Path $root 'artifacts\stt\downloads' }
 $Destination = [System.IO.Path]::GetFullPath($Destination)
 $DownloadDirectory = [System.IO.Path]::GetFullPath($DownloadDirectory)
@@ -20,12 +41,12 @@ $runtimeVersion = '1.9.1'
 $runtimeUrl = "https://github.com/ggml-org/whisper.cpp/releases/download/v$runtimeVersion/whisper-bin-x64.zip"
 $runtimeSha256 = '7d8be46ecd31828e1eb7a2ecdd0d6b314feafd82163038ab6092594b0a063539'
 $modelRevision = '5359861c739e955e79d9a303bcbc70fb988958b1'
-$modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/$modelRevision/ggml-base-q8_0.bin?download=true"
-$modelSha256 = 'c577b9a86e7e048a0b7eada054f4dd79a56bbfa911fbdacf900ac5b567cbb7d9'
+$modelUrl = "https://huggingface.co/ggerganov/whisper.cpp/resolve/$modelRevision/$($selected.FileName)?download=true"
+$modelSha256 = $selected.Sha256
 $licenseUrl = "https://raw.githubusercontent.com/ggml-org/whisper.cpp/v$runtimeVersion/LICENSE"
 $licenseSha256 = '94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d'
 
-function Get-VerifiedDownload([string]$Uri, [string]$Path, [string]$ExpectedSha256) {
+function Get-VerifiedDownload([string]$Uri, [string]$Path, [string]$ExpectedSha256, [long]$ExpectedSize = 0) {
     New-Item -ItemType Directory -Path (Split-Path -Parent $Path) -Force | Out-Null
     if (-not (Test-Path -LiteralPath $Path)) {
         $partial = "$Path.partial"
@@ -36,15 +57,19 @@ function Get-VerifiedDownload([string]$Uri, [string]$Path, [string]$ExpectedSha2
         }
         finally { Remove-Item -LiteralPath $partial -Force -ErrorAction SilentlyContinue }
     }
+    $info = Get-Item -LiteralPath $Path
+    if ($ExpectedSize -gt 0 -and $info.Length -ne $ExpectedSize) {
+        throw "Size mismatch for $Path. Expected $ExpectedSize, got $($info.Length)."
+    }
     $actual = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($actual -ne $ExpectedSha256) { throw "SHA-256 mismatch for $Path. Expected $ExpectedSha256, got $actual." }
 }
 
 $runtimeArchive = Join-Path $DownloadDirectory "whisper-bin-x64-v$runtimeVersion.zip"
-$modelDownload = Join-Path $DownloadDirectory 'ggml-base-q8_0.bin'
+$modelDownload = Join-Path $DownloadDirectory $selected.FileName
 $licenseDownload = Join-Path $DownloadDirectory 'LICENSE-whisper.cpp.txt'
 Get-VerifiedDownload $runtimeUrl $runtimeArchive $runtimeSha256
-Get-VerifiedDownload $modelUrl $modelDownload $modelSha256
+Get-VerifiedDownload $modelUrl $modelDownload $modelSha256 $selected.SizeBytes
 Get-VerifiedDownload $licenseUrl $licenseDownload $licenseSha256
 
 $temporary = Join-Path ([System.IO.Path]::GetTempPath()) "GtaRpAssistant-stt-$([Guid]::NewGuid().ToString('N'))"
@@ -63,7 +88,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $release 'whisper-server.exe') -Destination $runtimeDestination
     Copy-Item -LiteralPath (Join-Path $release 'whisper.dll') -Destination $runtimeDestination
     Get-ChildItem -LiteralPath $release -Filter 'ggml*.dll' -File | Copy-Item -Destination $runtimeDestination
-    Copy-Item -LiteralPath $modelDownload -Destination (Join-Path $modelDestination 'ggml-base-q8_0.bin')
+    Copy-Item -LiteralPath $modelDownload -Destination (Join-Path $modelDestination $selected.FileName)
     Copy-Item -LiteralPath $licenseDownload -Destination (Join-Path $Destination 'LICENSE-whisper.cpp.txt')
 
     $files = Get-ChildItem -LiteralPath $Destination -File -Recurse | Sort-Object FullName | ForEach-Object {
@@ -75,14 +100,14 @@ try {
     }
     $manifest = [ordered]@{
         schemaVersion = 1
-        id = 'gta-rp-assistant-stt-base-q8_0'
+        id = $selected.PackId
         version = '1.0.0'
         runtime = 'whisper.cpp'
         runtimeVersion = $runtimeVersion
         architecture = 'win-x64'
         entryPoint = 'runtime/whisper-server.exe'
-        modelId = 'whisper-base-q8_0-multilingual'
-        modelFile = 'models/ggml-base-q8_0.bin'
+        modelId = $selected.ModelId
+        modelFile = "models/$($selected.FileName)"
         language = 'ru'
         inferencePath = '/inference'
         licenseFile = 'LICENSE-whisper.cpp.txt'
@@ -94,7 +119,7 @@ try {
             startupTimeoutSeconds = 90
             requestTimeoutSeconds = 45
             idleTtlSeconds = 120
-            hardMemoryLimitBytes = 1153433600
+            hardMemoryLimitBytes = $selected.HardMemoryLimitBytes
         }
     }
     $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $Destination 'stt-pack.json') -Encoding UTF8
@@ -102,7 +127,7 @@ try {
     if (-not $SkipArchive) {
         $releaseDirectory = Join-Path $root 'artifacts\stt\release'
         New-Item -ItemType Directory -Path $releaseDirectory -Force | Out-Null
-        $archive = Join-Path $releaseDirectory 'GtaRpAssistant-STT-base-q8_0-v1.9.1-win-x64.zip'
+        $archive = Join-Path $releaseDirectory "GtaRpAssistant-STT-$Candidate-v1.9.1-win-x64.zip"
         Compress-Archive -Path (Join-Path $Destination '*') -DestinationPath $archive -CompressionLevel Optimal -Force
         $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
         "$archiveHash  $([System.IO.Path]::GetFileName($archive))" | Set-Content -LiteralPath "$archive.sha256" -Encoding ASCII

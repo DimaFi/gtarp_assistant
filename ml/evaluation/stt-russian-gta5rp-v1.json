@@ -1,0 +1,252 @@
+{
+  "id": "stt-russian-gta5rp-v1",
+  "gate": {
+    "minimumCases": 40,
+    "maximumAverageWordErrorRate": 0.25,
+    "minimumTermRecall": 0.85,
+    "maximumP95LatencyMs": 5000,
+    "maximumMemoryBytes": 1153433600
+  },
+  "cases": [
+    {
+      "id": "clubs-merryweather-entry",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-merryweather-entry.wav",
+      "reference": "Как вступить в клуб Мерривезер и какой уровень для этого нужен?",
+      "requiredTerms": ["Мерривезер", "уровень"]
+    },
+    {
+      "id": "clubs-merryweather-airdrop",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-merryweather-airdrop.wav",
+      "reference": "Сколько репутации Мерривезер дают за участие и победу в аирдропе?",
+      "requiredTerms": ["репутации", "аирдропе"]
+    },
+    {
+      "id": "clubs-rednecks-ranks",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-rednecks-ranks.wav",
+      "reference": "Какие бонусы открываются на пятом ранге клуба Реднекс?",
+      "requiredTerms": ["пятом ранге", "Реднекс"]
+    },
+    {
+      "id": "clubs-rednecks-quest",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-rednecks-quest.wav",
+      "reference": "Как выполнить задание Круговорот червей в общине?",
+      "requiredTerms": ["Круговорот червей", "общине"]
+    },
+    {
+      "id": "clubs-car-meet-reputation",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-car-meet-reputation.wav",
+      "reference": "Сколько репутации дают за первое место в гонке клуба Кар Мит?",
+      "requiredTerms": ["репутации", "Кар Мит"]
+    },
+    {
+      "id": "clubs-epsilon-entry",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-epsilon-entry.wav",
+      "reference": "Что требуется для вступления в программу Эпсилон?",
+      "requiredTerms": ["вступления", "Эпсилон"]
+    },
+    {
+      "id": "clubs-epsilon-donation",
+      "audioFile": "audio/stt-russian-gta5rp-v1/clubs-epsilon-donation.wav",
+      "reference": "Сколько репутации Эпсилон дадут за пожертвование двадцать тысяч долларов?",
+      "requiredTerms": ["репутации", "двадцать тысяч"]
+    },
+    {
+      "id": "achievements-friendly-neighbor",
+      "audioFile": "audio/stt-russian-gta5rp-v1/achievements-friendly-neighbor.wav",
+      "reference": "Что нужно сделать для достижения Дружелюбный сосед?",
+      "requiredTerms": ["достижения", "Дружелюбный сосед"]
+    },
+    {
+      "id": "achievements-wheel",
+      "audioFile": "audio/stt-russian-gta5rp-v1/achievements-wheel.wav",
+      "reference": "Какая награда за достижение Вращайте барабан?",
+      "requiredTerms": ["награда", "Вращайте барабан"]
+    },
+    {
+      "id": "achievements-pet-training",
+      "audioFile": "audio/stt-russian-gta5rp-v1/achievements-pet-training.wav",
+      "reference": "Как получить достижение Заслуженный дрессировщик?",
+      "requiredTerms": ["Заслуженный дрессировщик"]
+    },
+    {
+      "id": "bp-farm-fishing",
+      "audioFile": "audio/stt-russian-gta5rp-v1/bp-farm-fishing.wav",
+      "reference": "Сколько Би Пи дают за двадцать пойманных рыб?",
+      "requiredTerms": ["Би Пи", "двадцать"]
+    },
+    {
+      "id": "bp-farm-taxi",
+      "audioFile": "audio/stt-russian-gta5rp-v1/bp-farm-taxi.wav",
+      "reference": "Можно ли фармить Би Пи за работу в такси?",
+      "requiredTerms": ["Би Пи", "такси"]
+    },
+    {
+      "id": "jobs-trucker-level-five",
+      "audioFile": "audio/stt-russian-gta5rp-v1/jobs-trucker-level-five.wav",
+      "reference": "Сколько сейчас зарабатывает дальнобойщик на пятом уровне?",
+      "requiredTerms": ["дальнобойщик", "пятом уровне"]
+    },
+    {
+      "id": "jobs-construction",
+      "audioFile": "audio/stt-russian-gta5rp-v1/jobs-construction.wav",
+      "reference": "Сколько действий нужно для прокачки строителя?",
+      "requiredTerms": ["действий", "строителя"]
+    },
+    {
+      "id": "medicine-arterial",
+      "audioFile": "audio/stt-russian-gta5rp-v1/medicine-arterial.wav",
+      "reference": "Что делать при артериальном кровотечении?",
+      "requiredTerms": ["артериальном кровотечении"]
+    },
+    {
+      "id": "medicine-acid-burn",
+      "audioFile": "audio/stt-russian-gta5rp-v1/medicine-acid-burn.wav",
+      "reference": "Чем лечить кислотный ожог в медицинской мини-игре?",
+      "requiredTerms": ["кислотный ожог", "медицинской"]
+    },
+    {
+      "id": "cooking-mulled-wine",
+      "audioFile": "audio/stt-russian-gta5rp-v1/cooking-mulled-wine.wav",
+      "reference": "Из каких ингредиентов готовится глинтвейн?",
+      "requiredTerms": ["ингредиентов", "глинтвейн"]
+    },
+    {
+      "id": "cooking-omelette",
+      "audioFile": "audio/stt-russian-gta5rp-v1/cooking-omelette.wav",
+      "reference": "Как приготовить омлет и какой нужен навык кулинарии?",
+      "requiredTerms": ["омлет", "кулинарии"]
+    },
+    {
+      "id": "pet-dog-treat",
+      "audioFile": "audio/stt-russian-gta5rp-v1/pet-dog-treat.wav",
+      "reference": "Какое лакомство нужно давать собаке при дрессировке?",
+      "requiredTerms": ["лакомство", "собаке", "дрессировке"]
+    },
+    {
+      "id": "pet-training-progress",
+      "audioFile": "audio/stt-russian-gta5rp-v1/pet-training-progress.wav",
+      "reference": "Сколько правильных команд нужно выполнить для одного процента дрессировки?",
+      "requiredTerms": ["команд", "одного процента", "дрессировки"]
+    },
+    {
+      "id": "prediction-ball-jobs",
+      "audioFile": "audio/stt-russian-gta5rp-v1/prediction-ball-jobs.wav",
+      "reference": "Какой вопрос задать шару предсказаний для бонуса к зарплате на работах?",
+      "requiredTerms": ["шару предсказаний", "зарплате"]
+    },
+    {
+      "id": "prediction-ball-fishing",
+      "audioFile": "audio/stt-russian-gta5rp-v1/prediction-ball-fishing.wav",
+      "reference": "Как шар предсказаний влияет на мини-игру рыбалки?",
+      "requiredTerms": ["шар предсказаний", "рыбалки"]
+    },
+    {
+      "id": "macros-source",
+      "audioFile": "audio/stt-russian-gta5rp-v1/macros-source.wav",
+      "reference": "Где взять актуальные макросы и настройки интерфейса для игры?",
+      "requiredTerms": ["макросы", "настройки интерфейса"]
+    },
+    {
+      "id": "event-schedule",
+      "audioFile": "audio/stt-russian-gta5rp-v1/event-schedule.wav",
+      "reference": "Когда примерно начнётся следующий сезонный ивент на ГТА пять РП?",
+      "requiredTerms": ["сезонный ивент", "ГТА пять РП"]
+    },
+    {
+      "id": "vehicle-engine-repair",
+      "audioFile": "audio/stt-russian-gta5rp-v1/vehicle-engine-repair.wav",
+      "reference": "Через сколько километров полностью изнашивается двигатель автомобиля?",
+      "requiredTerms": ["километров", "двигатель автомобиля"]
+    },
+    {
+      "id": "vehicle-transmission-repair",
+      "audioFile": "audio/stt-russian-gta5rp-v1/vehicle-transmission-repair.wav",
+      "reference": "Какова максимальная стоимость ремонта трансмиссии?",
+      "requiredTerms": ["стоимость ремонта", "трансмиссии"]
+    },
+    {
+      "id": "tuning-business-engine",
+      "audioFile": "audio/stt-russian-gta5rp-v1/tuning-business-engine.wav",
+      "reference": "Сколько стоит четвёртый двигатель для машины бизнес-класса?",
+      "requiredTerms": ["четвёртый двигатель", "бизнес-класса"]
+    },
+    {
+      "id": "tuning-elite-turbo",
+      "audioFile": "audio/stt-russian-gta5rp-v1/tuning-elite-turbo.wav",
+      "reference": "Сколько стоит турбо-тюнинг для автомобиля элитного класса?",
+      "requiredTerms": ["турбо-тюнинг", "элитного класса"]
+    },
+    {
+      "id": "property-house-upgrade",
+      "audioFile": "audio/stt-russian-gta5rp-v1/property-house-upgrade.wav",
+      "reference": "Сколько стоит полностью улучшить дом на десять гаражных мест?",
+      "requiredTerms": ["улучшить дом", "десять гаражных мест"]
+    },
+    {
+      "id": "property-apartment-upgrade",
+      "audioFile": "audio/stt-russian-gta5rp-v1/property-apartment-upgrade.wav",
+      "reference": "До скольких гаражных мест улучшается квартира на четыре места?",
+      "requiredTerms": ["гаражных мест", "квартира"]
+    },
+    {
+      "id": "skills-fishing",
+      "audioFile": "audio/stt-russian-gta5rp-v1/skills-fishing.wav",
+      "reference": "Что открывает прокачка навыка рыболовства?",
+      "requiredTerms": ["навыка рыболовства"]
+    },
+    {
+      "id": "skills-taxi",
+      "audioFile": "audio/stt-russian-gta5rp-v1/skills-taxi.wav",
+      "reference": "Какая машина открывается на пятом уровне таксиста?",
+      "requiredTerms": ["пятом уровне", "таксиста"]
+    },
+    {
+      "id": "alcohol-vanilla-unicorn",
+      "audioFile": "audio/stt-russian-gta5rp-v1/alcohol-vanilla-unicorn.wav",
+      "reference": "Какой напиток в Ванилла Юникорн даёт сто процентов настроения?",
+      "requiredTerms": ["Ванилла Юникорн", "настроения"]
+    },
+    {
+      "id": "alcohol-cayo-perico",
+      "audioFile": "audio/stt-russian-gta5rp-v1/alcohol-cayo-perico.wav",
+      "reference": "Сколько действует ром в клубе Кайо Перико?",
+      "requiredTerms": ["ром", "Кайо Перико"]
+    },
+    {
+      "id": "shop-mask-price",
+      "audioFile": "audio/stt-russian-gta5rp-v1/shop-mask-price.wav",
+      "reference": "Сколько стоит хоккейная маска в магазине масок?",
+      "requiredTerms": ["хоккейная маска", "магазине масок"]
+    },
+    {
+      "id": "shop-car-price",
+      "audioFile": "audio/stt-russian-gta5rp-v1/shop-car-price.wav",
+      "reference": "Сколько стоит Торнадо номер три в автосалоне?",
+      "requiredTerms": ["Торнадо", "автосалоне"]
+    },
+    {
+      "id": "achievement-prison",
+      "audioFile": "audio/stt-russian-gta5rp-v1/achievement-prison.wav",
+      "reference": "Сколько часов нужно отсидеть для достижения Не шей мне срок?",
+      "requiredTerms": ["часов", "Не шей мне срок"]
+    },
+    {
+      "id": "achievement-golden-fish",
+      "audioFile": "audio/stt-russian-gta5rp-v1/achievement-golden-fish.wav",
+      "reference": "Как получить достижение Время загадать желание?",
+      "requiredTerms": ["Время загадать желание"]
+    },
+    {
+      "id": "event-new-year",
+      "audioFile": "audio/stt-russian-gta5rp-v1/event-new-year.wav",
+      "reference": "Какая награда была за достижение Новый год две тысячи двадцать шесть?",
+      "requiredTerms": ["Новый год", "две тысячи двадцать шесть"]
+    },
+    {
+      "id": "event-halloween",
+      "audioFile": "audio/stt-russian-gta5rp-v1/event-halloween.wav",
+      "reference": "Что давали за достижение Гроза чистилища на Хэллоуин?",
+      "requiredTerms": ["Гроза чистилища", "Хэллоуин"]
+    }
+  ]
+}

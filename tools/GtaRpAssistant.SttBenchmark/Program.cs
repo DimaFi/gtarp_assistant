@@ -4,9 +4,20 @@ using System.Text.RegularExpressions;
 using GtaRpAssistant.Core;
 using GtaRpAssistant.Infrastructure.Windows;
 
+if (args.Length > 0 && string.Equals(args[0], "record", StringComparison.OrdinalIgnoreCase))
+    return await SttDatasetRecorder.RunAsync(args[1..]);
+if (args.Length == 1 && string.Equals(args[0], "devices", StringComparison.OrdinalIgnoreCase))
+    return SttDatasetRecorder.ListDevices();
+if (args.Length > 0 && string.Equals(args[0], "lifecycle", StringComparison.OrdinalIgnoreCase))
+    return await SttLifecycleBenchmark.RunAsync(args[1..]);
+
 if (args.Length != 4 || !string.Equals(args[0], "evaluate", StringComparison.OrdinalIgnoreCase))
 {
-    Console.Error.WriteLine("Usage: GtaRpAssistant.SttBenchmark evaluate <pack-directory> <dataset.json> <report.json>");
+    Console.Error.WriteLine("Usage:");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark evaluate <pack-directory> <dataset.json> <report.json>");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark record <dataset.json> [device-id] [--overwrite]");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark devices");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark lifecycle <pack-directory> <audio.wav> <iterations> <report.json>");
     return 1;
 }
 
@@ -15,8 +26,7 @@ var datasetPath = Path.GetFullPath(args[2]);
 var reportPath = Path.GetFullPath(args[3]);
 var dataset = JsonSerializer.Deserialize<SttDataset>(await File.ReadAllTextAsync(datasetPath), JsonOptions())
     ?? throw new InvalidDataException("STT dataset is empty.");
-if (dataset.Cases.Count < dataset.Gate.MinimumCases)
-    throw new InvalidDataException($"STT dataset contains {dataset.Cases.Count} cases; at least {dataset.Gate.MinimumCases} are required.");
+SttDatasetValidation.Validate(dataset);
 
 var packLocator = new EmbeddedSttPackLocator(() => packDirectory, packDirectory);
 var inspection = await packLocator.InspectAsync(CancellationToken.None);

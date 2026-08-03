@@ -41,19 +41,23 @@
 - добавлены pinned build/install scripts для отдельного STT ZIP; веса остаются в `artifacts/stt`, не входят в Git и основной portable ZIP;
 - добавлен `GtaRpAssistant.SttBenchmark` с WER, GTA-term recall, error/empty, p95 latency и peak memory gate;
 - официальный `whisper.cpp v1.9.1` и multilingual `base-q8_0` прошли hash check, custom-path runtime smoke, повторное использование PID и cancel-kill;
-- smoke показал 2,36–2,56 секунды, около 282 MiB working set и 771–773 MiB private memory; это проверка runtime, не русского качества.
+- сборщик поддерживает два pinned-кандидата: `base-q8_0` и `small-q5_1`; оба веса проверяются по точному размеру и SHA-256;
+- добавлен закрытый манифест из 40 русских GTA5RP-фраз, интерактивная локальная запись с явным действием пользователя, выбор любого активного microphone device ID и защита от неявной перезаписи;
+- benchmark теперь валидирует gate, обязательные поля и уникальность case IDs; отдельная lifecycle-команда проверяет start/transcribe/dispose, память, p95 и отсутствие orphan process;
+- три lifecycle-цикла `base-q8_0` прошли за 2,66–3,08 с при peak private 773 MiB; `small-q5_1` — за 8,04–8,32 с при 992 MiB; orphan processes: 0;
+- отдельный ZIP `small-q5_1` прошёл hash-verified установку и реальный запуск из нестандартного пути с пробелами; это техническая проверка runtime, не русского качества.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 278 тестов: Core 85, Providers 20, Knowledge 68, Integration 38, App 50, ModelBenchmark 13, ProductBenchmark 4;
+- 281 тест: Core 85, Providers 20, Knowledge 68, Integration 41, App 50, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
 - production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,79 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `e2636710ff514b0a3448fd8cdf9d01fb3d47525236033e1ca8a65613f9959e0f`.
+- SHA-256: `f6c0cc9da7a75ce49090299b888c08c24404795fda416811afa76e2ee3f46125`.
 
-Текущий логический этап ещё не объявлен production-завершённым: нужен согласованно записанный русский GTA5RP speech dataset, сравнение `base-q8_0` и `small-q5_1` на одинаковых WAV, 100 lifecycle cycles, weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
+Текущий логический срез завершён на границе, не требующей имитации данных: два кандидата собраны и технически сравнены, но production quality gate остаётся открытым до записи живой русской речи. Дальше нужен полный 40-case датасет, сравнение на одинаковых WAV, затем 100 lifecycle cycles победившего кандидата, weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
 
 Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 

@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\src\GtaRpAssistant.Providers\GtaRpAssistant.Providers.csproj" />
     <ProjectReference Include="..\..\src\GtaRpAssistant.Infrastructure.Windows\GtaRpAssistant.Infrastructure.Windows.csproj" />
     <ProjectReference Include="..\..\src\GtaRpAssistant.MicroModelHost\GtaRpAssistant.MicroModelHost.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\tools\GtaRpAssistant.SttBenchmark\GtaRpAssistant.SttBenchmark.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\knowledge\packs\gta5rp\**\*">
