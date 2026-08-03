@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GtaRpAssistant.ModelBenchma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GtaRpAssistant.ProductBenchmark.Tests", "tests\GtaRpAssistant.ProductBenchmark.Tests\GtaRpAssistant.ProductBenchmark.Tests.csproj", "{D41E2D8A-CE43-47AD-8A72-2BEB42607C1F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GtaRpAssistant.SttBenchmark", "tools\GtaRpAssistant.SttBenchmark\GtaRpAssistant.SttBenchmark.csproj", "{D5777CF2-2A4B-41C5-833E-388C157A305E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +128,10 @@ Global
 		{D41E2D8A-CE43-47AD-8A72-2BEB42607C1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D41E2D8A-CE43-47AD-8A72-2BEB42607C1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D41E2D8A-CE43-47AD-8A72-2BEB42607C1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5777CF2-2A4B-41C5-833E-388C157A305E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5777CF2-2A4B-41C5-833E-388C157A305E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5777CF2-2A4B-41C5-833E-388C157A305E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5777CF2-2A4B-41C5-833E-388C157A305E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C4110932-A35D-4465-A778-AEB2D7C37ABE} = {8C001067-7473-497B-85FA-F63181645CCD}
@@ -146,5 +152,6 @@ Global
 		{99E2FFB0-BFCC-4E47-A600-F372E3696BC7} = {26A02EA7-C43D-4D5F-B795-A8A9FF67AAE8}
 		{4F057D36-21DE-4D54-B4B8-891FCA70C721} = {26A02EA7-C43D-4D5F-B795-A8A9FF67AAE8}
 		{D41E2D8A-CE43-47AD-8A72-2BEB42607C1F} = {26A02EA7-C43D-4D5F-B795-A8A9FF67AAE8}
+		{D5777CF2-2A4B-41C5-833E-388C157A305E} = {859C4617-51CF-470C-B7A0-580DF610C7C1}
 	EndGlobalSection
 EndGlobal

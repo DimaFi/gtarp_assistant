@@ -1,0 +1,18 @@
+{
+  "id": "stt-russian-gta5rp-v1",
+  "gate": {
+    "minimumCases": 12,
+    "maximumAverageWordErrorRate": 0.25,
+    "minimumTermRecall": 0.85,
+    "maximumP95LatencyMs": 5000,
+    "maximumMemoryBytes": 1153433600
+  },
+  "cases": [
+    {
+      "id": "example-01",
+      "audioFile": "audio/stt-russian-gta5rp/example-01.wav",
+      "reference": "Где находится клуб Мерривезер и какой уровень нужен для вступления?",
+      "requiredTerms": ["Мерривезер", "уровень", "вступления"]
+    }
+  ]
+}
