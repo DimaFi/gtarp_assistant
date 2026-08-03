@@ -25,6 +25,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
     private readonly VisionWorkflowService _vision;
     private readonly AudioFeatureViewModel _audioFeature;
     private readonly PrivacyFeatureViewModel _privacyFeature;
+    private readonly VoiceInteractionCoordinator _voiceInteraction;
     private readonly ILogger<ApplicationLifecycleCoordinator> _logger;
     private readonly ApplicationExecutionMode _executionMode;
     private bool _paused;
@@ -45,6 +46,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         VisionWorkflowService vision,
         AudioFeatureViewModel audioFeature,
         PrivacyFeatureViewModel privacyFeature,
+        VoiceInteractionCoordinator voiceInteraction,
         MicroModelOverlayCoordinator microModelOverlay,
         ApplicationExecutionMode executionMode,
         ILogger<ApplicationLifecycleCoordinator> logger)
@@ -64,6 +66,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         _vision = vision;
         _audioFeature = audioFeature;
         _privacyFeature = privacyFeature;
+        _voiceInteraction = voiceInteraction;
         _ = microModelOverlay;
         _executionMode = executionMode;
         _logger = logger;
@@ -79,6 +82,13 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
             answer.UsedFactIds.Count);
         _overlay.DetailsRequested += (_, answer) => _dialogs.ShowAnswerDetails(answer);
         _audioFeature.RuntimeStateChanged += (_, _) => UpdateAppStatus();
+        _overlay.VoicePreviewConfirmed += (_, text) =>
+        {
+            if (!_audioFeature.ConfirmManualVoiceRequest(text))
+                _ui.PipelineStatus = "Voice preview уже недоступен.";
+        };
+        _overlay.VoicePreviewCancelled += (_, _) => _audioFeature.CancelManualVoiceRequest();
+        _voiceInteraction.StateChanged += OnVoiceInteractionStateChanged;
     }
 
     public bool IsInitialized { get; private set; }
@@ -141,8 +151,10 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
 
     public async Task HandleManualVoiceHotkeyAsync()
     {
-        await _audioFeature.BeginManualVoiceRequestAsync();
-        _ = _overlay.ShowListeningAsync(CancellationToken.None);
+        if (await _audioFeature.BeginManualVoiceRequestAsync())
+            _ = _overlay.ShowListeningAsync(CancellationToken.None);
+        else if (_overlay.IsVisible)
+            await _overlay.HideAsync();
     }
 
     public void ReportHotkeyFailure() =>
@@ -167,6 +179,21 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
 
     private async void OnAnswerProduced(object? sender, AssistantAnswer answer) =>
         await _privacyFeature.SpeakIfEnabledAsync(answer);
+
+    private async void OnVoiceInteractionStateChanged(object? sender, VoiceInteractionSnapshot snapshot)
+    {
+        try
+        {
+            if (snapshot.State == VoiceInteractionState.Preview && !snapshot.AutoSubmit && !string.IsNullOrWhiteSpace(snapshot.Transcript))
+                await _overlay.ShowVoicePreviewAsync(snapshot.Transcript, CancellationToken.None);
+            else if (snapshot.State is VoiceInteractionState.Submitting or VoiceInteractionState.Cancelled or VoiceInteractionState.Faulted)
+                await _overlay.HideAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning("Voice preview overlay failed; type={ErrorType}", ex.GetType().Name);
+        }
+    }
 
     private async void OnGameProcessChanged(object? sender, GameProcessInfo? process)
     {
@@ -223,6 +250,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
 
     public ValueTask DisposeAsync()
     {
+        _voiceInteraction.StateChanged -= OnVoiceInteractionStateChanged;
         _privacyFeature.StopSpeech();
         return ValueTask.CompletedTask;
     }

@@ -14,11 +14,15 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     private readonly AssistantSessionCoordinator _coordinator;
     private readonly IUiDispatcher _dispatcher;
     private readonly IAppDialogService _dialogs;
+    private readonly AudioSessionController _audioSession;
+    private readonly VoiceInteractionCoordinator _voiceInteraction;
     private readonly RelayCommand _cancelRequestCommand;
     private readonly RelayCommand _renameConversationCommand;
     private readonly RelayCommand _deleteConversationCommand;
     private readonly RelayCommand _copyAnswerCommand;
     private readonly AsyncRelayCommand _retryQuestionCommand;
+    private readonly RelayCommand _confirmVoicePreviewCommand;
+    private readonly RelayCommand _cancelVoicePreviewCommand;
     private int _selectedSourceIndex;
     private string _transcriptText = "Помощник, почему не запускается контракт?";
     private AssistantAnswer? _lastAnswer;
@@ -36,6 +40,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         TranscriptBuffer transcripts,
         AssistantSessionCoordinator coordinator,
         AudioSessionController audioSession,
+        VoiceInteractionCoordinator voiceInteraction,
         SettingsSaveCoordinator save,
         IAppDialogService dialogs,
         IUiDispatcher dispatcher) : base(ui, workspace)
@@ -44,6 +49,8 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _coordinator = coordinator;
         _dispatcher = dispatcher;
         _dialogs = dialogs;
+        _audioSession = audioSession;
+        _voiceInteraction = voiceInteraction;
         AddContextCommand = new RelayCommand(AddContext);
         ProcessQuestionCommand = new AsyncRelayCommand(ProcessQuestionAsync);
         NewConversationCommand = new RelayCommand(NewConversation, () => !IsBusy);
@@ -52,11 +59,15 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _deleteConversationCommand = new RelayCommand(DeleteConversation, () => SelectedConversation is not null && !IsBusy);
         _copyAnswerCommand = new RelayCommand(CopyAnswer, HasAssistantAnswer);
         _retryQuestionCommand = new AsyncRelayCommand(RetryQuestionAsync, () => !IsBusy && LastUserQuestion() is not null);
+        _confirmVoicePreviewCommand = new RelayCommand(ConfirmVoicePreview, () => IsVoicePreview && !string.IsNullOrWhiteSpace(TranscriptText));
+        _cancelVoicePreviewCommand = new RelayCommand(CancelVoicePreview, () => IsVoicePreview);
         CancelRequestCommand = _cancelRequestCommand;
         RenameConversationCommand = _renameConversationCommand;
         DeleteConversationCommand = _deleteConversationCommand;
         CopyAnswerCommand = _copyAnswerCommand;
         RetryQuestionCommand = _retryQuestionCommand;
+        ConfirmVoicePreviewCommand = _confirmVoicePreviewCommand;
+        CancelVoicePreviewCommand = _cancelVoicePreviewCommand;
         coordinator.StatusChanged += (_, status) => _dispatcher.Invoke(() => Ui.PipelineStatus = status);
         coordinator.AnswerProduced += (_, answer) => _dispatcher.Invoke(() =>
         {
@@ -64,6 +75,13 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
             RefreshConversation();
         });
         audioSession.TranscriptRecognized += (_, text) => _dispatcher.Invoke(() => TranscriptText = text);
+        voiceInteraction.StateChanged += (_, snapshot) => _dispatcher.Invoke(() =>
+        {
+            Raise(nameof(IsVoicePreview));
+            Raise(nameof(VoicePreviewStatus));
+            _confirmVoicePreviewCommand.RaiseCanExecuteChanged();
+            _cancelVoicePreviewCommand.RaiseCanExecuteChanged();
+        });
         workspace.PropertyChanged += (_, args) =>
         {
             if (string.Equals(args.PropertyName, nameof(SettingsWorkspace.Settings), StringComparison.Ordinal))
@@ -73,7 +91,18 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     }
 
     public int SelectedSourceIndex { get => _selectedSourceIndex; set => Set(ref _selectedSourceIndex, value); }
-    public string TranscriptText { get => _transcriptText; set => Set(ref _transcriptText, value); }
+    public string TranscriptText
+    {
+        get => _transcriptText;
+        set
+        {
+            if (Set(ref _transcriptText, value)) _confirmVoicePreviewCommand.RaiseCanExecuteChanged();
+        }
+    }
+    public bool IsVoicePreview => _voiceInteraction.Snapshot.State == VoiceInteractionState.Preview;
+    public string VoicePreviewStatus => IsVoicePreview
+        ? "Проверьте распознанный текст выше. Он не будет отправлен без подтверждения."
+        : string.Empty;
     public string PipelineStatus => Ui.PipelineStatus;
     public AssistantAnswer? LastAnswer
     {
@@ -128,6 +157,8 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     public ICommand DeleteConversationCommand { get; }
     public ICommand CopyAnswerCommand { get; }
     public ICommand RetryQuestionCommand { get; }
+    public ICommand ConfirmVoicePreviewCommand { get; }
+    public ICommand CancelVoicePreviewCommand { get; }
 
     private AudioSourceKind SelectedSource => SelectedSourceIndex == 1 ? AudioSourceKind.GameAudio : AudioSourceKind.UserMicrophone;
 
@@ -255,6 +286,18 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         if (!IsBusy) return;
         Ui.PipelineStatus = "Отменяю запрос…";
         _requestCancellation?.Cancel();
+    }
+
+    private void ConfirmVoicePreview()
+    {
+        if (!_audioSession.ConfirmManualVoiceRequest(TranscriptText)) return;
+        Ui.PipelineStatus = "Голосовой вопрос подтверждён. Ищу проверенную информацию…";
+    }
+
+    private void CancelVoicePreview()
+    {
+        _audioSession.CancelManualVoiceRequest();
+        Ui.PipelineStatus = "Голосовой вопрос отменён.";
     }
 
     private string? LastUserQuestion() => _lastQuestion

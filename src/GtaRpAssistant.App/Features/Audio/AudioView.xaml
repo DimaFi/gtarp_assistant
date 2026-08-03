@@ -12,8 +12,14 @@
                     <ComboBox ItemsSource="{Binding Microphones}" SelectedItem="{Binding SelectedMicrophone}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AudioSettingsEnabled}" AutomationProperties.AutomationId="Audio.Microphone" />
                     <StackPanel Orientation="Horizontal">
                         <Button Content="Обновить устройства" Command="{Binding RefreshDevicesCommand}" AutomationProperties.AutomationId="Audio.RefreshDevices" />
+                        <Button Content="Тест микрофона" Command="{Binding TestMicrophoneCommand}" AutomationProperties.AutomationId="Audio.TestMicrophone" />
                         <Button Style="{StaticResource Button.Primary}" Content="{Binding ListeningButtonText}" Command="{Binding ToggleListeningCommand}" AutomationProperties.AutomationId="Audio.ToggleListening" />
                     </StackPanel>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ProgressBar Height="6" Minimum="0" Maximum="1" Value="{Binding MicrophoneLevel, Mode=OneWay}" AutomationProperties.AutomationId="Audio.MicrophoneLevel" />
+                        <TextBlock Grid.Column="1" Margin="10,0,0,0" Style="{StaticResource Text.Caption}" Text="{Binding MicrophoneLevelText}" />
+                    </Grid>
                     <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Label}" Text="Устройство вывода для game audio" />
                     <ComboBox ItemsSource="{Binding RenderDevices}" SelectedItem="{Binding SelectedRenderDevice}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AudioSettingsEnabled}" AutomationProperties.AutomationId="Audio.RenderDevice" />
                 </StackPanel>
@@ -24,6 +30,8 @@
                     <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Game audio не активирует помощника и используется только как временный контекст." />
                     <CheckBox Content="Включить game audio" IsChecked="{Binding Settings.EnableGameAudio}" IsEnabled="{Binding AudioSettingsEnabled}" />
                     <CheckBox Content="Предпочитать process-specific loopback" IsChecked="{Binding Settings.PreferProcessLoopback}" IsEnabled="{Binding AudioSettingsEnabled}" />
+                    <CheckBox Content="Сразу отправлять распознанный голосовой вопрос" IsChecked="{Binding Settings.VoiceAutoSubmit}" IsEnabled="{Binding AudioSettingsEnabled}"
+                              ToolTip="Если выключено, перед отправкой появится редактируемый preview." AutomationProperties.AutomationId="Audio.VoiceAutoSubmit" />
                     <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Label}" Text="Память transcript/audio" />
                     <ComboBox SelectedValue="{Binding Settings.TranscriptMinutes}" SelectedValuePath="Tag">
                         <ComboBoxItem Content="30 секунд" Tag="0" />

@@ -153,6 +153,35 @@ public sealed class UiAutomationScenarioService
         await _overlay.HideAsync();
         await listeningLifetime;
 
+        string? confirmedVoiceText = null;
+        void OnVoicePreviewConfirmed(object? sender, string text) => confirmedVoiceText = text;
+        _overlay.VoicePreviewConfirmed += OnVoicePreviewConfirmed;
+        try
+        {
+            await _overlay.ShowVoicePreviewAsync("где находится клб", CancellationToken.None);
+            await YieldRenderAsync();
+            if (!_expanded.IsVisible || _compact.IsVisible)
+                throw new InvalidOperationException("Voice preview must use only the interactive expanded overlay.");
+            UiVisualTestHelper.ValidateAutomationContract(
+                _expanded,
+                "Overlay.VoicePreview",
+                "Overlay.VoicePreviewText",
+                "Overlay.VoicePreviewCancel",
+                "Overlay.VoicePreviewConfirm");
+            var previewText = UiVisualTestHelper.Find<System.Windows.Controls.TextBox>(_expanded, "Overlay.VoicePreviewText");
+            previewText.Text = "где находится клуб";
+            CaptureIfRequested(_expanded, outputDirectory, "voice-preview.png", paths);
+            UiVisualTestHelper.Click(_expanded, "Overlay.VoicePreviewConfirm");
+            await YieldRenderAsync();
+            if (!string.Equals(confirmedVoiceText, "где находится клуб", StringComparison.Ordinal) || _expanded.IsVisible)
+                throw new InvalidOperationException("Voice preview confirmation/edit contract failed.");
+        }
+        finally
+        {
+            _overlay.VoicePreviewConfirmed -= OnVoicePreviewConfirmed;
+            await _overlay.HideAsync();
+        }
+
         RunVisionDialog(owner, confirm: false, outputDirectory, paths);
         RunVisionDialog(owner, confirm: true, outputDirectory: null, paths);
         owner.Activate();

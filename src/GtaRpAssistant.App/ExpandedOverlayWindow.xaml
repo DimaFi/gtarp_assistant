@@ -41,7 +41,7 @@
                         AutomationProperties.AutomationId="Overlay.Close" />
             </Grid>
 
-            <ScrollViewer Grid.Row="1" Margin="0,18,0,0" MaxHeight="460" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer x:Name="AnswerScroll" Grid.Row="1" Margin="0,18,0,0" MaxHeight="460" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock x:Name="SummaryText" Style="{StaticResource Text.Body}" FontSize="15" LineHeight="23"
                                TextWrapping="Wrap" AutomationProperties.AutomationId="Overlay.ExpandedMessage" />
@@ -102,7 +102,7 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <Border Grid.Row="2" Margin="0,18,0,0" Style="{StaticResource Surface.RaisedCard}" Padding="14">
+            <Border x:Name="AnswerSourcePanel" Grid.Row="2" Margin="0,18,0,0" Style="{StaticResource Surface.RaisedCard}" Padding="14">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -119,11 +119,30 @@
                 </Grid>
             </Border>
 
-            <design:QuickActionsBar Grid.Row="3" Margin="0,14,0,-6"
+            <design:QuickActionsBar x:Name="AnswerQuickActions" Grid.Row="3" Margin="0,14,0,-6"
                                     TechnicalDetailsRequested="QuickActions_TechnicalDetailsRequested"
                                     IncorrectRequested="QuickActions_IncorrectRequested"
                                     SnoozeRequested="QuickActions_SnoozeRequested"
                                     CollapseRequested="QuickActions_CollapseRequested" />
+
+            <Border x:Name="VoicePreviewPanel" Grid.Row="1" Grid.RowSpan="3" Margin="0,18,0,0"
+                    Style="{StaticResource Surface.RaisedCard}" Visibility="Collapsed"
+                    AutomationProperties.AutomationId="Overlay.VoicePreview">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Caption}" Text="РАСПОЗНАННЫЙ ВОПРОС" />
+                    <TextBox x:Name="VoicePreviewText" Margin="0,8,0,10" MinHeight="86" MaxHeight="220"
+                             TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top"
+                             AutomationProperties.AutomationId="Overlay.VoicePreviewText" />
+                    <TextBlock Style="{StaticResource Text.Secondary}" TextWrapping="Wrap"
+                               Text="Исправьте текст при необходимости. До подтверждения вопрос не отправляется." />
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Button.Danger}" Content="Отменить" Click="VoicePreviewCancel_Click"
+                                AutomationProperties.AutomationId="Overlay.VoicePreviewCancel" />
+                        <Button Style="{StaticResource Button.Primary}" Content="Отправить" Click="VoicePreviewConfirm_Click"
+                                AutomationProperties.AutomationId="Overlay.VoicePreviewConfirm" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
     </design:OverlayCardShell>
 </Window>

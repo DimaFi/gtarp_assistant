@@ -20,6 +20,8 @@ public sealed class OverlayService : IOverlayService
         _expanded.IncorrectReported += (_, _) => { if (_currentAnswer is not null) IncorrectReported?.Invoke(this, _currentAnswer); };
         _expanded.SnoozeRequested += (_, _) => SnoozeRequested?.Invoke(this, EventArgs.Empty);
         _expanded.CollapseRequested += (_, _) => _ = ShowCompactCurrentAsync();
+        _expanded.VoicePreviewConfirmed += (_, text) => VoicePreviewConfirmed?.Invoke(this, text);
+        _expanded.VoicePreviewCancelled += (_, _) => VoicePreviewCancelled?.Invoke(this, EventArgs.Empty);
     }
 
     public nint TargetWindowHandle { get; set; }
@@ -27,6 +29,8 @@ public sealed class OverlayService : IOverlayService
     public event EventHandler<AssistantAnswer>? DetailsRequested;
     public event EventHandler<AssistantAnswer>? IncorrectReported;
     public event EventHandler? SnoozeRequested;
+    public event EventHandler<string>? VoicePreviewConfirmed;
+    public event EventHandler? VoicePreviewCancelled;
 
     public async Task ShowAsync(AssistantAnswer answer, CancellationToken cancellationToken)
     {
@@ -48,6 +52,19 @@ public sealed class OverlayService : IOverlayService
         _currentAnswer = null;
         _currentPresentation = OverlayPresentationFactory.CreateListening();
         await ShowPresentationAsync(_currentPresentation, TimeSpan.FromSeconds(20), cancellationToken);
+    }
+
+    public Task ShowVoicePreviewAsync(string transcript, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        _currentAnswer = null;
+        _currentPresentation = null;
+        var current = _settings.Current;
+        return System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            _compact.HideOverlay();
+            _expanded.ShowVoicePreview(transcript, current.OverlayPosition, TargetWindowHandle);
+        }).Task;
     }
 
     private async Task ShowPresentationAsync(OverlayPresentation presentation, TimeSpan duration, CancellationToken cancellationToken)

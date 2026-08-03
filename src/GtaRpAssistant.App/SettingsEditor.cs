@@ -38,6 +38,7 @@ public sealed class SettingsEditor : ObservableObject
     private string _lmStudioCliPath = "";
     private string _lmStudioApplicationPath = "";
     private bool _enableLongTermConversation;
+    private bool _voiceAutoSubmit;
 
     public string Server { get => _server; set => Set(ref _server, value); }
     public string Endpoint { get => _endpoint; set => Set(ref _endpoint, value); }
@@ -75,6 +76,7 @@ public sealed class SettingsEditor : ObservableObject
     public string LmStudioCliPath { get => _lmStudioCliPath; set => Set(ref _lmStudioCliPath, value); }
     public string LmStudioApplicationPath { get => _lmStudioApplicationPath; set => Set(ref _lmStudioApplicationPath, value); }
     public bool EnableLongTermConversation { get => _enableLongTermConversation; set => Set(ref _enableLongTermConversation, value); }
+    public bool VoiceAutoSubmit { get => _voiceAutoSubmit; set => Set(ref _voiceAutoSubmit, value); }
 
     public static SettingsEditor From(AppSettings value)
     {
@@ -94,6 +96,7 @@ public sealed class SettingsEditor : ObservableObject
         LocalAiEngine = value.LocalAiEngine, LocalAiAdvancedMode = value.LocalAiAdvancedMode, AutoManageLocalAi = value.AutoManageLocalAi,
         LmStudioCliPath = value.LmStudioCliPath, LmStudioApplicationPath = value.LmStudioApplicationPath,
         EnableLongTermConversation = value.EnableLongTermConversation,
+        VoiceAutoSubmit = value.VoiceAutoSubmit,
         };
     }
 
@@ -114,6 +117,7 @@ public sealed class SettingsEditor : ObservableObject
         LocalAiEngine = LocalAiEngine, LocalAiAdvancedMode = LocalAiAdvancedMode, AutoManageLocalAi = AutoManageLocalAi,
         LmStudioCliPath = LmStudioCliPath.Trim(), LmStudioApplicationPath = LmStudioApplicationPath.Trim(),
         EnableLongTermConversation = EnableLongTermConversation,
+        VoiceAutoSubmit = VoiceAutoSubmit,
         ProviderRouting = routes with
         {
             SpeechToText = routes.SpeechToText with { Mode = Mode(SttProviderMode) },

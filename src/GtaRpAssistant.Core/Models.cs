@@ -10,6 +10,8 @@ public enum AnswerDecision { Show, AskForMoreInformation, Abstain }
 public enum AnswerRoute { Deterministic, ConfiguredChat, LocalChat, CloudChat, Abstain }
 public enum AssistantActivationKind { ManualText, ManualVoice, AutomaticVoice, Hotkey }
 public enum AssistantSessionState { Dormant, WaitingForGame, Listening, SpeechDetected, Transcribing, EvaluatingIntent, SearchingKnowledge, GeneratingAnswer, ValidatingAnswer, ShowingOverlay, Cooldown, Paused, Faulted }
+public enum VoiceInteractionMode { Hold, Toggle }
+public enum VoiceInteractionState { Idle, Arming, Listening, SpeechDetected, Transcribing, Preview, Submitting, AnswerReady, Speaking, Cancelled, Faulted }
 
 public sealed record AudioSegment(Guid Id, AudioSourceKind Source, DateTimeOffset StartedAt, DateTimeOffset EndedAt, int SampleRate, int Channels, ReadOnlyMemory<byte> PcmData);
 public sealed record TranscriptEntry(Guid Id, AudioSourceKind Source, DateTimeOffset StartedAt, DateTimeOffset EndedAt, string Text, double RecognitionConfidence);
@@ -70,6 +72,18 @@ public sealed record SessionEvent(DateTimeOffset Timestamp, string Name, Assista
 public sealed record VisionAnalysisRequest(ReadOnlyMemory<byte> PngImage, string Prompt);
 public sealed record VisionAnalysisResult(string Text);
 public sealed record TextToSpeechRequest(string Text, string? Voice = null, int OutputDevice = -1);
+public sealed record VoiceInteractionSnapshot(
+    Guid RequestId,
+    VoiceInteractionMode Mode,
+    VoiceInteractionState State,
+    DateTimeOffset StartedAt,
+    DateTimeOffset? Deadline,
+    string? Transcript,
+    string? Detail,
+    bool AutoSubmit)
+{
+    public bool IsActive => State is not (VoiceInteractionState.Idle or VoiceInteractionState.Cancelled or VoiceInteractionState.Faulted or VoiceInteractionState.AnswerReady);
+}
 
 public sealed class AudioFrameEventArgs(AudioSourceKind source, ReadOnlyMemory<short> samples, int sampleRate) : EventArgs
 {

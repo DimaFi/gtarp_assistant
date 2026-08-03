@@ -74,7 +74,7 @@ finally {
     }
 }
 
-$expectedSnapshots = @('assistant', 'audio', 'providers', 'behavior', 'privacy', 'knowledge', 'about', 'overlay-compact', 'overlay-expanded', 'vision-preview')
+$expectedSnapshots = @('assistant', 'audio', 'providers', 'behavior', 'privacy', 'knowledge', 'about', 'overlay-compact', 'overlay-expanded', 'voice-preview', 'vision-preview')
 foreach ($name in $expectedSnapshots) {
     $snapshot = Get-Item -LiteralPath (Join-Path $resolvedOutput "$name.png") -ErrorAction SilentlyContinue
     if ($null -eq $snapshot) { throw "Missing UI snapshot: $name.png." }

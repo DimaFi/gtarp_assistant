@@ -1,15 +1,17 @@
-using System.Net.Http;
 using System.Threading.Channels;
 using GtaRpAssistant.Core;
 using GtaRpAssistant.Infrastructure.Windows;
-using GtaRpAssistant.Providers;
 using Microsoft.Extensions.Logging;
 
 namespace GtaRpAssistant.App;
 
 public sealed record AudioSessionStartOptions(MicrophoneDeviceInfo Microphone, RenderDeviceInfo? RenderDevice, AppSettings Settings, string? ApiKey, GameProcessInfo? GameProcess);
 
-public sealed class AudioSessionController(AssistantSessionCoordinator coordinator, ISecretStore secrets, ILogger<AudioSessionController> logger) : IAsyncDisposable
+public sealed class AudioSessionController(
+    AssistantSessionCoordinator coordinator,
+    ISpeechToTextProviderCatalog speechToTextProviders,
+    VoiceInteractionCoordinator voiceInteraction,
+    ILogger<AudioSessionController> logger) : IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly AdaptiveEnergyVoiceActivityDetector _microphoneVad = new();
@@ -20,7 +22,7 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
     private WasapiMicrophoneCaptureService? _microphone;
     private IAudioCaptureService? _gameAudio;
     private IReadOnlyList<ISpeechToTextProvider> _sttRoute = [];
-    private readonly List<HttpClient> _sttClients = [];
+    private SpeechToTextProviderRoute? _sttProviderRoute;
     private CancellationTokenSource? _cancellation;
     private Channel<AudioSegment>? _microphoneSegments;
     private Channel<AudioSegment>? _gameSegments;
@@ -31,12 +33,15 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
     private AppSettings _sessionSettings = new();
     private bool _gameAudioSuspended;
     private DateTimeOffset _manualVoiceUntil;
+    private long _lastMicrophoneLevelTick;
 
     public bool IsListening => _microphone is not null;
     public bool IsGameAudioActive => _gameAudio is not null;
+    public VoiceInteractionSnapshot VoiceInteraction => voiceInteraction.Snapshot;
     public string GameCaptureMode { get; private set; } = "off";
     public event EventHandler<string>? StatusChanged;
     public event EventHandler<string>? TranscriptRecognized;
+    public event EventHandler<double>? MicrophoneLevelChanged;
     public event EventHandler? StateChanged;
 
     public async Task StartAsync(AudioSessionStartOptions options, CancellationToken cancellationToken)
@@ -51,7 +56,8 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
             _gameProcess = options.GameProcess;
             _sessionSettings = value;
             _cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _sttRoute = await BuildSttRouteAsync(value, _cancellation.Token);
+            _sttProviderRoute = await speechToTextProviders.CreateAvailableRouteAsync(value, _cancellation.Token);
+            _sttRoute = _sttProviderRoute.Providers;
             if (_sttRoute.Count == 0) throw new InvalidOperationException("STT route выключен или не содержит доступных провайдеров.");
             _microphoneSegmenter.Reset(); _gameSegmenter.Reset();
             _microphoneSegments = CreateChannel(); _gameSegments = CreateChannel(); _segmentSignal = new(0);
@@ -59,6 +65,8 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
             _microphone = new(options.Microphone.Id);
             _microphone.FrameCaptured += OnMicrophoneFrame;
             await _microphone.StartAsync(_cancellation.Token);
+            if (voiceInteraction.Snapshot.State == VoiceInteractionState.Arming)
+                voiceInteraction.TryMarkListening();
             if (value.EnableGameAudio && !_gameAudioSuspended) await StartGameAudioCoreAsync(_cancellation.Token);
             StatusChanged?.Invoke(this, _gameAudio is null ? "WASAPI microphone активен: PCM16 mono 16 kHz." : $"Микрофон и game audio активны; режим: {GameCaptureMode}.");
             StateChanged?.Invoke(this, EventArgs.Empty);
@@ -78,7 +86,24 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
         finally { _gate.Release(); }
     }
 
-    public void BeginManualVoiceRequest() => _manualVoiceUntil = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(20);
+    public bool ToggleManualVoiceRequest(bool autoSubmit)
+    {
+        var started = voiceInteraction.Toggle(VoiceInteractionMode.Toggle, autoSubmit, TimeSpan.FromSeconds(20));
+        _manualVoiceUntil = started ? DateTimeOffset.UtcNow + TimeSpan.FromSeconds(20) : DateTimeOffset.MinValue;
+        if (started && IsListening) voiceInteraction.TryMarkListening();
+        StateChanged?.Invoke(this, EventArgs.Empty);
+        return started;
+    }
+
+    public void CancelManualVoiceRequest(string detail = "Голосовой вопрос отменён.")
+    {
+        _manualVoiceUntil = DateTimeOffset.MinValue;
+        voiceInteraction.Cancel(detail);
+        StateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public bool ConfirmManualVoiceRequest(string editedTranscript) =>
+        voiceInteraction.ConfirmPreview(editedTranscript);
 
     public async Task RebindGameProcessAsync(GameProcessInfo? process)
     {
@@ -167,10 +192,13 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
         _worker = null; _microphoneSegments = null; _gameSegments = null;
         _segmentSignal?.Dispose(); _segmentSignal = null;
         _cancellation?.Dispose(); _cancellation = null;
-        foreach (var client in _sttClients) client.Dispose();
-        _sttClients.Clear(); _sttRoute = [];
+        if (_sttProviderRoute is not null) await _sttProviderRoute.DisposeAsync();
+        _sttProviderRoute = null; _sttRoute = [];
         _renderDevice = null;
         _microphoneSegmenter.Reset(); _gameSegmenter.Reset();
+        MicrophoneLevelChanged?.Invoke(this, 0);
+        if (voiceInteraction.Snapshot.IsActive)
+            CancelManualVoiceRequest("Аудиосессия остановлена.");
         StateChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -193,6 +221,17 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
         if (_cancellation is null) return;
         _audioBuffer.Write(e.Source, e.Samples.Span);
         var activity = vad.Process(e.Samples.Span, e.SampleRate);
+        if (e.Source == AudioSourceKind.UserMicrophone)
+        {
+            var tick = Environment.TickCount64;
+            var previous = Interlocked.Read(ref _lastMicrophoneLevelTick);
+            if (tick - previous >= 80 && Interlocked.CompareExchange(ref _lastMicrophoneLevelTick, tick, previous) == previous)
+                MicrophoneLevelChanged?.Invoke(this, MicrophoneTestService.CalculateLevel(e.Samples.Span));
+        }
+        if (e.Source == AudioSourceKind.UserMicrophone
+            && activity.SpeechDetected
+            && DateTimeOffset.UtcNow <= _manualVoiceUntil)
+            voiceInteraction.TryMarkSpeechDetected();
         var segment = segmenter.Process(e.Source, e.Samples.Span, activity.SpeechDetected, DateTimeOffset.UtcNow);
         if (segment is not null && channel?.Writer.TryWrite(segment) == true) _segmentSignal?.Release();
     }
@@ -209,10 +248,17 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
 
     private async Task TranscribeAsync(AudioSegment segment, CancellationToken cancellationToken)
     {
+        var manualRequest = segment.Source == AudioSourceKind.UserMicrophone
+            && DateTimeOffset.UtcNow <= _manualVoiceUntil;
+        using var requestCancellation = manualRequest
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, voiceInteraction.RequestCancellationToken)
+            : null;
+        var operationToken = requestCancellation?.Token ?? cancellationToken;
         try
         {
             if (_sttRoute.Count == 0) return;
             var value = _sessionSettings;
+            if (manualRequest) voiceInteraction.TryMarkTranscribing();
             StatusChanged?.Invoke(this, $"STT {segment.Source}: сегмент {(segment.EndedAt - segment.StartedAt).TotalSeconds:F1} сек…");
             TranscriptResult? result = null;
             foreach (var provider in _sttRoute)
@@ -225,7 +271,7 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
                 }
                 try
                 {
-                    result = await provider.TranscribeAsync(segment, cancellationToken);
+                    result = await provider.TranscribeAsync(segment, operationToken);
                     break;
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
@@ -242,62 +288,34 @@ public sealed class AudioSessionController(AssistantSessionCoordinator coordinat
                 return;
             }
             TranscriptRecognized?.Invoke(this, result.Text);
-            var activation = DateTimeOffset.UtcNow <= _manualVoiceUntil ? AssistantActivationKind.ManualVoice : AssistantActivationKind.AutomaticVoice;
+            var activation = manualRequest ? AssistantActivationKind.ManualVoice : AssistantActivationKind.AutomaticVoice;
             if (activation == AssistantActivationKind.AutomaticVoice && SettingValues.Proactive(value) == ProactiveMode.Off) return;
-            await coordinator.ProcessAsync(new(entry, activation, value.Server, value.AllowCloud, value.VoiceMode == 1 && activation == AssistantActivationKind.ManualVoice), cancellationToken);
+            if (manualRequest)
+            {
+                var decision = await voiceInteraction.WaitForPreviewDecisionAsync(result.Text, operationToken);
+                entry = entry with { Text = decision.Text };
+            }
+            if (manualRequest)
+                await voiceInteraction.SubmitAsync(entry, value, operationToken);
+            else
+                await coordinator.ProcessAsync(
+                    new(entry, activation, value.Server, value.AllowCloud, false),
+                    operationToken);
+            if (manualRequest)
+            {
+                _manualVoiceUntil = DateTimeOffset.MinValue;
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (OperationCanceledException) when (manualRequest && operationToken.IsCancellationRequested)
+        {
+            StatusChanged?.Invoke(this, "Голосовой вопрос отменён.");
+        }
         catch (Exception ex)
         {
             logger.LogWarning("STT segment failed; type={ErrorType}; source={Source}", ex.GetType().Name, segment.Source);
             StatusChanged?.Invoke(this, $"STT faulted: {ex.GetType().Name}");
         }
-    }
-
-    private async Task<IReadOnlyList<ISpeechToTextProvider>> BuildSttRouteAsync(AppSettings value, CancellationToken cancellationToken)
-    {
-        var registry = new ProviderRegistry();
-        var route = value.ProviderRouting!.SpeechToText;
-        var ids = ConfiguredIds(route).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var connection in value.ProviderConnections!.Where(connection => connection.Enabled && ids.Contains(connection.Id)))
-        {
-            if (connection.Kind is not (ProviderKind.OpenAiCompatible or ProviderKind.OpenAi or ProviderKind.OpenRouter or ProviderKind.Groq or ProviderKind.LmStudio or ProviderKind.Ollama or ProviderKind.CustomHttp)) continue;
-            if (string.IsNullOrWhiteSpace(connection.ModelId) || (!connection.IsLocal && !value.AllowCloud)) continue;
-            var secret = string.IsNullOrWhiteSpace(connection.SecretReference) ? null : await secrets.GetAsync(connection.SecretReference, cancellationToken);
-            var client = new HttpClient();
-            try
-            {
-                var provider = new OpenAiCompatibleSpeechToTextProvider(client, new(
-                    connection.BaseUri,
-                    connection.ModelId,
-                    secret,
-                    connection.Timeout,
-                    connection.IsLocal,
-                    value.Language,
-                    connection.Id,
-                    connection.Kind));
-                registry.Register(provider);
-                _sttClients.Add(client);
-            }
-            catch
-            {
-                client.Dispose();
-                throw;
-            }
-        }
-
-        var configured = new ProviderRouteResolver(registry).Resolve(ProviderTask.SpeechToText, route).Providers.OfType<ISpeechToTextProvider>();
-        var available = new List<ISpeechToTextProvider>();
-        foreach (var provider in configured)
-            if ((await provider.CheckHealthAsync(cancellationToken)).IsAvailable) available.Add(provider);
-        return available;
-    }
-
-    private static IEnumerable<string> ConfiguredIds(ProviderRouteSettings route)
-    {
-        if (!string.IsNullOrWhiteSpace(route.PrimaryProviderId)) yield return route.PrimaryProviderId;
-        foreach (var id in route.FallbackProviderIds)
-            if (!string.IsNullOrWhiteSpace(id)) yield return id;
     }
 
     public async ValueTask DisposeAsync()

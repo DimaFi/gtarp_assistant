@@ -41,7 +41,8 @@ public sealed record AppSettings(
     bool AutoManageLocalAi = true,
     string LmStudioCliPath = "",
     string LmStudioApplicationPath = "",
-    bool EnableLongTermConversation = false);
+    bool EnableLongTermConversation = false,
+    bool VoiceAutoSubmit = false);
 
 public sealed class SettingsService
 {

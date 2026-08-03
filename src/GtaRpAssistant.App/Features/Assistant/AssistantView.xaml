@@ -118,13 +118,37 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <WrapPanel HorizontalAlignment="Left">
+                <Border Margin="0,10,0,6" AutomationProperties.AutomationId="Assistant.VoicePreview">
+                    <Border.Style>
+                        <Style TargetType="Border" BasedOn="{StaticResource Surface.RaisedCard}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsVoicePreview}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Text.Label}" Text="Предпросмотр голосового вопроса" />
+                            <TextBlock Margin="0,4,12,0" Style="{StaticResource Text.Secondary}" Text="{Binding VoicePreviewStatus}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource Button.Danger}" Content="Отменить" Command="{Binding CancelVoicePreviewCommand}" AutomationProperties.AutomationId="Assistant.CancelVoicePreview" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Отправить" Command="{Binding ConfirmVoicePreviewCommand}" AutomationProperties.AutomationId="Assistant.ConfirmVoicePreview" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Left">
                     <Button Style="{StaticResource Button.Ghost}" Content="Добавить в контекст" Command="{Binding AddContextCommand}" AutomationProperties.AutomationId="Assistant.AddContext" />
                     <Button Style="{StaticResource Button.Ghost}" Content="Повторить" Command="{Binding RetryQuestionCommand}" AutomationProperties.AutomationId="Assistant.Retry" />
                     <Button Style="{StaticResource Button.Ghost}" Content="Копировать ответ" Command="{Binding CopyAnswerCommand}" AutomationProperties.AutomationId="Assistant.CopyAnswer" />
                 </WrapPanel>
-                <WrapPanel Grid.Row="1" HorizontalAlignment="Right">
+                <WrapPanel Grid.Row="2" HorizontalAlignment="Right">
                     <Button Style="{StaticResource Button.Danger}" Content="Отмена" Command="{Binding CancelRequestCommand}" AutomationProperties.AutomationId="Assistant.Cancel" />
                     <Button Style="{StaticResource Button.Primary}" Content="Получить ответ" Command="{Binding ProcessQuestionCommand}" Margin="0,6,0,6" AutomationProperties.AutomationId="Assistant.Ask" />
                 </WrapPanel>

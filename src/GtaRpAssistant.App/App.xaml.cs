@@ -160,6 +160,10 @@ public partial class App : System.Windows.Application
         services.AddSingleton<WindowCaptureService>();
         services.AddSingleton<ITextToSpeechService, WindowsTextToSpeechService>();
         services.AddSingleton<VisionWorkflowService>();
+        services.AddSingleton<MicrophoneTestService>();
+        services.AddSingleton<VoiceInteractionStateMachine>();
+        services.AddSingleton<VoiceInteractionCoordinator>();
+        services.AddSingleton<ISpeechToTextProviderCatalog, SpeechToTextProviderCatalog>();
         services.AddSingleton<AudioSessionController>();
         services.AddSingleton<IAppDialogService, AppDialogService>();
         services.AddSingleton<ILocalModelFileDiscovery, LocalModelFileDiscovery>();

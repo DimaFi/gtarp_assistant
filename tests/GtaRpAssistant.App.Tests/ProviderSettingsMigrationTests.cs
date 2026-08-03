@@ -8,6 +8,16 @@ namespace GtaRpAssistant.App.Tests;
 public sealed class ProviderSettingsMigrationTests
 {
     [Fact]
+    public void VoiceAutoSubmit_RoundTripsThroughEditor()
+    {
+        var original = ProviderSettingsMigration.Migrate(new AppSettings(VoiceAutoSubmit: true));
+
+        var updated = SettingsEditor.From(original).ToSettings(null, null, original);
+
+        Assert.True(updated.VoiceAutoSubmit);
+    }
+
+    [Fact]
     public void LegacySettings_CreateIndependentRoutesAndConnections()
     {
         var migrated = ProviderSettingsMigration.Migrate(new AppSettings(
