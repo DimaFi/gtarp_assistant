@@ -52,14 +52,14 @@ dotnet run --project src/GtaRpAssistant.App -c Release
 
 Release-папка также содержит user-scope скрипты install/upgrade, rollback и uninstall. Порядок использования и границы доверия описаны в [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-Для работы аудио выберите микрофон и настройте OpenAI-compatible STT endpoint. LM Studio по умолчанию ожидается на `http://127.0.0.1:1234/v1`, но не является обязательным. STT, Chat, Vision, TTS и Embeddings имеют независимые режимы `Disabled/Cloud/Local/Automatic/Custom`; профиль производительности ограничивает дорогие функции, но не выбирает local/cloud.
+Для работы аудио выберите микрофон. Приложение уже поддерживает проверяемый optional embedded `whisper.cpp` STT-пак и прежние OpenAI-compatible STT endpoints; инструкция и текущий quality-gate находятся в [`docs/EMBEDDED_STT.md`](docs/EMBEDDED_STT.md). LM Studio по умолчанию ожидается на `http://127.0.0.1:1234/v1`, но не является обязательным и его chat-модель не заменяет STT. STT, Chat, Vision, TTS и Embeddings имеют независимые режимы `Disabled/Cloud/Local/Automatic/Custom`; профиль производительности ограничивает дорогие функции, но не выбирает local/cloud.
 
 ## Реализовано
 
 - WPF/MVVM shell, DI, tray, сохраняемые настройки и privacy-safe rotating logs;
 - единый `AssistantSessionCoordinator`, state machine, cancellation и single-flight;
 - монитор запуска/закрытия/перезапуска GTA с перепривязкой process loopback;
-- WASAPI microphone, process-specific/system loopback, VAD, bounded segmentation и OpenAI-compatible STT;
+- WASAPI microphone, process-specific/system loopback, VAD, bounded segmentation, optional embedded `whisper.cpp` и OpenAI-compatible STT fallback;
 - единый manual-voice control plane: toggle/hold, cancel, max duration, редактируемый preview, opt-in автоотправка, уровень/тест микрофона, точная диагностика hotkey и ограниченное unplug/replug recovery;
 - SQLite/FTS5 knowledge packs, exact/prepared answers, server scope, conflict/outdated checks;
 - provider capabilities/registry и независимые primary/fallback routes для STT, Chat, Vision, TTS и Embeddings;
@@ -93,9 +93,9 @@ Release-папка также содержит user-scope скрипты install
 
 ## Проверка
 
-Release-сборка проходит без предупреждений. Набор содержит 270 unit/integration тестов для Core, voice interaction, hold/release, STT privacy routing, UI registry, безопасного Markdown, shell boundaries, privacy-safe diagnostics, hotkey/tray routing и DPI-aware overlay geometry, knowledge search и миграций SQLite, временной и opt-in постоянной истории диалогов, conversation/follow-up/repair, local AI management, нестандартных путей, provider routes, process loopback, MicroModel lifecycle/TTL/queue/memory guard, product/model benchmark gates и защитных ограничений. Блокирующий production benchmark проверяет 528 вопросов через реальный coordinator и SQLite retrieval: 524 обязательных сценария прошли на 100%, ложных ответов, неподтверждённых чисел и wrong-server ответов нет. Опубликованное приложение дополнительно проходит изолированный startup/navigation/keyboard/settings/tray/overlay/vision/voice-preview smoke-test, установку из нестандартного каталога, gate из 11 snapshots и 10 startup/shutdown циклов. Реальный двухпроцессный UI E2E LM Studio 0.4.19 с Qwen проверил выбор модели, capability gate и сохранение маршрута после перезапуска; отчёты находятся в `artifacts/local-ai-e2e`.
+Release-сборка проходит без предупреждений. Набор содержит 278 unit/integration тестов для Core, voice interaction, hold/release, STT privacy/embedded-pack routing, pack integrity/path safety, runtime arguments/cancellation, UI registry, безопасного Markdown, shell boundaries, privacy-safe diagnostics, hotkey/tray routing и DPI-aware overlay geometry, knowledge search и миграций SQLite, временной и opt-in постоянной истории диалогов, conversation/follow-up/repair, local AI management, нестандартных путей, provider routes, process loopback, MicroModel lifecycle/TTL/queue/memory guard, product/model benchmark gates и защитных ограничений. Блокирующий production benchmark проверяет 528 вопросов через реальный coordinator и SQLite retrieval: 524 обязательных сценария прошли на 100%, ложных ответов, неподтверждённых чисел и wrong-server ответов нет. Опубликованное приложение дополнительно проходит изолированный startup/navigation/keyboard/settings/tray/overlay/vision/voice-preview smoke-test, установку из нестандартного каталога и gate из 11 snapshots. Реальный двухпроцессный UI E2E LM Studio 0.4.19 с Qwen проверил выбор модели, capability gate и сохранение маршрута после перезапуска; отдельный whisper.cpp smoke подтвердил custom-path startup, reuse и cancel-kill. Отчёты находятся в `artifacts/local-ai-e2e` и `artifacts/stt`.
 
-Текущий проверенный portable-релиз: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`, SHA-256 `9041a0b0d4f72ac7467a0e42d6a64c04158111f8342ffc11ac7d2a972bf3200e`.
+Текущий проверенный portable-релиз: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`, SHA-256 `e2636710ff514b0a3448fd8cdf9d01fb3d47525236033e1ca8a65613f9959e0f`.
 
 ## Ограничения
 
@@ -103,7 +103,7 @@ Release-сборка проходит без предупреждений. На�
 - Отдельный community-confirmed каталог содержит 445 коротких lookup-записей из предоставленных игроками достижений, таблиц и игровых справок. В него входят примерный календарь событий, советы по интерфейсу, актуальная поправка по доходу дальнобойщика, дрессировка питомцев, шар предсказаний и клубы. Каждый такой ответ начинается с «По данным игроков:» и не смешивается с официальной Wiki.
 - Автоматическая сверка выполнена по официальным страницам, но не заменяет human review владельцем продукта; просроченные, конфликтующие или отозванные данные приводят к безопасному `abstain`.
 - Снимок делается с видимой области окна. Exclusive fullscreen, перекрытое или защищённое окно может дать чёрное/неполное изображение.
-- Реальные cloud/LM Studio/STT/vision ответы требуют совместимого настроенного endpoint.
+- Cloud/LM Studio/vision ответы требуют совместимого настроенного endpoint. Автономный STT runtime реализован, но отдельный model pack не включается в основной ZIP до успешного русского comparative quality gate; ручной текст полностью работает без него.
 - Автоматический мастер зависит от исправного LM Studio 0.4.x/`llmster`; при ошибке daemon приложение продолжает работать без модели и показывает диагностику.
 - `MicroModelHost` пока использует только mock runtime: реальный benchmark выполнен, но обе базовые модели не прошли quality/memory gate, поэтому GGUF/llama.cpp намеренно не подключены.
 - Современная визуальная доводка уже начата: compact/expanded/vision поверхности и минималистичная shell-навигация используют общую дизайн-систему. Оставшиеся UI-7 задачи зафиксированы в [`PRODUCT_AND_UI_PLAN.md`](./docs/PRODUCT_AND_UI_PLAN.md).

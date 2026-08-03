@@ -22,6 +22,8 @@ Transcript
 
 Microphone и GameAudio имеют независимые VAD/segmenter/ring-buffer, но общий приоритетный STT worker: очередь микрофона проверяется первой. GameAudio используется только как контекст.
 
+`SpeechToTextProviderCatalog` ставит валидный optional embedded provider перед настроенным внешним route. `EmbeddedSttPackLocator` не запускает код до проверки manifest/size/SHA-256. `WhisperCppSpeechToTextProvider` лениво владеет одним loopback native runtime, одной транскрибацией, watchdog и idle unload; failure возвращает управление общей fallback-цепочке.
+
 ## Границы проектов
 
 - `Core` — доменные records/interfaces, coordinator, validation и policies;
@@ -47,4 +49,4 @@ UI работает только через `AssistantSessionCoordinator`/`IAssi
 
 Подробная карта composition root, данных, сборки и восстановления: [PROJECT_HANDBOOK.md](PROJECT_HANDBOOK.md).
 
-Целевая автономная архитектура, результат аудита voice/runtime/resource/memory/Vision и выбранный следующий этап P0.1 описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md).
+Целевая автономная архитектура, результат аудита voice/runtime/resource/memory/Vision и текущий P0.2 quality gate описаны в [OFFLINE_ASSISTANT_ARCHITECTURE.md](OFFLINE_ASSISTANT_ARCHITECTURE.md) и [EMBEDDED_STT.md](EMBEDDED_STT.md).

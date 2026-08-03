@@ -25,6 +25,7 @@
 - [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — реализованное/отсутствующее, voice orchestrator, runtime, ресурсы, память и этапы P0–P10.
 - [AI_ROUTING](AI_ROUTING.md) — deterministic/provider/fallback/validator.
 - [AUDIO_PIPELINE](AUDIO_PIPELINE.md) — microphone, game audio, VAD и STT.
+- [EMBEDDED_STT](EMBEDDED_STT.md) — optional whisper.cpp pack, manifest/hash, runtime, установка и русский quality gate.
 - [PERFORMANCE](PERFORMANCE.md) — профили нагрузки и деградация.
 - [SECURITY](SECURITY.md) — ключи, валидация, доверие и границы процессов.
 - [ANTI_CHEAT_BOUNDARIES](ANTI_CHEAT_BOUNDARIES.md) — что приложение принципиально не делает.

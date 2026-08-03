@@ -11,3 +11,5 @@ Microphone и GameAudio нормализуются в PCM signed 16-bit, mono, 1
 GameAudio может пополнять transcript context, но не передаётся intent detector как текущий запрос. Похожие фразы сравниваются в окне ±2 секунды; при конфликте сохраняется microphone version.
 
 Cloud STT требует общего разрешения облака, а отправка GameAudio — отдельного `AllowGameAudioCloud`.
+
+Валидный optional embedded STT pack имеет первый приоритет независимо от Chat route. Он проверяется по manifest/size/SHA-256, лениво запускается на случайном loopback-порту, обрабатывает не более одного сегмента и выгружается после idle TTL. При отсутствии, повреждении, timeout, отмене или process failure worker переходит к прежнему настроенному STT fallback. Полный контракт и текущий quality status описаны в [EMBEDDED_STT](EMBEDDED_STT.md).

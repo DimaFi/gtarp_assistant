@@ -360,6 +360,8 @@ Screen context не является источником игровых пра�
 
 ### P0.2 — встроенный STT pack
 
+- Статус: runtime/manifest/hash/installer/fallback реализованы; русский comparative quality gate и ADR ещё не завершены. Детали: [EMBEDDED_STT](EMBEDDED_STT.md).
+
 - Цель: распознавание русского вопроса без LM Studio и сети.
 - Пользовательский результат: offline PTT на чистом Windows-ПК после установки optional/default STT pack.
 - Объём: pinned runtime/model, manifest/license/SHA, local provider, watchdog, lazy load и idle unload.
@@ -438,7 +440,7 @@ Screen context не является источником игровых пра�
 
 ## 11. Выбранная ближайшая точка
 
-Следующий исполнимый этап разработки — **P0.2: встроенный STT pack**. P0.1b реализован и прошёл автоматический Release-gate; его аппаратная матрица остаётся release-условием.
+Следующий исполнимый этап разработки — **завершение P0.2 quality gate**: записанный русский GTA5RP dataset, сравнение двух кандидатов, lifecycle/weak-PC matrix и ADR. Процессный и упаковочный фундамент embedded STT уже реализован; P0.1b прошёл автоматический Release-gate, но его аппаратная матрица остаётся release-условием.
 
 Причина выбора:
 

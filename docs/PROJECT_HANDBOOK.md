@@ -1,6 +1,6 @@
 # Инженерный справочник GTA RP Assistant
 
-Актуально на 31 июля 2026 года. Это руководство предназначено для восстановления разработки другим человеком или новой AI-сессией без скрытого контекста.
+Актуально на 3 августа 2026 года. Это руководство предназначено для восстановления разработки другим человеком или новой AI-сессией без скрытого контекста.
 
 ## 1. Назначение и неизменяемые границы
 
@@ -22,7 +22,7 @@ src/
   GtaRpAssistant.MicroModelHost/         отдельный optional mock host
   GtaRpAssistant.App/                   WPF, DI composition root и feature modules
 tests/                                  семь автоматических test projects
-tools/                                  knowledge tool, product/model benchmarks, Local AI check
+tools/                                  knowledge, product/model/STT benchmarks, Local AI check
 knowledge/packs/                        версионированные статьи и факты
 knowledge/reference/community/          player-confirmed lookup-данные
 eng/                                    build, package, smoke, install и E2E scripts
@@ -74,6 +74,7 @@ assistant-data.db         opt-in история пользователя
 assistant-data.db-wal/shm служебные SQLite-файлы во время работы
 secrets/                  DPAPI CurrentUser API keys
 logs/                     privacy-safe rotating logs
+model-packs/stt/           optional embedded STT pack; можно заменить custom path
 startup-error.txt         ошибка раннего запуска
 fatal-error.txt           необработанная критическая ошибка
 ```
@@ -85,6 +86,8 @@ Knowledge и пользовательская история принципиа�
 STT, Chat, Vision, TTS и Embeddings имеют независимые маршруты и режимы. `PerformanceProfile` ограничивает ресурсы, но не подменяет выбор local/cloud. Cloud недоступен без явного opt-in.
 
 LM Studio — внешний backend, а не обязательная часть приложения. Пользователь может указать нестандартные пути к `lms.exe`/`LM Studio.exe`, выбрать установленную chat-модель или импортировать GGUF. Новая модель становится активной только после capability-test; прежний маршрут сохраняется при провале.
+
+Embedded STT — отдельный `whisper.cpp` provider в `Infrastructure.Windows`, а не часть LM Studio. `EmbeddedSttPackLocator` проверяет manifest/size/SHA; `WhisperCppSpeechToTextProvider` владеет loopback process, single request, timeout/cancel/memory watchdog и idle unload. Pack строится/устанавливается отдельными `eng/build-stt-pack.ps1` и `eng/install-stt-pack.ps1`, не входит в основной ZIP до PASS русского gate. Подробности: `EMBEDDED_STT.md`.
 
 Комплектный `MicroModelHost` остаётся mock fallback. Реальные Qwen3-0.6B и SmolLM2-360M отклонены ADR-0001 по quality/memory gate. Не добавлять веса или реальный headless runtime без нового успешного ADR.
 
@@ -156,4 +159,4 @@ dotnet test GtaRpAssistant.sln -c Release --no-build
 
 На текущей точке завершены M1 (opt-in SQLite history), M2 (полный менеджер диалогов и безопасное отображение сообщений), T1 (версионированный production pipeline benchmark), архитектурный аудит автономного режима и основной P0.1 toggle/preview voice control plane. T1 проверяет 528 сценариев через реальный coordinator и SQLite retrieval; методика и baseline находятся в `PRODUCT_QUALITY_BENCHMARK.md`. Аудит, resource budgets и путь P0–P10 находятся в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
 
-Программная часть P0.1b завершена: hold-to-talk key-up hook, точная диагностика конфликтов и ограниченное восстановление выбранного микрофона входят в обязательный Release-gate. Следующий этап разработки — P0.2 встроенный STT pack; перед публичным релизом отдельно выполняется P0.1b hardware-матрица. После P0.2 проверяется полный offline voice knowledge vertical. Современная визуальная доводка продолжается по `PRODUCT_AND_UI_PLAN.md` и `docs/design`, не блокируя автономный сценарий.
+Программная часть P0.1b завершена. Для P0.2 реализованы optional `whisper.cpp` runtime, строгий pack manifest/hash, отдельные build/install-скрипты, custom path, watchdog, cancellation и fallback; production pack ждёт русский comparative quality gate и ADR по [`EMBEDDED_STT.md`](EMBEDDED_STT.md). Перед публичным релизом отдельно выполняется P0.1b hardware-матрица. После PASS P0.2 проверяется полный offline voice knowledge vertical. Современная визуальная доводка продолжается по `PRODUCT_AND_UI_PLAN.md` и `docs/design`, не блокируя автономный сценарий.

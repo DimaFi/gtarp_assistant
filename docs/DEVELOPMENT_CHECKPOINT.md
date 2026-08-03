@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — P0.1b voice hardening реализован и прошёл Release-gate
+## ACTIVE CHECKPOINT — P0.2 embedded STT foundation реализован, quality gate открыт
 
 Актуально на 3 августа 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.
 
@@ -33,18 +33,27 @@
 - `RegisterHotKey` теперь использует `MOD_NOREPEAT` и сообщает, какая именно команда конфликтует;
 - неожиданный обрыв WASAPI отменяет текущий voice request и до 10 раз ожидает возвращения именно выбранного микрофона;
 - автоматическое восстановление не переключает пользователя скрытно на другое аудиоустройство и отменяется при остановке сессии.
+- добавлен optional embedded `whisper.cpp` STT provider, который не зависит от LM Studio, Python или cloud;
+- `stt-pack.json` проверяет schema/runtime/architecture/HTTPS sources, безопасные относительные пути, размеры и SHA-256 всех runtime/model/license файлов;
+- runtime запускается только при первой транскрибации на случайном `127.0.0.1` порту, повторно использует загруженную модель и выгружается после idle TTL;
+- один request gate, startup/request timeout, hard memory watchdog и cancellation завершают всё дерево native-процесса и оставляют прежний provider fallback;
+- путь STT-пака можно изменить на странице **Аудио**; пустое поле использует `%LOCALAPPDATA%\GtaRpAssistant\model-packs\stt`;
+- добавлены pinned build/install scripts для отдельного STT ZIP; веса остаются в `artifacts/stt`, не входят в Git и основной portable ZIP;
+- добавлен `GtaRpAssistant.SttBenchmark` с WER, GTA-term recall, error/empty, p95 latency и peak memory gate;
+- официальный `whisper.cpp v1.9.1` и multilingual `base-q8_0` прошли hash check, custom-path runtime smoke, повторное использование PID и cancel-kill;
+- smoke показал 2,36–2,56 секунды, около 282 MiB working set и 771–773 MiB private memory; это проверка runtime, не русского качества.
 
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 270 тестов: Core 85, Providers 20, Knowledge 68, Integration 32, App 48, ModelBenchmark 13, ProductBenchmark 4;
+- 278 тестов: Core 85, Providers 20, Knowledge 68, Integration 38, App 50, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 1,06 мс;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,79 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `9041a0b0d4f72ac7467a0e42d6a64c04158111f8342ffc11ac7d2a972bf3200e`.
+- SHA-256: `e2636710ff514b0a3448fd8cdf9d01fb3d47525236033e1ca8a65613f9959e0f`.
 
-Следующий логический этап разработки: P0.2 — выбрать и проверить встроенный CPU STT pack без зависимости от LM Studio, Python или cloud. До публичного релиза P0.1b требуется отдельная ручная hardware-матрица: физический unplug/replug, stuck-key, sleep/resume, Windows 10/11 и 100 start/cancel циклов. Полная архитектура, ресурсные цели, fallback и критерии сохранены в `OFFLINE_ASSISTANT_ARCHITECTURE.md`.
+Текущий логический этап ещё не объявлен production-завершённым: нужен согласованно записанный русский GTA5RP speech dataset, сравнение `base-q8_0` и `small-q5_1` на одинаковых WAV, 100 lifecycle cycles, weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
 
 Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 
