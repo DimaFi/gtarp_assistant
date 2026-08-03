@@ -5,6 +5,7 @@ using System.Windows.Automation;
 using System.Windows.Interop;
 using GtaRpAssistant.App.Services;
 using GtaRpAssistant.App.Shell;
+using GtaRpAssistant.Core;
 
 namespace GtaRpAssistant.App;
 
@@ -13,13 +14,18 @@ public partial class MainWindow : Window
     private readonly MainViewModel _viewModel;
     private readonly IAppDialogService _dialogs;
     private readonly ApplicationExecutionMode _executionMode;
+    private readonly SettingsService _settings;
     private HwndSource? _source;
+    private GlobalVoiceHotkeyHook? _voiceHook;
+    private bool _voiceHotkeyRegistered;
+    private bool _globalInputConfigured;
 
-    public MainWindow(MainViewModel viewModel, IAppDialogService dialogs, ApplicationExecutionMode executionMode)
+    public MainWindow(MainViewModel viewModel, IAppDialogService dialogs, ApplicationExecutionMode executionMode, SettingsService settings)
     {
         _viewModel = viewModel;
         _dialogs = dialogs;
         _executionMode = executionMode;
+        _settings = settings;
         InitializeComponent();
         if (executionMode.IsAutomation)
         {
@@ -31,7 +37,7 @@ public partial class MainWindow : Window
         }
         DataContext = viewModel;
         SourceInitialized += OnSourceInitialized;
-        Closed += (_, _) => UnregisterHotkeys();
+        Closed += (_, _) => UnregisterGlobalInput();
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -39,6 +45,7 @@ public partial class MainWindow : Window
         try
         {
             await _viewModel.InitializeAsync(CancellationToken.None);
+            ConfigureGlobalInput();
         }
         catch (Exception ex) { _dialogs.ShowError("GTA RP Assistant", $"Ошибка инициализации: {ex.Message}"); }
     }
@@ -49,17 +56,83 @@ public partial class MainWindow : Window
         var handle = new WindowInteropHelper(this).Handle;
         _source = HwndSource.FromHwnd(handle);
         _source.AddHook(WndProc);
-        var registered = RegisterHotKey(handle, 1, 0x0001 | 0x0002, 0x51)
-            & RegisterHotKey(handle, 2, 0x0001 | 0x0002, 0x50)
-            & RegisterHotKey(handle, 3, 0x0001 | 0x0002, 0x41)
-            & RegisterHotKey(handle, 4, 0x0001 | 0x0002, 0x53);
-        if (!registered) _viewModel.ReportHotkeyFailure();
     }
 
-    private void UnregisterHotkeys()
+    private void ConfigureGlobalInput()
+    {
+        if (_executionMode.IsAutomation || _globalInputConfigured) return;
+        _globalInputConfigured = true;
+        var handle = new WindowInteropHelper(this).Handle;
+        const uint modifiers = 0x0001 | 0x0002 | 0x4000;
+        var failures = new List<GlobalHotkeyAction>();
+        if (!RegisterHotKey(handle, 1, modifiers, 0x51)) failures.Add(GlobalHotkeyAction.ToggleOverlay);
+        if (!RegisterHotKey(handle, 2, modifiers, 0x50)) failures.Add(GlobalHotkeyAction.TogglePause);
+        if (!RegisterHotKey(handle, 4, modifiers, 0x53)) failures.Add(GlobalHotkeyAction.ManualVision);
+
+        _voiceHook = new();
+        _voiceHook.Gesture += OnVoiceHotkeyGesture;
+        try { _voiceHook.Start(); }
+        catch
+        {
+            _voiceHook.Gesture -= OnVoiceHotkeyGesture;
+            _voiceHook.Dispose();
+            _voiceHook = null;
+            if (SettingValues.VoiceHotkey(_settings.Current) == VoiceInteractionMode.Hold)
+                failures.Add(GlobalHotkeyAction.ManualVoiceHold);
+        }
+
+        ConfigureVoiceHotkey(_settings.Current, failures);
+        _settings.Changed += OnSettingsChanged;
+        if (failures.Count > 0) _viewModel.ReportHotkeyFailures(failures);
+    }
+
+    private void ConfigureVoiceHotkey(AppSettings settings, List<GlobalHotkeyAction>? failures = null)
     {
         var handle = new WindowInteropHelper(this).Handle;
+        var mode = SettingValues.VoiceHotkey(settings);
+        if (mode == VoiceInteractionMode.Hold)
+        {
+            if (_voiceHotkeyRegistered) UnregisterHotKey(handle, 3);
+            _voiceHotkeyRegistered = false;
+            if (_voiceHook is null) (failures ?? []).Add(GlobalHotkeyAction.ManualVoiceHold);
+            return;
+        }
+
+        if (_voiceHotkeyRegistered) return;
+        _voiceHotkeyRegistered = RegisterHotKey(handle, 3, 0x0001 | 0x0002 | 0x4000, 0x41);
+        if (!_voiceHotkeyRegistered) (failures ?? []).Add(GlobalHotkeyAction.ManualVoice);
+    }
+
+    private void OnSettingsChanged(object? sender, AppSettings settings) => Dispatcher.Invoke(() =>
+    {
+        var failures = new List<GlobalHotkeyAction>();
+        ConfigureVoiceHotkey(settings, failures);
+        if (failures.Count > 0) _viewModel.ReportHotkeyFailures(failures);
+    });
+
+    private void OnVoiceHotkeyGesture(object? sender, VoiceHotkeyGesture gesture)
+    {
+        if (SettingValues.VoiceHotkey(_settings.Current) != VoiceInteractionMode.Hold) return;
+        _ = Dispatcher.InvokeAsync(() => gesture switch
+        {
+            VoiceHotkeyGesture.Pressed => _viewModel.HandleManualVoicePressedAsync(),
+            VoiceHotkeyGesture.Released => _viewModel.HandleManualVoiceReleasedAsync(),
+            _ => Task.CompletedTask,
+        });
+    }
+
+    private void UnregisterGlobalInput()
+    {
+        _settings.Changed -= OnSettingsChanged;
+        var handle = new WindowInteropHelper(this).Handle;
         for (var id = 1; id <= 4; id++) UnregisterHotKey(handle, id);
+        _voiceHotkeyRegistered = false;
+        if (_voiceHook is not null)
+        {
+            _voiceHook.Gesture -= OnVoiceHotkeyGesture;
+            _voiceHook.Dispose();
+            _voiceHook = null;
+        }
         if (_source is not null) _source.RemoveHook(WndProc);
     }
 
@@ -71,7 +144,7 @@ public partial class MainWindow : Window
         {
             GlobalHotkeyAction.ToggleOverlay => _viewModel.HandleOverlayHotkeyAsync(),
             GlobalHotkeyAction.TogglePause => _viewModel.TogglePauseFromHotkeyAsync(),
-            GlobalHotkeyAction.ManualVoice => _viewModel.HandleManualVoiceHotkeyAsync(),
+            GlobalHotkeyAction.ManualVoice when SettingValues.VoiceHotkey(_settings.Current) == VoiceInteractionMode.Toggle => _viewModel.HandleManualVoiceHotkeyAsync(),
             GlobalHotkeyAction.ManualVision => _viewModel.HandleVisionHotkeyAsync(),
             _ => Task.CompletedTask,
         };

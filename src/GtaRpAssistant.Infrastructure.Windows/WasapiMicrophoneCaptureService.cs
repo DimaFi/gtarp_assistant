@@ -7,6 +7,11 @@ using System.Runtime.InteropServices;
 namespace GtaRpAssistant.Infrastructure.Windows;
 
 public sealed record MicrophoneDeviceInfo(string Id, string DisplayName, bool IsDefault);
+public sealed class AudioCaptureStoppedEventArgs(Exception? error, bool wasRequested) : EventArgs
+{
+    public Exception? Error { get; } = error;
+    public bool WasRequested { get; } = wasRequested;
+}
 
 public static class WasapiDeviceCatalog
 {
@@ -38,6 +43,7 @@ public sealed class WasapiMicrophoneCaptureService : IAudioCaptureService
     private TaskCompletionSource _stopped = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private bool _started;
     private bool _disposed;
+    private bool _stopRequested;
 
     public WasapiMicrophoneCaptureService(string deviceId)
     {
@@ -53,6 +59,7 @@ public sealed class WasapiMicrophoneCaptureService : IAudioCaptureService
 
     public AudioSourceKind SourceKind => AudioSourceKind.UserMicrophone;
     public event EventHandler<AudioFrameEventArgs>? FrameCaptured;
+    public event EventHandler<AudioCaptureStoppedEventArgs>? CaptureStopped;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -60,6 +67,7 @@ public sealed class WasapiMicrophoneCaptureService : IAudioCaptureService
         cancellationToken.ThrowIfCancellationRequested();
         if (_started) return Task.CompletedTask;
         _stopped = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        _stopRequested = false;
         _capture.StartRecording();
         _started = true;
         return Task.CompletedTask;
@@ -68,6 +76,7 @@ public sealed class WasapiMicrophoneCaptureService : IAudioCaptureService
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         if (!_started) return;
+        _stopRequested = true;
         _capture.StopRecording();
         await _stopped.Task.WaitAsync(cancellationToken);
     }
@@ -89,6 +98,7 @@ public sealed class WasapiMicrophoneCaptureService : IAudioCaptureService
     private void OnRecordingStopped(object? sender, StoppedEventArgs e)
     {
         _started = false;
+        CaptureStopped?.Invoke(this, new(e.Exception, _stopRequested));
         if (e.Exception is null) _stopped.TrySetResult(); else _stopped.TrySetException(e.Exception);
     }
 
@@ -98,6 +108,7 @@ public sealed class WasapiMicrophoneCaptureService : IAudioCaptureService
         if (_started) await StopAsync(CancellationToken.None);
         _capture.DataAvailable -= OnDataAvailable;
         _capture.RecordingStopped -= OnRecordingStopped;
+        CaptureStopped = null;
         _capture.Dispose(); _device.Dispose(); _enumerator.Dispose(); _disposed = true;
     }
 

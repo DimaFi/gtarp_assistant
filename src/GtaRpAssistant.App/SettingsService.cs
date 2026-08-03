@@ -42,7 +42,8 @@ public sealed record AppSettings(
     string LmStudioCliPath = "",
     string LmStudioApplicationPath = "",
     bool EnableLongTermConversation = false,
-    bool VoiceAutoSubmit = false);
+    bool VoiceAutoSubmit = false,
+    int VoiceHotkeyMode = 0);
 
 public sealed class SettingsService
 {
@@ -109,6 +110,10 @@ public static class SettingValues
     public static PerformanceProfile Performance(AppSettings settings) => Enum.IsDefined(typeof(PerformanceProfile), settings.PerformanceProfile) ? (PerformanceProfile)settings.PerformanceProfile : PerformanceProfile.CloudLite;
     public static ProactiveMode Proactive(AppSettings settings) => Enum.IsDefined(typeof(ProactiveMode), settings.ProactiveMode) ? (ProactiveMode)settings.ProactiveMode : ProactiveMode.Strict;
     public static TimeSpan TranscriptTtl(AppSettings settings) => TimeSpan.FromMinutes(settings.TranscriptMinutes is 1 or 3 or 5 ? settings.TranscriptMinutes : settings.TranscriptMinutes <= 0 ? .5 : 3);
+    public static VoiceInteractionMode VoiceHotkey(AppSettings settings) =>
+        Enum.IsDefined(typeof(VoiceInteractionMode), settings.VoiceHotkeyMode)
+            ? (VoiceInteractionMode)settings.VoiceHotkeyMode
+            : VoiceInteractionMode.Toggle;
     public static LocalAiGenerationSettings LocalAi(AppSettings settings)
     {
         var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), settings.LocalAiPerformanceProfile)

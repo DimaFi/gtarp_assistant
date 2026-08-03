@@ -10,11 +10,12 @@ public sealed class ProviderSettingsMigrationTests
     [Fact]
     public void VoiceAutoSubmit_RoundTripsThroughEditor()
     {
-        var original = ProviderSettingsMigration.Migrate(new AppSettings(VoiceAutoSubmit: true));
+        var original = ProviderSettingsMigration.Migrate(new AppSettings(VoiceAutoSubmit: true, VoiceHotkeyMode: 1));
 
         var updated = SettingsEditor.From(original).ToSettings(null, null, original);
 
         Assert.True(updated.VoiceAutoSubmit);
+        Assert.Equal(1, updated.VoiceHotkeyMode);
     }
 
     [Fact]

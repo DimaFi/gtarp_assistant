@@ -6,6 +6,7 @@ public enum GlobalHotkeyAction
     ToggleOverlay,
     TogglePause,
     ManualVoice,
+    ManualVoiceHold,
     ManualVision,
 }
 

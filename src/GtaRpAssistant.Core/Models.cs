@@ -10,7 +10,7 @@ public enum AnswerDecision { Show, AskForMoreInformation, Abstain }
 public enum AnswerRoute { Deterministic, ConfiguredChat, LocalChat, CloudChat, Abstain }
 public enum AssistantActivationKind { ManualText, ManualVoice, AutomaticVoice, Hotkey }
 public enum AssistantSessionState { Dormant, WaitingForGame, Listening, SpeechDetected, Transcribing, EvaluatingIntent, SearchingKnowledge, GeneratingAnswer, ValidatingAnswer, ShowingOverlay, Cooldown, Paused, Faulted }
-public enum VoiceInteractionMode { Hold, Toggle }
+public enum VoiceInteractionMode { Toggle = 0, Hold = 1 }
 public enum VoiceInteractionState { Idle, Arming, Listening, SpeechDetected, Transcribing, Preview, Submitting, AnswerReady, Speaking, Cancelled, Faulted }
 
 public sealed record AudioSegment(Guid Id, AudioSourceKind Source, DateTimeOffset StartedAt, DateTimeOffset EndedAt, int SampleRate, int Channels, ReadOnlyMemory<byte> PcmData);

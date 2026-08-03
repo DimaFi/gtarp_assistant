@@ -37,8 +37,10 @@ public sealed class MainViewModel : ObservableObject
 
     public Task HandleOverlayHotkeyAsync() => _lifecycle.HandleOverlayHotkeyAsync();
     public Task HandleManualVoiceHotkeyAsync() => _lifecycle.HandleManualVoiceHotkeyAsync();
+    public Task HandleManualVoicePressedAsync() => _lifecycle.HandleManualVoicePressedAsync();
+    public Task HandleManualVoiceReleasedAsync() => _lifecycle.HandleManualVoiceReleasedAsync();
     public Task TogglePauseFromHotkeyAsync() => _lifecycle.TogglePauseAsync();
-    public void ReportHotkeyFailure() => _lifecycle.ReportHotkeyFailure();
+    public void ReportHotkeyFailures(IReadOnlyCollection<GlobalHotkeyAction> failures) => _lifecycle.ReportHotkeyFailures(failures);
     public Task HandleVisionHotkeyAsync() => _lifecycle.HandleVisionHotkeyAsync();
 
     private void SelectPage(ShellNavigationItem selected)

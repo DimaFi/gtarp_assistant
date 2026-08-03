@@ -80,14 +80,14 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
 
     public void Initialize() => RefreshDevices();
 
-    public async Task<bool> BeginManualVoiceRequestAsync()
+    public async Task<bool> BeginManualVoiceRequestAsync(VoiceInteractionMode mode)
     {
         if (SelectedMicrophone is null)
         {
             _ui.PipelineStatus = "Выберите микрофон.";
             return false;
         }
-        if (!_audioSession.ToggleManualVoiceRequest(Settings.VoiceAutoSubmit))
+        if (!_audioSession.ToggleManualVoiceRequest(mode, Settings.VoiceAutoSubmit))
         {
             _ui.PipelineStatus = "Голосовой вопрос отменён.";
             return false;
@@ -100,6 +100,7 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
     }
 
     public Task StopAsync() => _audioSession.StopAsync();
+    public bool EndManualVoiceRequest() => _audioSession.EndManualVoiceRequest();
     public bool ConfirmManualVoiceRequest(string editedTranscript) => _audioSession.ConfirmManualVoiceRequest(editedTranscript);
     public void CancelManualVoiceRequest() => _audioSession.CancelManualVoiceRequest();
     public Task RebindGameProcessAsync(GameProcessInfo? process) => _audioSession.RebindGameProcessAsync(process);

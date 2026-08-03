@@ -19,4 +19,17 @@ public sealed class AudioSegmenterTests
     [Fact] public void NoSpeech_DoesNotCreateSegment() => Assert.Null(new EnergyAudioSegmenter(1000).Process(AudioSourceKind.UserMicrophone, new short[1000], false, DateTimeOffset.UtcNow));
     [Fact] public void Reset_CancelsActiveSegment() { var s = new EnergyAudioSegmenter(1000); s.Process(AudioSourceKind.UserMicrophone, new short[500], true, DateTimeOffset.UtcNow); s.Reset(); Assert.False(s.IsActive); }
     [Fact] public void MaximumDuration_ClosesSegment() { var s = new EnergyAudioSegmenter(1000, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(10), TimeSpan.FromSeconds(1)); Assert.NotNull(s.Process(AudioSourceKind.UserMicrophone, new short[1000], true, DateTimeOffset.UtcNow)); }
+    [Fact]
+    public void Flush_ClosesActiveSegmentImmediately()
+    {
+        var segmenter = new EnergyAudioSegmenter(1000, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(100));
+        var started = DateTimeOffset.UtcNow;
+        segmenter.Process(AudioSourceKind.UserMicrophone, new short[400], true, started);
+
+        var segment = segmenter.Flush(AudioSourceKind.UserMicrophone, started.AddMilliseconds(400));
+
+        Assert.NotNull(segment);
+        Assert.False(segmenter.IsActive);
+        Assert.Equal(800, segment!.PcmData.Length);
+    }
 }

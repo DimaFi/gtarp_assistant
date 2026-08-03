@@ -30,6 +30,12 @@
                     <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Game audio не активирует помощника и используется только как временный контекст." />
                     <CheckBox Content="Включить game audio" IsChecked="{Binding Settings.EnableGameAudio}" IsEnabled="{Binding AudioSettingsEnabled}" />
                     <CheckBox Content="Предпочитать process-specific loopback" IsChecked="{Binding Settings.PreferProcessLoopback}" IsEnabled="{Binding AudioSettingsEnabled}" />
+                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Label}" Text="Режим Ctrl+Alt+A" />
+                    <ComboBox SelectedIndex="{Binding Settings.VoiceHotkeyMode}" IsEnabled="{Binding AudioSettingsEnabled}"
+                              AutomationProperties.AutomationId="Audio.VoiceHotkeyMode">
+                        <ComboBoxItem Content="Нажатие — включить или отменить" />
+                        <ComboBoxItem Content="Удерживать, пока говорите" />
+                    </ComboBox>
                     <CheckBox Content="Сразу отправлять распознанный голосовой вопрос" IsChecked="{Binding Settings.VoiceAutoSubmit}" IsEnabled="{Binding AudioSettingsEnabled}"
                               ToolTip="Если выключено, перед отправкой появится редактируемый preview." AutomationProperties.AutomationId="Audio.VoiceAutoSubmit" />
                     <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Label}" Text="Память transcript/audio" />

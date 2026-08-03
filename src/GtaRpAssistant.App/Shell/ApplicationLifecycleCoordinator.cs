@@ -151,14 +151,37 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
 
     public async Task HandleManualVoiceHotkeyAsync()
     {
-        if (await _audioFeature.BeginManualVoiceRequestAsync())
+        if (await _audioFeature.BeginManualVoiceRequestAsync(VoiceInteractionMode.Toggle))
             _ = _overlay.ShowListeningAsync(CancellationToken.None);
         else if (_overlay.IsVisible)
             await _overlay.HideAsync();
     }
 
-    public void ReportHotkeyFailure() =>
-        _ui.PipelineStatus = "Не удалось зарегистрировать одну или несколько глобальных горячих клавиш.";
+    public async Task HandleManualVoicePressedAsync()
+    {
+        if (await _audioFeature.BeginManualVoiceRequestAsync(VoiceInteractionMode.Hold))
+            _ = _overlay.ShowListeningAsync(CancellationToken.None);
+    }
+
+    public async Task HandleManualVoiceReleasedAsync()
+    {
+        if (_audioFeature.EndManualVoiceRequest()) return;
+        if (_overlay.IsVisible) await _overlay.HideAsync();
+    }
+
+    public void ReportHotkeyFailures(IReadOnlyCollection<GlobalHotkeyAction> failures)
+    {
+        var names = failures.Distinct().Select(x => x switch
+        {
+            GlobalHotkeyAction.ToggleOverlay => "показ оверлея",
+            GlobalHotkeyAction.TogglePause => "пауза",
+            GlobalHotkeyAction.ManualVoice => "голосовой toggle",
+            GlobalHotkeyAction.ManualVoiceHold => "голосовой hold",
+            GlobalHotkeyAction.ManualVision => "снимок экрана",
+            _ => "неизвестная команда",
+        });
+        _ui.PipelineStatus = $"Конфликт глобальной клавиши: {string.Join(", ", names)}. Функция остаётся доступна из окна приложения.";
+    }
 
     public async Task HandleVisionHotkeyAsync()
     {

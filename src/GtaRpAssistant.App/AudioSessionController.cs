@@ -18,6 +18,8 @@ public sealed class AudioSessionController(
     private readonly AdaptiveEnergyVoiceActivityDetector _gameVad = new();
     private readonly EnergyAudioSegmenter _microphoneSegmenter = new();
     private readonly EnergyAudioSegmenter _gameSegmenter = new();
+    private readonly object _microphoneSegmenterSync = new();
+    private readonly object _gameSegmenterSync = new();
     private AudioRingBuffer _audioBuffer = new(TimeSpan.FromMinutes(3));
     private WasapiMicrophoneCaptureService? _microphone;
     private IAudioCaptureService? _gameAudio;
@@ -34,6 +36,8 @@ public sealed class AudioSessionController(
     private bool _gameAudioSuspended;
     private DateTimeOffset _manualVoiceUntil;
     private long _lastMicrophoneLevelTick;
+    private string? _microphoneDeviceId;
+    private int _microphoneRecoveryActive;
 
     public bool IsListening => _microphone is not null;
     public bool IsGameAudioActive => _gameAudio is not null;
@@ -55,15 +59,18 @@ public sealed class AudioSessionController(
             _renderDevice = options.RenderDevice;
             _gameProcess = options.GameProcess;
             _sessionSettings = value;
+            _microphoneDeviceId = options.Microphone.Id;
             _cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _sttProviderRoute = await speechToTextProviders.CreateAvailableRouteAsync(value, _cancellation.Token);
             _sttRoute = _sttProviderRoute.Providers;
             if (_sttRoute.Count == 0) throw new InvalidOperationException("STT route выключен или не содержит доступных провайдеров.");
-            _microphoneSegmenter.Reset(); _gameSegmenter.Reset();
+            lock (_microphoneSegmenterSync) _microphoneSegmenter.Reset();
+            lock (_gameSegmenterSync) _gameSegmenter.Reset();
             _microphoneSegments = CreateChannel(); _gameSegments = CreateChannel(); _segmentSignal = new(0);
             _worker = RunWorkerAsync(_cancellation.Token);
             _microphone = new(options.Microphone.Id);
             _microphone.FrameCaptured += OnMicrophoneFrame;
+            _microphone.CaptureStopped += OnMicrophoneCaptureStopped;
             await _microphone.StartAsync(_cancellation.Token);
             if (voiceInteraction.Snapshot.State == VoiceInteractionState.Arming)
                 voiceInteraction.TryMarkListening();
@@ -86,13 +93,42 @@ public sealed class AudioSessionController(
         finally { _gate.Release(); }
     }
 
-    public bool ToggleManualVoiceRequest(bool autoSubmit)
+    public bool ToggleManualVoiceRequest(VoiceInteractionMode mode, bool autoSubmit)
     {
-        var started = voiceInteraction.Toggle(VoiceInteractionMode.Toggle, autoSubmit, TimeSpan.FromSeconds(20));
+        var started = voiceInteraction.Toggle(mode, autoSubmit, TimeSpan.FromSeconds(20));
         _manualVoiceUntil = started ? DateTimeOffset.UtcNow + TimeSpan.FromSeconds(20) : DateTimeOffset.MinValue;
+        if (started)
+        {
+            lock (_microphoneSegmenterSync) _microphoneSegmenter.Reset();
+        }
         if (started && IsListening) voiceInteraction.TryMarkListening();
         StateChanged?.Invoke(this, EventArgs.Empty);
         return started;
+    }
+
+    public bool EndManualVoiceRequest()
+    {
+        var snapshot = voiceInteraction.Snapshot;
+        if (!snapshot.IsActive || snapshot.Mode != VoiceInteractionMode.Hold) return false;
+        var endedAt = DateTimeOffset.UtcNow;
+        _manualVoiceUntil = endedAt;
+        AudioSegment? segment;
+        lock (_microphoneSegmenterSync)
+            segment = _microphoneSegmenter.Flush(AudioSourceKind.UserMicrophone, endedAt);
+        if (segment is null)
+        {
+            CancelManualVoiceRequest("Речь не обнаружена.");
+            StatusChanged?.Invoke(this, "Голосовой вопрос отменён: речь не обнаружена.");
+            return false;
+        }
+        if (_microphoneSegments?.Writer.TryWrite(segment) != true)
+        {
+            CancelManualVoiceRequest("Очередь распознавания недоступна.");
+            return false;
+        }
+        _segmentSignal?.Release();
+        StatusChanged?.Invoke(this, "Клавиша отпущена; распознаю голосовой вопрос…");
+        return true;
     }
 
     public void CancelManualVoiceRequest(string detail = "Голосовой вопрос отменён.")
@@ -147,7 +183,9 @@ public sealed class AudioSessionController(
 
     public void ClearBuffers()
     {
-        _audioBuffer.Clear(); _microphoneSegmenter.Reset(); _gameSegmenter.Reset();
+        _audioBuffer.Clear();
+        lock (_microphoneSegmenterSync) _microphoneSegmenter.Reset();
+        lock (_gameSegmenterSync) _gameSegmenter.Reset();
     }
 
     private static Channel<AudioSegment> CreateChannel() => Channel.CreateBounded<AudioSegment>(new BoundedChannelOptions(4) { SingleReader = true, SingleWriter = true, FullMode = BoundedChannelFullMode.DropOldest });
@@ -184,6 +222,7 @@ public sealed class AudioSessionController(
         if (microphone is not null)
         {
             microphone.FrameCaptured -= OnMicrophoneFrame;
+            microphone.CaptureStopped -= OnMicrophoneCaptureStopped;
             await microphone.StopAsync(CancellationToken.None);
             await microphone.DisposeAsync();
         }
@@ -195,7 +234,9 @@ public sealed class AudioSessionController(
         if (_sttProviderRoute is not null) await _sttProviderRoute.DisposeAsync();
         _sttProviderRoute = null; _sttRoute = [];
         _renderDevice = null;
-        _microphoneSegmenter.Reset(); _gameSegmenter.Reset();
+        _microphoneDeviceId = null;
+        lock (_microphoneSegmenterSync) _microphoneSegmenter.Reset();
+        lock (_gameSegmenterSync) _gameSegmenter.Reset();
         MicrophoneLevelChanged?.Invoke(this, 0);
         if (voiceInteraction.Snapshot.IsActive)
             CancelManualVoiceRequest("Аудиосессия остановлена.");
@@ -214,9 +255,9 @@ public sealed class AudioSessionController(
         GameCaptureMode = "off";
     }
 
-    private void OnMicrophoneFrame(object? sender, AudioFrameEventArgs e) => ProcessFrame(e, _microphoneVad, _microphoneSegmenter, _microphoneSegments);
-    private void OnGameAudioFrame(object? sender, AudioFrameEventArgs e) => ProcessFrame(e, _gameVad, _gameSegmenter, _gameSegments);
-    private void ProcessFrame(AudioFrameEventArgs e, AdaptiveEnergyVoiceActivityDetector vad, EnergyAudioSegmenter segmenter, Channel<AudioSegment>? channel)
+    private void OnMicrophoneFrame(object? sender, AudioFrameEventArgs e) => ProcessFrame(e, _microphoneVad, _microphoneSegmenter, _microphoneSegmenterSync, _microphoneSegments);
+    private void OnGameAudioFrame(object? sender, AudioFrameEventArgs e) => ProcessFrame(e, _gameVad, _gameSegmenter, _gameSegmenterSync, _gameSegments);
+    private void ProcessFrame(AudioFrameEventArgs e, AdaptiveEnergyVoiceActivityDetector vad, EnergyAudioSegmenter segmenter, object segmenterSync, Channel<AudioSegment>? channel)
     {
         if (_cancellation is null) return;
         _audioBuffer.Write(e.Source, e.Samples.Span);
@@ -232,8 +273,94 @@ public sealed class AudioSessionController(
             && activity.SpeechDetected
             && DateTimeOffset.UtcNow <= _manualVoiceUntil)
             voiceInteraction.TryMarkSpeechDetected();
-        var segment = segmenter.Process(e.Source, e.Samples.Span, activity.SpeechDetected, DateTimeOffset.UtcNow);
+        AudioSegment? segment;
+        lock (segmenterSync)
+            segment = segmenter.Process(e.Source, e.Samples.Span, activity.SpeechDetected, DateTimeOffset.UtcNow);
         if (segment is not null && channel?.Writer.TryWrite(segment) == true) _segmentSignal?.Release();
+    }
+
+    private void OnMicrophoneCaptureStopped(object? sender, AudioCaptureStoppedEventArgs e)
+    {
+        var cancellation = _cancellation;
+        if (e.WasRequested || cancellation is null || cancellation.IsCancellationRequested) return;
+        if (Interlocked.CompareExchange(ref _microphoneRecoveryActive, 1, 0) != 0) return;
+        logger.LogWarning("Microphone capture stopped unexpectedly; type={ErrorType}", e.Error?.GetType().Name ?? "none");
+        _ = RecoverMicrophoneAsync(sender as WasapiMicrophoneCaptureService, cancellation.Token);
+    }
+
+    private async Task RecoverMicrophoneAsync(WasapiMicrophoneCaptureService? failedCapture, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Yield();
+            CancelManualVoiceRequest("Микрофон отключён; голосовой вопрос отменён.");
+            await _gate.WaitAsync(cancellationToken);
+            try
+            {
+                if (failedCapture is not null && ReferenceEquals(_microphone, failedCapture))
+                {
+                    _microphone = null;
+                    failedCapture.FrameCaptured -= OnMicrophoneFrame;
+                    failedCapture.CaptureStopped -= OnMicrophoneCaptureStopped;
+                    await failedCapture.DisposeAsync();
+                    MicrophoneLevelChanged?.Invoke(this, 0);
+                    StateChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+            finally { _gate.Release(); }
+
+            var deviceId = _microphoneDeviceId;
+            if (string.IsNullOrWhiteSpace(deviceId)) return;
+            var policy = MicrophoneRecoveryPolicy.Default;
+            for (var attempt = 1; attempt <= policy.MaximumAttempts; attempt++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                StatusChanged?.Invoke(this, $"Микрофон отключён. Ожидание повторного подключения: {attempt}/{policy.MaximumAttempts}…");
+                if (attempt > 1) await Task.Delay(policy.RetryDelay, cancellationToken);
+                var selected = policy.FindPreferred(WasapiDeviceCatalog.GetActiveMicrophones(), deviceId);
+                if (selected is null) continue;
+
+                await _gate.WaitAsync(cancellationToken);
+                try
+                {
+                    if (_microphone is not null || _cancellation is null || _cancellation.IsCancellationRequested) return;
+                    var recovered = new WasapiMicrophoneCaptureService(selected.Id);
+                    recovered.FrameCaptured += OnMicrophoneFrame;
+                    recovered.CaptureStopped += OnMicrophoneCaptureStopped;
+                    try
+                    {
+                        await recovered.StartAsync(cancellationToken);
+                        _microphone = recovered;
+                    }
+                    catch
+                    {
+                        recovered.FrameCaptured -= OnMicrophoneFrame;
+                        recovered.CaptureStopped -= OnMicrophoneCaptureStopped;
+                        await recovered.DisposeAsync();
+                        throw;
+                    }
+                    StatusChanged?.Invoke(this, "Микрофон подключён повторно; прослушивание восстановлено.");
+                    StateChanged?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    logger.LogWarning("Microphone recovery attempt failed; attempt={Attempt}; type={ErrorType}", attempt, ex.GetType().Name);
+                }
+                finally { _gate.Release(); }
+            }
+            StatusChanged?.Invoke(this, "Микрофон не появился. Подключите устройство и нажмите «Обновить устройства».");
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Microphone recovery stopped; type={ErrorType}", ex.GetType().Name);
+            StatusChanged?.Invoke(this, "Не удалось восстановить микрофон автоматически. Обновите список устройств.");
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _microphoneRecoveryActive, 0);
+        }
     }
 
     private async Task RunWorkerAsync(CancellationToken cancellationToken)
@@ -248,8 +375,16 @@ public sealed class AudioSessionController(
 
     private async Task TranscribeAsync(AudioSegment segment, CancellationToken cancellationToken)
     {
+        var voiceSnapshot = voiceInteraction.Snapshot;
+        var belongsToCancelledManualRequest = segment.Source == AudioSourceKind.UserMicrophone
+            && voiceSnapshot.State is VoiceInteractionState.Cancelled or VoiceInteractionState.Faulted
+            && segment.EndedAt >= voiceSnapshot.StartedAt
+            && segment.EndedAt <= voiceSnapshot.Deadline.GetValueOrDefault() + TimeSpan.FromMilliseconds(250);
+        if (belongsToCancelledManualRequest) return;
         var manualRequest = segment.Source == AudioSourceKind.UserMicrophone
-            && DateTimeOffset.UtcNow <= _manualVoiceUntil;
+            && voiceSnapshot.IsActive
+            && segment.EndedAt >= voiceSnapshot.StartedAt
+            && segment.EndedAt <= _manualVoiceUntil + TimeSpan.FromMilliseconds(250);
         using var requestCancellation = manualRequest
             ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, voiceInteraction.RequestCancellationToken)
             : null;

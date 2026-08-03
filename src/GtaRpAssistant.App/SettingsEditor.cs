@@ -39,6 +39,7 @@ public sealed class SettingsEditor : ObservableObject
     private string _lmStudioApplicationPath = "";
     private bool _enableLongTermConversation;
     private bool _voiceAutoSubmit;
+    private int _voiceHotkeyMode;
 
     public string Server { get => _server; set => Set(ref _server, value); }
     public string Endpoint { get => _endpoint; set => Set(ref _endpoint, value); }
@@ -77,6 +78,7 @@ public sealed class SettingsEditor : ObservableObject
     public string LmStudioApplicationPath { get => _lmStudioApplicationPath; set => Set(ref _lmStudioApplicationPath, value); }
     public bool EnableLongTermConversation { get => _enableLongTermConversation; set => Set(ref _enableLongTermConversation, value); }
     public bool VoiceAutoSubmit { get => _voiceAutoSubmit; set => Set(ref _voiceAutoSubmit, value); }
+    public int VoiceHotkeyMode { get => _voiceHotkeyMode; set => Set(ref _voiceHotkeyMode, value); }
 
     public static SettingsEditor From(AppSettings value)
     {
@@ -97,6 +99,7 @@ public sealed class SettingsEditor : ObservableObject
         LmStudioCliPath = value.LmStudioCliPath, LmStudioApplicationPath = value.LmStudioApplicationPath,
         EnableLongTermConversation = value.EnableLongTermConversation,
         VoiceAutoSubmit = value.VoiceAutoSubmit,
+        VoiceHotkeyMode = value.VoiceHotkeyMode,
         };
     }
 
@@ -118,6 +121,7 @@ public sealed class SettingsEditor : ObservableObject
         LmStudioCliPath = LmStudioCliPath.Trim(), LmStudioApplicationPath = LmStudioApplicationPath.Trim(),
         EnableLongTermConversation = EnableLongTermConversation,
         VoiceAutoSubmit = VoiceAutoSubmit,
+        VoiceHotkeyMode = Enum.IsDefined(typeof(GtaRpAssistant.Core.VoiceInteractionMode), VoiceHotkeyMode) ? VoiceHotkeyMode : 0,
         ProviderRouting = routes with
         {
             SpeechToText = routes.SpeechToText with { Mode = Mode(SttProviderMode) },

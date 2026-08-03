@@ -60,6 +60,15 @@ public sealed class EnergyAudioSegmenter
         return null;
     }
 
+    public AudioSegment? Flush(AudioSourceKind source, DateTimeOffset endedAt)
+    {
+        if (!_active) return null;
+        var finalCount = _segmentCount;
+        var result = finalCount >= _minSamples ? CreateSegment(source, finalCount, endedAt) : null;
+        ResetSegment();
+        return result;
+    }
+
     public void Reset()
     {
         ResetSegment();
