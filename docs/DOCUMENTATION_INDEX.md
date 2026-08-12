@@ -7,10 +7,13 @@
 1. [README](../README.md) — запуск, быстрый старт и возможности продукта.
 2. [DEVELOPMENT_CHECKPOINT](DEVELOPMENT_CHECKPOINT.md) — последний завершённый этап, проверенный артефакт и следующий шаг.
 3. [PROJECT_HANDBOOK](PROJECT_HANDBOOK.md) — устройство репозитория, runtime-потоки, данные, сборка и восстановление работы.
-4. [ARCHITECTURE](ARCHITECTURE.md) — границы проектов и направление зависимостей.
-5. [ASSISTANT_MEMORY_AND_CHAT_PLAN](ASSISTANT_MEMORY_AND_CHAT_PLAN.md) — состояние чата и контролируемой памяти.
-6. [TOP1_PRODUCT_ROADMAP](TOP1_PRODUCT_ROADMAP.md) — измеримая стратегия развития до лучшего GTA5RP-помощника.
-7. [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — аудит и целевая архитектура автономного voice-сценария без LM Studio.
+4. [PROJECT_MAP](PROJECT_MAP.md) — компактная карта «компонент → файл → символ» для быстрого поиска контекста.
+5. [PROJECT_HANDOFF](PROJECT_HANDOFF.md) — компактное актуальное состояние продукта, архитектура, решения, проблемы, backlog и команды для новых специализированных задач.
+6. [CODEX_WORKSPACE](CODEX_WORKSPACE.md) — project-scoped Codex, Qdrant-память, экономный поиск контекста, профили и восстановление.
+7. [ARCHITECTURE](ARCHITECTURE.md) — границы проектов и направление зависимостей.
+8. [ASSISTANT_MEMORY_AND_CHAT_PLAN](ASSISTANT_MEMORY_AND_CHAT_PLAN.md) — состояние чата и контролируемой памяти.
+9. [TOP1_PRODUCT_ROADMAP](TOP1_PRODUCT_ROADMAP.md) — измеримая стратегия развития до лучшего GTA5RP-помощника.
+10. [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — аудит и целевая архитектура автономного voice-сценария без LM Studio.
 
 ## Для пользователя
 

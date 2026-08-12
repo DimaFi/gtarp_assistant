@@ -1,8 +1,24 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — P0.2 embedded STT foundation реализован, quality gate открыт
+## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 
 Актуально на 3 августа 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.
+
+Последний завершённый логический этап:
+
+- исправлена корневая причина неработающего микрофона: миграция v2 удаляет ошибочный старый STT-route, где chat-модель Qwen/LM Studio использовалась как `whisper-1`;
+- embedded STT теперь ищется по явному пути, рядом с portable-приложением и в каталоге данных пользователя; устройство `Микрофон (fifine Microphone)` найдено реальным WASAPI enumeration;
+- lifecycle реального `whisper.cpp base-q8_0` прошёл: start/transcribe/dispose, 3,22 с, peak private 772 MiB, orphan process отсутствует;
+- локальная папка `artifacts/publish/win-x64` снабжена adjacent STT-паком для немедленной ручной проверки; в основной публичный ZIP веса по-прежнему не включаются до 40-case русского quality gate;
+- страница ассистента переведена на компактный chat-layout с welcome-state, пузырями сообщений и нижним composer;
+- voice overlay стал перетаскиваемым и сохраняет позицию: зелёно-белый orb показывает речь пользователя, сине-белый — подготовку/ответ ассистента; рядом выводятся распознанный текст и ответ;
+- в **Поведение** добавлены отдельные переключатели показа и закрепления overlay;
+- локальный conversation grounding отвечает на приветствия, вопросы «кто ты/что умеешь», благодарность и завершение разговора без ложного отказа из-за отсутствия игровой статьи;
+- устранено зависание Qwen при занятой GTA/OBS видеопамяти: сбалансированный профиль теперь CPU-first; профиль качества сохраняет auto GPU offload;
+- реальный Local AI E2E с `qwen/qwen3-vl-4b` прошёл полную цепочку API → load → schema capability-test → сохранение route; отчёт находится в `artifacts/local-ai-e2e/current-cpu-3`;
+- capability timeout больше не приводит к необработанному WPF-исключению и сохраняет прежний рабочий маршрут.
+- кнопка **Установить и настроить** больше не является ссылкой на сайт: она ставит официальный headless LM Studio Core в выбранную папку на любом диске и затем запускает существующий auto-configure pipeline;
+- installer trust boundary: фиксированный HTTPS host, запрет cross-host redirect, лимит 1 MiB, обязательные маркеры `llmster`/checksum/install, безопасный `ArgumentList`, выбранный `HOME`, 15-минутный timeout, cancellation с kill process tree и удаление временного сценария.
 
 Завершено:
 
@@ -56,12 +72,12 @@
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 290 тестов: Core 85, Providers 20, Knowledge 68, Integration 49, App 51, ModelBenchmark 13, ProductBenchmark 4;
+- 305 тестов: Core 92, Providers 21, Knowledge 68, Integration 53, App 54, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
-- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,82 мс;
+- production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,73 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
-- SHA-256: `f675de743187336e57c10a97b1bba8acc29047ccd03255c30c73edbfb5377593`.
+- SHA-256: `76f1f16b815f4bf74d7b72cdb3b2cad1d942ccedfbe2bbe7fdfe6b1200f64c0b`.
 
 Текущий логический срез завершён на границе, не требующей имитации данных: два кандидата собраны, технически сравнены, а весь comparative/lifecycle gate автоматизирован и защищён fingerprint-проверкой. Production quality gate остаётся открытым только до записи живой русской речи. Дальше нужен полный 40-case набор WAV и запуск одной команды `eng/compare-stt-candidates.ps1 -RunLifecycle`; затем weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
 

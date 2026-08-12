@@ -4,9 +4,9 @@
 
 1. Скачайте portable ZIP из GitHub Releases и распакуйте его.
 2. Запустите `GtaRpAssistant.App.exe`.
-3. Откройте раздел **Ассистент**, введите вопрос и нажмите **Получить ответ** — LM Studio для локальной базы знаний не требуется.
+3. Откройте раздел **Ассистент**, введите вопрос в нижней строке и нажмите кнопку отправки — LM Studio для локальной базы знаний не требуется.
 4. По умолчанию приложение работает в режиме «вопрос → ответ» без истории между запусками. Чтобы продолжать диалог после перезапуска, откройте **Приватность**, включите **Долгосрочное общение** и сохраните настройки. История хранится только локально в `assistant-data.db`.
-5. Для локальной AI-модели откройте **AI и модели**. Можно запустить **Настроить автоматически**, выбрать любую уже установленную chat-модель LM Studio или безопасно импортировать собственный GGUF-файл/папку. Активной модель становится только после capability-test; прежний рабочий маршрут сохраняется при ошибке.
+5. Для локальной AI-модели откройте **AI и модели**. Кнопка **Установить и настроить** позволяет выбрать папку на любом диске, ставит официальный LM Studio Core и запускает подбор модели. Если движок уже установлен, можно нажать **Настроить автоматически**, выбрать любую chat-модель LM Studio или безопасно импортировать собственный GGUF-файл/папку. Активной модель становится только после capability-test; прежний рабочий маршрут сохраняется при ошибке.
 
 Подробная постоянно поддерживаемая инструкция: **[Руководство пользователя](docs/USAGE.md)**. Установка и обновление: [docs/INSTALLATION.md](docs/INSTALLATION.md). Для разработчика и новой AI-сессии: [карта документации](docs/DOCUMENTATION_INDEX.md), [инженерный справочник](docs/PROJECT_HANDBOOK.md) и [активная точка продолжения](docs/DEVELOPMENT_CHECKPOINT.md). Измеримый план развития продукта: [roadmap до помощника №1](docs/TOP1_PRODUCT_ROADMAP.md), текущая методика и baseline: [production quality benchmark](docs/PRODUCT_QUALITY_BENCHMARK.md).
 
@@ -61,6 +61,7 @@ Release-папка также содержит user-scope скрипты install
 - монитор запуска/закрытия/перезапуска GTA с перепривязкой process loopback;
 - WASAPI microphone, process-specific/system loopback, VAD, bounded segmentation, optional embedded `whisper.cpp` и OpenAI-compatible STT fallback;
 - единый manual-voice control plane: toggle/hold, cancel, max duration, редактируемый preview, opt-in автоотправка, уровень/тест микрофона, точная диагностика hotkey и ограниченное unplug/replug recovery;
+- миграция ошибочных старых STT-настроек: chat-модель LM Studio больше не назначается распознавателем речи; portable STT-пак автоматически обнаруживается рядом с приложением;
 - SQLite/FTS5 knowledge packs, exact/prepared answers, server scope, conflict/outdated checks;
 - provider capabilities/registry и независимые primary/fallback routes для STT, Chat, Vision, TTS и Embeddings;
 - версионированная миграция старых endpoint/model-настроек без потери явного cloud opt-in;
@@ -72,11 +73,13 @@ Release-папка также содержит user-scope скрипты install
 - Windows TTS, выключенный по умолчанию и разрешённый только после ручного голосового hotkey;
 - DPAPI CurrentUser для API-ключей;
 - автоматический центр Local AI: discovery LM Studio/CLI/API, `llmster` startup, каталог моделей, download/load/unload, оценка RAM/VRAM и capability-test;
+- opt-in установка официального LM Studio Core в выбранную пользователем папку: bounded HTTPS download, проверка trust-маркеров сценария, SHA-512-проверка runtime самим официальным установщиком, timeout/cancellation и автоматический переход к выбору модели;
 - ручные пути к `lms.exe` и `LM Studio.exe` для portable/нестандартной установки с возвратом к автоматическому поиску;
 - выбор любой установленной instruct/chat-модели LM Studio с сохранением между запусками и фильтрацией embedding-моделей;
 - безопасный импорт одиночного GGUF или файла из выбранной папки: проверка сигнатуры, offline dry-run, `--copy`, локальный repository ID, timeout/cancellation и capability gate;
 - менеджер диалогов: temporary/opt-in SQLite history, create/open/rename/delete, retry/copy/cancel, Enter/Shift+Enter и безопасный нативный Markdown;
-- compact overlay с краткими шагами и expanded overlay с планом, причинами, уточнениями и provider/model;
+- компактный chat-интерфейс и перетаскиваемый voice overlay: зелёно-белая анимация во время речи, сине-белая во время ответа, распознанный текст и ответ рядом с индикатором; overlay можно скрыть или закрепить;
+- безопасные контекстные ответы на приветствия, вопросы о возможностях, благодарность и завершение разговора даже без статьи в игровой базе;
 - отдельный on-demand `MicroModelHost` с named pipe, строгим mock JSON, one-active/one-queued policy, idle TTL и memory guard 750/900 МБ; настоящая модель пока не подключена;
 - воспроизводимый [`ModelBenchmark`](./docs/MICRO_MODEL_BENCHMARK.md): реальные Qwen3/SmolLM2 прогоны, strict JSON/grounding/license/memory gate и [`ADR-0001`](./docs/adr/ADR-0001-micro-model-candidate-benchmark.md), отклонивший оба базовых кандидата без включения весов в приложение.
 
@@ -93,9 +96,9 @@ Release-папка также содержит user-scope скрипты install
 
 ## Проверка
 
-Release-сборка проходит без предупреждений. Набор содержит 290 unit/integration тестов для Core, voice interaction, hold/release, STT privacy/embedded-pack routing, pack integrity/path safety, runtime arguments/cancellation, STT dataset/comparison integrity gate, UI registry и общих feature-компонентов, безопасного Markdown, shell boundaries, privacy-safe diagnostics, hotkey/tray routing и DPI-aware overlay geometry, knowledge search и миграций SQLite, временной и opt-in постоянной истории диалогов, conversation/follow-up/repair, local AI management, нестандартных путей, provider routes, process loopback, MicroModel lifecycle/TTL/queue/memory guard, product/model benchmark gates и защитных ограничений. Блокирующий production benchmark проверяет 528 вопросов через реальный coordinator и SQLite retrieval: 524 обязательных сценария прошли на 100%, ложных ответов, неподтверждённых чисел и wrong-server ответов нет. Опубликованное приложение дополнительно проходит изолированный startup/navigation/keyboard/settings/tray/overlay/vision/voice-preview smoke-test, установку из нестандартного каталога и gate из 11 snapshots. Реальный двухпроцессный UI E2E LM Studio 0.4.19 с Qwen проверил выбор модели, capability gate и сохранение маршрута после перезапуска; отдельные whisper.cpp smoke подтвердили оба pinned STT-кандидата, custom-path startup, reuse, cancel-kill и отсутствие orphan process. Comparative STT gate дополнительно требует идентичный dataset SHA/cases, перепроверяет метрики и не запускает lifecycle при `reject-both`. Отчёты находятся в `artifacts/local-ai-e2e` и `artifacts/stt`.
+Release-сборка проходит без предупреждений. Набор содержит 305 unit/integration тестов для Core, voice interaction, hold/release, STT privacy/embedded-pack routing, pack integrity/path safety, runtime arguments/cancellation, STT dataset/comparison integrity gate, UI registry и общих feature-компонентов, безопасного Markdown, shell boundaries, privacy-safe diagnostics, hotkey/tray routing и DPI-aware overlay geometry, knowledge search и миграций SQLite, временной и opt-in постоянной истории диалогов, conversation/follow-up/repair, local AI management, нестандартных путей, provider routes, process loopback, MicroModel lifecycle/TTL/queue/memory guard, product/model benchmark gates и защитных ограничений. Блокирующий production benchmark проверяет 528 вопросов через реальный coordinator и SQLite retrieval: 524 обязательных сценария прошли на 100%, ложных ответов, неподтверждённых чисел и wrong-server ответов нет. Опубликованное приложение дополнительно проходит изолированный startup/navigation/keyboard/settings/tray/overlay/vision/voice-preview smoke-test, установку из нестандартного каталога и gate из 11 snapshots. Реальный UI E2E с Qwen3 VL 4B подтвердил запуск API, CPU-first загрузку при занятой видеопамяти, capability gate и сохранение маршрута; отдельный whisper.cpp lifecycle подтвердил обнаружение устройства, запуск, транскрибацию, освобождение процесса и отсутствие orphan process. Отчёты находятся в `artifacts/local-ai-e2e` и `artifacts/stt`.
 
-Текущий проверенный portable-релиз: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`, SHA-256 `f675de743187336e57c10a97b1bba8acc29047ccd03255c30c73edbfb5377593`.
+Текущий проверенный portable-релиз: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`, SHA-256 `76f1f16b815f4bf74d7b72cdb3b2cad1d942ccedfbe2bbe7fdfe6b1200f64c0b`.
 
 ## Ограничения
 
