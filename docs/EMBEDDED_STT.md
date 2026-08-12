@@ -4,7 +4,7 @@
 
 Процессный и упаковочный фундамент P0.2 реализован 3 августа 2026 года. Приложение умеет обнаружить отдельный STT-пак, проверить его манифест, размеры и SHA-256 каждого файла, лениво запустить `whisper-server.exe` на случайном loopback-порту, повторно использовать загруженную модель, остановить runtime при отмене/timeout/превышении памяти и выгрузить его после idle TTL.
 
-Оба отдельных пака воспроизводимо собираются, но пока **не входят в основной portable ZIP и не объявлены production-рекомендацией**. Перед публикацией нужен записанный с согласия участников русский GTA5RP-набор и сравнительный quality-отчёт. Английский JFK smoke подтверждает только совместимость runtime/API, но не качество русского распознавания.
+Оба candidate-пака воспроизводимо собираются, но пока **не входят в основной portable ZIP и не объявлены production-рекомендацией**. Финальный pack теперь технически невозможно сформировать штатной командой без полного production evidence: записанного с согласия участников русского GTA5RP-набора, сравнительного quality-отчёта и двух успешных 100-цикловых hardware-профилей. Английский JFK smoke подтверждает только совместимость runtime/API, но не качество русского распознавания.
 
 ## Зафиксированные кандидаты
 
@@ -16,6 +16,7 @@
 - второй кандидат: multilingual `ggml-small-q5_1.bin`, та же pinned revision;
 - размер второго кандидата: `190 085 487` байт;
 - SHA-256 второго кандидата: `ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb`;
+- после первого `reject-both` добавлен экспериментальный третий кандидат `ggml-small-q8_0.bin`, та же pinned revision, `264 464 607` байт, SHA-256 `49c8fb02b65e6049d5fa6c04f81f53b867b5ec9540406812c643f177317f779f`; он не получает production-статус без тех же resource/quality gates;
 - лицензия runtime/model repository: MIT; license SHA-256 `94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d`;
 - режим: CPU-only, 2 threads, один активный запрос, русский язык, без ffmpeg и GPU offload;
 - hard private/working-set limit: 1 100 MiB; request timeout: 45 секунд; idle TTL: 120 секунд.
@@ -81,7 +82,7 @@ dotnet run --project tools/GtaRpAssistant.SttBenchmark -- `
   evaluate <pack-directory> <dataset.json> <report.json>
 ```
 
-Готовый манифест из 40 фраз находится в `ml/evaluation/stt-russian-gta5rp-v1.json`. В нём нет аудио и персональных данных: WAV записываются отдельно, только после явного действия участника. Интерактивная запись с системного микрофона:
+Готовый манифест из 48 фраз находится в `ml/evaluation/stt-russian-gta5rp-v1.json`. В нём нет аудио и персональных данных: WAV записываются отдельно, только после явного действия участника. Восемь отдельных currency-сценариев покрывают разговорные варианты `BP / БП / Би Пи / БПишки / бонус-поинты` и `DP / ДП / Ди Пи / ДПишки / донат-поинты / донатная валюта`; BP и DP остаются разными сущностями. Интерактивная запись с системного микрофона:
 
 ```powershell
 dotnet run --project tools/GtaRpAssistant.SttBenchmark -- `
@@ -96,7 +97,7 @@ dotnet run --project tools/GtaRpAssistant.SttBenchmark -- `
 dotnet run --project tools/GtaRpAssistant.SttBenchmark -- devices
 ```
 
-Production-набор должен содержать все 40 согласованно записанных фраз: разные голоса, микрофоны, тихий фон/игровой шум, короткие и длинные вопросы, числа и термины GTA5RP. Gate: средний WER ≤25%, recall обязательных терминов ≥85%, ноль пустых/error transcript, p95 ≤5 секунд и память ≤1 100 MiB.
+Production-набор должен содержать все 48 согласованно записанных фраз: разные голоса, микрофоны, тихий фон/игровой шум, короткие и длинные вопросы, числа, термины GTA5RP и варианты произношения BP/DP. Gate: средний WER ≤25%, recall обязательных терминов ≥85%, ноль пустых/error transcript, p95 ≤5 секунд и память ≤1 100 MiB.
 
 Перед ADR сравниваются как минимум `base-q8_0` и более точный кандидат `small-q5_1` на одних WAV и одном ПК. Если ни один не проходит gate, embedded pack не публикуется: сохраняются manual text и внешний STT fallback.
 
@@ -122,6 +123,7 @@ Production-набор должен содержать все 40 согласов
 .\eng\compare-stt-candidates.ps1 `
   -RunLifecycle `
   -LifecycleWave <pcm16-mono-16khz.wav> `
+  -LifecycleHardwareProfile reference `
   -LifecycleIterations 100
 ```
 
@@ -131,15 +133,33 @@ Production-набор должен содержать все 40 согласов
 
 ```powershell
 dotnet run --project tools/GtaRpAssistant.SttBenchmark -- `
-  lifecycle <pack-directory> <pcm16-mono-16khz.wav> 100 <report.json>
+  lifecycle <pack-directory> <pcm16-mono-16khz.wav> 100 <report.json> reference
 ```
 
-Каждая итерация создаёт provider, запускает реальную транскрибацию, освобождает provider и проверяет, что PID runtime больше не существует. В JSON сохраняются ошибки, p95, working set, private memory и признак orphan process.
+Каждая итерация создаёт provider, запускает реальную транскрибацию, освобождает provider и проверяет, что PID runtime больше не существует. В JSON schema v2 сохраняются pack/model ID, SHA-256 манифеста и WAV, имя hardware-профиля, обезличенные OS/CPU/RAM параметры, ошибки, p95, working set, private memory и признак orphan process. Для второй физической машины используется профиль `weak-pc`.
+
+## Финальный production gate
+
+После quality PASS и аппаратных прогонов финальный local voice pack создаётся только отдельной командой:
+
+```powershell
+.\eng\finalize-stt-pack.ps1 `
+  -Comparison .\artifacts\stt\comparisons\current\comparison.json `
+  -PackDirectory .\artifacts\stt\pack-<winner> `
+  -LifecycleReports @( `
+    '.\artifacts\stt\comparisons\current\winner-lifecycle-reference.json', `
+    '<copied-from-weak-pc>\winner-lifecycle-weak-pc.json')
+```
+
+Gate заново валидирует оба исходных quality-отчёта и пересчитывает рекомендацию, связывает hardware evidence с точным SHA-256 `stt-pack.json`, требует не менее 100 чистых циклов в профилях `reference` и `weak-pc`, ноль orphan/error, cold lifecycle p95 ≤15 секунд и соблюдение memory gate датасета. Только после PASS создаются детерминированный `GtaRpAssistant-Local-VoicePack-win-x64.zip`, `.sha256` и `production-attestation.json` с fingerprint всех доказательств. Candidate ZIP из `build-stt-pack.ps1` не является финальным voice pack и не разрешён к публикации сам по себе.
 
 ## Следующие действия
 
-1. Записать все 40 фраз `stt-russian-gta5rp-v1.json` с явным согласием и без персональных данных, желательно несколькими голосами и на нескольких микрофонах.
-2. Запустить `compare-stt-candidates.ps1`; не подменять quality gate синтетической или английской речью.
-3. Для кандидата, прошедшего quality gate, выполнить 100 lifecycle cycles, weak-PC и шумовой профиль.
-4. Записать ADR с победителем либо отказом от обоих кандидатов.
-5. Только после PASS добавить downloadable STT pack в GitHub Release и выполнить P0.3 на чистом Windows-профиле без сети, LM Studio и Python.
+48-case dataset записан. [`ADR-0002`](adr/ADR-0002-local-stt-candidate-benchmark.md) отклонил три whisper.cpp-кандидата. GigaAM v2 через штатный sherpa-onnx C# worker прошёл quality gate: WER 7,7%, term recall 87,5%, p95 0,43 с, peak private 405 MiB, 0 failures. Reference lifecycle также прошёл 100/100 циклов без orphan-процессов, p95 1,96 с и peak private 307 MiB. До публикации остаётся отдельный `weak-pc` прогон.
+
+1. Скопировать candidate pack и lifecycle-команду на отдельный слабый Windows x64 ПК.
+2. Выполнить 100 lifecycle cycles с профилем `weak-pc` на том ПК и вернуть JSON-отчёт в проект.
+3. Проверить оба hardware evidence и сформировать attested финальный ZIP через `finalize-stt-pack.ps1`.
+4. Оформить новый ADR с победителем либо очередным отказом.
+5. Выполнить `finalize-stt-pack.ps1`; только ZIP с `production-attestation.json` и checksum разрешён к добавлению в GitHub Release.
+6. Выполнить P0.3 на чистом Windows-профиле без сети, LM Studio и Python.

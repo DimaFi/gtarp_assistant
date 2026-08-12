@@ -114,30 +114,37 @@ UI и coordinator не обращаются к SQLite напрямую. Пере
 - enable/disable, server/category metadata и reindex;
 - source/chunk citations в сообщениях.
 
-### M5 — контролируемая долговременная память
+### M5 — контролируемая долговременная память — базовый ручной срез завершён
 
-- отдельные `memories`, `memory_sources`, `user_profile`, summaries;
+- [x] отдельный `user-memory.db` с подтверждёнными ручными записями, не смешанный с chat history и `knowledge.db`;
+- [x] локальный CRUD: посмотреть, добавить/изменить, удалить и очистить всё;
+- [x] категории play style / explained topic / favorite activity / communication preference / confirmed fact;
+- [ ] candidates, `memory_sources`, summaries и автоматическое извлечение с подтверждением;
 - candidate/confirmed/rejected/outdated/deleted;
 - secret filter и запрет автоматического сохранения чувствительных данных;
 - deduplication и ручное подтверждение;
 - страница просмотра/edit/delete/export/import.
 
-### M6 — ContextBuilder и персонализация
+### M6 — ContextBuilder и персонализация — базовый срез завершён
 
-- recent turns + summary + confirmed profile + 3–8 relevant memories + verified knowledge;
+- [x] recent turns + до 8 релевантных подтверждённых memories + verified knowledge;
+- [x] память передаётся только локальному AI provider; cloud routes её не получают;
+- [ ] summary старой части диалога и расширенное ранжирование;
 - FTS relevance × confidence × importance × recency;
 - provenance: память никогда не считается официальным правилом;
 - debug view выбранных memories/facts;
 - situation modes и context budgets.
 
-### M7 — прозрачный адаптивный характер
+### M7 — прозрачный адаптивный характер — основной безопасный срез завершён
 
-- отдельный `PersonalityProfile` с ограниченными чертами: тон, краткость, юмор, инициативность и поддержка;
-- opt-in адаптация только по безопасным сигналам взаимодействия, без скрытого психологического профилирования;
-- explanation log: какое подтверждённое действие и почему немного изменило параметр;
-- ручная настройка, pin отдельных черт, полный reset/export/delete;
-- personality context отделён от confirmed player profile и никогда не считается knowledge;
-- A/B regression: разные стили обязаны сохранять одинаковые fact IDs, числа, server scope и решение validator.
+- [x] отдельный `PersonalityProfile`: тон, подробность, юмор и инициативность;
+- [x] ручной UI и нормализация диапазонов параметров;
+- [x] personality context не считается knowledge и не меняет verified facts/validator;
+- [x] opt-in адаптация только по явным просьбам пользователя, без анализа game audio и скрытого психологического профилирования;
+- [x] explanation log без сохранения исходного текста реплики;
+- [x] ручная настройка, полный reset и очистка explanation log;
+- [x] regression: personalization прикрепляется после Knowledge selection и сохраняет verified fact IDs;
+- [ ] pin отдельных черт и export профиля.
 
 ## Критерии M1
 
@@ -153,7 +160,7 @@ UI и coordinator не обращаются к SQLite напрямую. Пере
 
 ## Ограничение текущего этапа
 
-M1/M2 создают надёжное хранилище и управляемый чат, но ещё не являются семантической долговременной памятью. Приложение не извлекает предпочтения пользователя, не создаёт profile/memory candidates и не сжимает старую историю. Эти функции нельзя обозначать как готовые до M5/M6.
+Автоматическое извлечение memory candidates и summary старой части диалога пока не выполняется. Подтверждённая User Memory управляется вручную; адаптация PersonalityProfile реагирует только на ограниченный набор явных просьб после opt-in.
 
 ## Проверка M1
 

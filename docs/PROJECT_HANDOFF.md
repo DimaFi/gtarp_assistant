@@ -69,7 +69,7 @@ Composition root — `App.ConfigureServices()` в `src/GtaRpAssistant.App/App.xa
 - Cloud всегда явный opt-in. Game audio и screenshot имеют дополнительные consent/privacy границы. Отказ или отсутствие provider понижает функциональность, но не ломает базовый сценарий.
 - Официальные статьи и сведения игроков хранятся отдельно. Community data разрешены, когда официальных данных нет, но должны маркироваться как player-confirmed/приблизительные и не становиться «официальными».
 - Embedded STT вынесен в отдельный hash-verified pack и не входит в основной ZIP до русского quality ADR. Runtime слушает случайный loopback-порт, не использует shell/GPU по умолчанию и уничтожает дерево процесса при hard limit/cancel/timeout.
-- `base-q8_0` быстрее/легче `small-q5_1` на техническом smoke, но победитель намеренно не выбран без одинакового 40-case русского датасета. Технический lifecycle не равен quality result.
+- Первый одинаковый 40-case русский прогон отклонил оба кандидата; dataset затем расширен до 48 cases с вариантами BP/DP. Технический lifecycle не равен quality result.
 - Собственная MicroModel не выпущена: Qwen3-0.6B Q4_0 и SmolLM2-360M Q8_0 отклонены по quality/memory gate. `MicroModelHost` остаётся mock до нового успешного ADR; fine-tuning не запускается автоматически.
 - LM Studio — текущий основной проверенный внешний local-AI adapter. Выбор модели сохраняется только после capability-test; при ошибке остаётся предыдущий рабочий route. Balanced профиль CPU-first из-за конкуренции GTA/OBS за VRAM, Quality допускает auto GPU offload.
 - История разговора по умолчанию временная. Долговременное общение — отдельная opt-in настройка и отдельная SQLite DB; knowledge, chat history и будущая user memory не объединяются.
@@ -82,7 +82,7 @@ Composition root — `App.ConfigureServices()` в `src/GtaRpAssistant.App/App.xa
 
 | Проблема | Причина / что пробовали | Текущий статус |
 |---|---|---|
-| Embedded STT нельзя считать production-ready | Runtime/hash/lifecycle прошли; нет полного живого 40-case русского WAV-набора и сравнительного WER/term-recall gate | Открыто; pack не включать в основной публичный ZIP |
+| Embedded STT нельзя считать production-ready | Runtime/hash/lifecycle прошли; первый 40-case quality gate отклонил оба кандидата, восемь новых BP/DP cases ожидают записи | Открыто; pack не включать в основной публичный ZIP |
 | Нет подтверждённой работы voice vertical на всех целевых ПК | Нужны физические unplug/replug, stuck-key, sleep/resume, Windows 10/11 и weak-PC измерения | Открыто; автоматические тесты есть, hardware matrix нет |
 | Нет OCR и автономного понимания игрового экрана | Реализован только ручной screenshot + external/local Vision provider; Windows OCR варианты ещё не прошли capability/quality/resource gate | Открыто |
 | Нет единого resource broker | App, STT, LM Studio/Vision/TTS и MicroModel контролируются разными механизмами | Открыто; особенно важно для слабых ПК |
@@ -96,7 +96,7 @@ Composition root — `App.ConfigureServices()` в `src/GtaRpAssistant.App/App.xa
 
 ### Важно
 
-1. Записать полный consent-based 40-case русский GTA5RP STT dataset; выполнить `compare-stt-candidates.ps1 -RunLifecycle`; оформить ADR: победитель или отказ от обоих packs.
+1. Дозаписать восемь BP/DP-сценариев полного consent-based 48-case русского GTA5RP STT dataset; повторить `compare-stt-candidates.ps1`; при PASS выполнить lifecycle и ADR.
 2. Провести P0 hardware matrix: weak PC, Windows 10/11, unplug/replug, stuck hotkey, sleep/resume, clean-profile offline voice E2E; измерить latency/RAM/CPU и отсутствие скрытой сети.
 3. Проверить и закрепить полный current worktree release gate, portable ZIP и пользовательский first-run сценарий на чистом ПК.
 4. Расширять и измерять coverage частых GTA5RP-вопросов; поддерживать freshness/server scope и product benchmark, а не просто накапливать статьи.
@@ -188,7 +188,7 @@ python .\eng\bootstrap-qdrant-memory.py all
 3. Базовый продукт knowledge-first и offline-first; он обязан работать без LM Studio, Model Pack, Qdrant и cloud.
 4. Официальные и player-confirmed данные имеют отдельное provenance; community facts нельзя выдавать за официальные.
 5. Chat/STT/Vision/TTS/Embeddings — независимые capabilities/routes; Qwen chat нельзя назначать `whisper-1`.
-6. Embedded whisper.cpp pack технически работает, но публичный русский 40-case quality ADR ещё не закрыт; pack не включать в основной ZIP.
+6. Embedded whisper.cpp pack технически работает, но 48-case русский quality ADR ещё не закрыт; pack не включать в основной ZIP.
 7. Qwen3-0.6B Q4_0 и SmolLM2-360M Q8_0 отклонены; `MicroModelHost` остаётся mock до нового успешного ADR.
 8. LM Studio — текущий основной внешний local-AI adapter; модель активируется только после capability-test, Balanced профиль CPU-first.
 9. Голос по умолчанию требует редактируемый preview/confirm; auto-submit и долговременная история — отдельные opt-in настройки.

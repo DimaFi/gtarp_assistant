@@ -28,6 +28,7 @@
 - [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — реализованное/отсутствующее, voice orchestrator, runtime, ресурсы, память и этапы P0–P10.
 - [AI_ROUTING](AI_ROUTING.md) — deterministic/provider/fallback/validator.
 - [AUDIO_PIPELINE](AUDIO_PIPELINE.md) — microphone, game audio, VAD и STT.
+- [SCREEN_CONTEXT](SCREEN_CONTEXT.md) — локальный frame diff, OCR, распознавание экранов и privacy boundary.
 - [EMBEDDED_STT](EMBEDDED_STT.md) — optional whisper.cpp pack, manifest/hash, runtime, установка, запись русского датасета и автоматический comparative quality/lifecycle gate.
 - [PERFORMANCE](PERFORMANCE.md) — профили нагрузки и деградация.
 - [SECURITY](SECURITY.md) — ключи, валидация, доверие и границы процессов.
@@ -45,6 +46,7 @@
 - [PRODUCT_QUALITY_BENCHMARK](PRODUCT_QUALITY_BENCHMARK.md) — gold-набор, метрики и блокирующий benchmark полного production pipeline.
 - [MICRO_MODEL_BENCHMARK](MICRO_MODEL_BENCHMARK.md) — воспроизводимый benchmark.
 - [ADR-0001](adr/ADR-0001-micro-model-candidate-benchmark.md) — почему встроенные Qwen/SmolLM2 не включены в продукт.
+- [ADR-0002](adr/ADR-0002-local-stt-candidate-benchmark.md) — почему проверенные whisper.cpp STT packs не опубликованы как final local voice pack.
 
 ## Продукт и дизайн
 

@@ -9,7 +9,7 @@
 - исправлена корневая причина неработающего микрофона: миграция v2 удаляет ошибочный старый STT-route, где chat-модель Qwen/LM Studio использовалась как `whisper-1`;
 - embedded STT теперь ищется по явному пути, рядом с portable-приложением и в каталоге данных пользователя; устройство `Микрофон (fifine Microphone)` найдено реальным WASAPI enumeration;
 - lifecycle реального `whisper.cpp base-q8_0` прошёл: start/transcribe/dispose, 3,22 с, peak private 772 MiB, orphan process отсутствует;
-- локальная папка `artifacts/publish/win-x64` снабжена adjacent STT-паком для немедленной ручной проверки; в основной публичный ZIP веса по-прежнему не включаются до 40-case русского quality gate;
+- локальная папка `artifacts/publish/win-x64` снабжена adjacent STT-паком для немедленной ручной проверки; в основной публичный ZIP веса по-прежнему не включаются до 48-case русского quality gate;
 - страница ассистента переведена на компактный chat-layout с welcome-state, пузырями сообщений и нижним composer;
 - voice overlay стал перетаскиваемым и сохраняет позицию: зелёно-белый orb показывает речь пользователя, сине-белый — подготовку/ответ ассистента; рядом выводятся распознанный текст и ответ;
 - в **Поведение** добавлены отдельные переключатели показа и закрепления overlay;
@@ -72,14 +72,14 @@
 Проверка текущего среза:
 
 - release build: 0 ошибок, 0 предупреждений;
-- 305 тестов: Core 92, Providers 21, Knowledge 68, Integration 53, App 54, ModelBenchmark 13, ProductBenchmark 4;
+- 325 тестов: Core 92, Providers 21, Knowledge 68, Integration 73, App 54, ModelBenchmark 13, ProductBenchmark 4;
 - governance/knowledge gate: 0 ошибок, 0 предупреждений; 48 статей и 226 фактов;
 - production benchmark: 528 сценариев, 524 blocking, 100% blocking pass/decision/article/citation, 0 false answers, unsupported numbers и wrong-server, p95 0,73 мс;
 - WPF smoke, keyboard/minimum-layout, 11 snapshots и custom-path install smoke прошли;
 - portable ZIP: `artifacts/release/GtaRpAssistant-0.2.0-win-x64.zip`;
 - SHA-256: `76f1f16b815f4bf74d7b72cdb3b2cad1d942ccedfbe2bbe7fdfe6b1200f64c0b`.
 
-Текущий логический срез завершён на границе, не требующей имитации данных: два кандидата собраны, технически сравнены, а весь comparative/lifecycle gate автоматизирован и защищён fingerprint-проверкой. Production quality gate остаётся открытым только до записи живой русской речи. Дальше нужен полный 40-case набор WAV и запуск одной команды `eng/compare-stt-candidates.ps1 -RunLifecycle`; затем weak-PC профиль и ADR с победителем либо отказом от обоих. До успешного ADR STT ZIP не публикуется как рекомендуемый и не включается в основной релиз. Подробности и команды сохранены в `EMBEDDED_STT.md`. До публичного релиза P0.1b также требует отдельную hardware-матрицу: физический unplug/replug, stuck-key, sleep/resume и Windows 10/11.
+Живой 48-case gate и [`ADR-0002`](adr/ADR-0002-local-stt-candidate-benchmark.md) завершены: `base-q8_0` — WER 49,1%, term recall 31,9%, p95 1,63 с, 791 MiB; `small-q5_1` — WER 32,5%, term recall 42,7%, p95 6,57 с, 991 MiB; экспериментальный `small-q8_0` остановлен memory watchdog на 1 117 MiB и также провалил quality/latency. Domain prompt доказанно ухудшал исходные случаи и удалён. Безопасная канонизация BP/DP без смешения валют и восемь произносительных сценариев сохранены. Comparative/lifecycle gate автоматизирован, а `eng/finalize-stt-pack.ps1` блокирует создание финального voice pack без quality PASS и двух связанных SHA-256 100-cycle hardware-профилей. Следующий шаг — более сильный русский/multilingual STT runtime/model при неизменных порогах. Candidate ZIP не публикуется. Подробности сохранены в `EMBEDDED_STT.md`.
 
 Перед продолжением прочитать `DOCUMENTATION_INDEX.md`, `PROJECT_HANDBOOK.md`, `OFFLINE_ASSISTANT_ARCHITECTURE.md` и `ASSISTANT_MEMORY_AND_CHAT_PLAN.md`. Не подключать реальный MicroModel runtime без нового успешного ADR. Не смешивать пользовательскую память с `knowledge.db`.
 
