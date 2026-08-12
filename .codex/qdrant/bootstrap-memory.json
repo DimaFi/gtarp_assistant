@@ -1,0 +1,50 @@
+[
+  {
+    "information": "memory_set=bootstrap-v1; component=composition; file=src/GtaRpAssistant.App/App.xaml.cs; symbol=App.ConfigureServices. This is the WPF composition root and the authoritative place for dependency wiring. Keep orchestration out of MainWindow and MainViewModel.",
+    "metadata": { "kind": "architecture", "component": "composition", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=answer-pipeline; file=src/GtaRpAssistant.Core/AssistantSessionCoordinator.cs; symbol=AssistantSessionCoordinator. It owns single-flight question processing, retrieval, provider routing, grounding, cancellation and final answer delivery. Preserve this boundary when adding input or UI features.",
+    "metadata": { "kind": "architecture", "component": "answer-pipeline", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=intent-context; file=src/GtaRpAssistant.Core/DecisionServices.cs; symbols=RuleBasedIntentDetector,ContextSelector,AssistantConversationGrounding. Intent classification and transcript selection are local and deterministic; generated user-facing claims must remain grounded in retrieved facts or allowed transcript turns.",
+    "metadata": { "kind": "contract", "component": "intent-context", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=knowledge; file=src/GtaRpAssistant.Knowledge/SqliteKnowledgeRepository.cs; symbol=SqliteKnowledgeRepository. Runtime retrieval uses SQLite exact, prepared-answer and FTS paths. Official packs and player-confirmed material have separate provenance under knowledge/packs/gta5rp and knowledge/reference/community; never present community data as official.",
+    "metadata": { "kind": "architecture", "component": "knowledge", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=local-ai; files=src/GtaRpAssistant.Infrastructure.Windows/LocalAiEngineManager.cs,src/GtaRpAssistant.Core/LocalAiManagement.cs; symbols=LmStudioEngineAdapter,LocalAiEngineManager. Local chat activation requires discovery and a capability test. Balanced mode is CPU-first; custom LM Studio/model paths are supported and embeddings must not be offered as chat models.",
+    "metadata": { "kind": "constraint", "component": "local-ai", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=voice; files=src/GtaRpAssistant.App/AudioSessionController.cs,src/GtaRpAssistant.Infrastructure.Windows/EmbeddedSttPack.cs,src/GtaRpAssistant.Infrastructure.Windows/WhisperCppSpeechToTextProvider.cs. STT is independent from LM Studio chat. Embedded whisper.cpp is an optional hash-verified pack with loopback runtime, timeout, cancellation, memory guard and fallback.",
+    "metadata": { "kind": "architecture", "component": "voice", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=voice-bug; file=src/GtaRpAssistant.App/ProviderSettingsMigration.cs; symbol=ProviderSettingsMigration. Migration v2 removes the legacy invalid STT route that treated a Qwen LM Studio chat model as whisper-1. When microphone transcription fails, verify the selected capture device and actual STT provider separately from the chat model.",
+    "metadata": { "kind": "bug-fix", "component": "voice", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=overlay; files=src/GtaRpAssistant.App/OverlayService.cs,src/GtaRpAssistant.App/OverlayWindow.xaml; symbols=OverlayService,OverlayWindow. The in-game overlay is movable and can be pinned or hidden. Compact voice presentation uses green/white for user speech and blue/white for assistant activity, while transcript and answer text remain visible nearby.",
+    "metadata": { "kind": "ui-contract", "component": "overlay", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=conversation; files=src/GtaRpAssistant.Core/LocalAiConversation.cs,src/GtaRpAssistant.LocalData/SqliteAssistantConversationStore.cs; symbols=ConfigurableAssistantConversationStore,SqliteAssistantConversationStore. Default interaction is question-answer. Long-term conversation is opt-in; temporary and persisted histories must remain distinct and user-controllable.",
+    "metadata": { "kind": "privacy-contract", "component": "conversation", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=micro-model; files=docs/adr/ADR-0001-micro-model-candidate-benchmark.md,docs/MICRO_MODEL_BENCHMARK.md. Qwen3-0.6B Q4_0 and SmolLM2-360M Q8_0 failed the quality/memory gate. MicroModelHost stays mock fallback; do not ship weights or a real headless runtime without a new successful benchmark ADR.",
+    "metadata": { "kind": "decision", "component": "micro-model", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=startup-crash; file=docs/PROJECT_HANDBOOK.md. Windows exception code 0xe0434352 is only a wrapper for an unhandled .NET exception. Diagnose from the startup/fatal report and inner exception. A prior first-window crash was fixed by explicit OneWay bindings for read-only diagnostic fields.",
+    "metadata": { "kind": "bug-fix", "component": "startup", "verified": "2026-08-12" }
+  },
+  {
+    "information": "component=release; file=eng/build.ps1. The full release gate is eng/build.ps1 -Configuration Release -Runtime win-x64 and covers build, tests, knowledge/benchmark validation, WPF smoke, snapshots and portable packaging. Start with narrow tests and use the full gate only for cross-cutting or release-ready changes.",
+    "metadata": { "kind": "workflow", "component": "release", "verified": "2026-08-12" }
+  }
+]

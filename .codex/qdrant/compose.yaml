@@ -1,0 +1,17 @@
+name: gtarp-assistant-memory
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.18.3-unprivileged
+    container_name: gtarp-assistant-qdrant
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"
+    volumes:
+      - gtarp_assistant_qdrant_data:/qdrant/storage
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  gtarp_assistant_qdrant_data:
+    name: gtarp_assistant_qdrant_data

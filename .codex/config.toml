@@ -1,0 +1,34 @@
+# Project-scoped Codex defaults. Loaded only for this trusted repository.
+model_reasoning_effort = "medium"
+plan_mode_reasoning_effort = "medium"
+model_verbosity = "low"
+model_reasoning_summary = "concise"
+project_doc_max_bytes = 12288
+tool_output_token_limit = 6000
+
+[agents]
+enabled = true
+
+[mcp_servers.gtarp_memory]
+command = "uvx"
+args = ["--offline", "--from", "mcp-server-qdrant==0.8.1", "mcp-server-qdrant"]
+cwd = "E:\\Code\\LAB_AI (GTA5RP)"
+enabled = true
+required = false
+enabled_tools = ["qdrant-find", "qdrant-store"]
+startup_timeout_sec = 120
+tool_timeout_sec = 60
+
+[mcp_servers.gtarp_memory.env]
+QDRANT_LOCAL_PATH = "E:\\Code\\LAB_AI (GTA5RP)\\.codex\\data\\qdrant"
+COLLECTION_NAME = "gtarp_assistant_memory"
+QDRANT_SEARCH_LIMIT = "3"
+EMBEDDING_PROVIDER = "fastembed"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+FASTEMBED_CACHE_PATH = "E:\\Code\\LAB_AI (GTA5RP)\\.codex\\cache\\fastembed"
+HF_HOME = "E:\\Code\\LAB_AI (GTA5RP)\\.codex\\cache\\huggingface"
+UV_CACHE_DIR = "E:\\Code\\LAB_AI (GTA5RP)\\.codex\\cache\\uv"
+UV_TOOL_DIR = "E:\\Code\\LAB_AI (GTA5RP)\\.codex\\cache\\uv-tools"
+FASTMCP_LOG_LEVEL = "WARNING"
+TOOL_FIND_DESCRIPTION = "Find up to three compact GTA RP Assistant architecture or bug-fix memories. Use as a pointer, then verify the current source file."
+TOOL_STORE_DESCRIPTION = "Store one durable GTA RP Assistant architecture decision or non-obvious fix under 700 characters; never store code, logs, temporary state, or secrets."

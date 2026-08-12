@@ -5,6 +5,9 @@ obj/
 *.suo
 TestResults/
 artifacts/
+.codex/cache/
+.codex/data/
+.codex/backups/
 *.db
 *.db-shm
 *.db-wal
