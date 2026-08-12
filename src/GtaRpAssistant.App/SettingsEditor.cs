@@ -42,6 +42,8 @@ public sealed class SettingsEditor : ObservableObject
     private int _voiceHotkeyMode;
     private bool _embeddedSttEnabled = true;
     private string _embeddedSttPackPath = "";
+    private bool _overlayEnabled = true;
+    private bool _overlayPinned;
 
     public string Server { get => _server; set => Set(ref _server, value); }
     public string Endpoint { get => _endpoint; set => Set(ref _endpoint, value); }
@@ -83,6 +85,8 @@ public sealed class SettingsEditor : ObservableObject
     public int VoiceHotkeyMode { get => _voiceHotkeyMode; set => Set(ref _voiceHotkeyMode, value); }
     public bool EmbeddedSttEnabled { get => _embeddedSttEnabled; set => Set(ref _embeddedSttEnabled, value); }
     public string EmbeddedSttPackPath { get => _embeddedSttPackPath; set => Set(ref _embeddedSttPackPath, value); }
+    public bool OverlayEnabled { get => _overlayEnabled; set => Set(ref _overlayEnabled, value); }
+    public bool OverlayPinned { get => _overlayPinned; set => Set(ref _overlayPinned, value); }
 
     public static SettingsEditor From(AppSettings value)
     {
@@ -106,6 +110,8 @@ public sealed class SettingsEditor : ObservableObject
         VoiceHotkeyMode = value.VoiceHotkeyMode,
         EmbeddedSttEnabled = value.EmbeddedSttEnabled,
         EmbeddedSttPackPath = value.EmbeddedSttPackPath,
+        OverlayEnabled = value.OverlayEnabled,
+        OverlayPinned = value.OverlayPinned,
         };
     }
 
@@ -130,6 +136,8 @@ public sealed class SettingsEditor : ObservableObject
         VoiceHotkeyMode = Enum.IsDefined(typeof(GtaRpAssistant.Core.VoiceInteractionMode), VoiceHotkeyMode) ? VoiceHotkeyMode : 0,
         EmbeddedSttEnabled = EmbeddedSttEnabled,
         EmbeddedSttPackPath = EmbeddedSttPackPath.Trim(),
+        OverlayEnabled = OverlayEnabled,
+        OverlayPinned = OverlayPinned,
         ProviderRouting = routes with
         {
             SpeechToText = routes.SpeechToText with { Mode = Mode(SttProviderMode) },

@@ -22,6 +22,15 @@ public sealed class EmbeddedSttPackTests
     }
 
     [Fact]
+    public void PortablePack_IsDiscoveredWhenCustomPathIsEmpty()
+    {
+        using var pack = TestPack.Create();
+        var locator = new EmbeddedSttPackLocator(() => "", "missing-default", pack.Directory);
+
+        Assert.Equal(Path.GetFullPath(pack.Directory), locator.ResolveDirectory());
+    }
+
+    [Fact]
     public async Task ModifiedModel_IsRejected()
     {
         using var pack = TestPack.Create();

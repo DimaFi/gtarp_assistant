@@ -141,7 +141,10 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             var searchText = requestType == AssistantRequestType.FollowUpQuestion && relevantConversation.Turns.Count > 0
                 ? $"{entry.Text} {relevantConversation.Turns.LastOrDefault(x => x.Role == ConversationRole.User)?.Text}"
                 : entry.Text;
-            var matches = await _knowledge.SearchAsync(new(searchText, request.Server), ct);
+            var conversationGrounding = AssistantConversationGrounding.TryCreate(entry.Text);
+            var matches = conversationGrounding is null
+                ? await _knowledge.SearchAsync(new(searchText, request.Server), ct)
+                : [conversationGrounding];
             if (matches.Count == 0 && requestType == AssistantRequestType.FollowUpQuestion && !string.IsNullOrWhiteSpace(relevantConversation.SituationId))
             {
                 var previous = await _knowledge.GetArticleAsync(relevantConversation.SituationId, ct);

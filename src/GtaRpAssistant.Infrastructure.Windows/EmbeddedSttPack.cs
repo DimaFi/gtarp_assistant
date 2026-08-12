@@ -49,7 +49,7 @@ public sealed record EmbeddedSttPackInspection(
     public string? ModelPath => Manifest is null ? null : System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory, Manifest.ModelFile));
 }
 
-public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string defaultDirectory)
+public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string defaultDirectory, string? portableDirectory = null)
 {
     public const string ManifestFileName = "stt-pack.json";
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -59,9 +59,12 @@ public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string 
     public string ResolveDirectory()
     {
         var configured = configuredPath();
-        return Path.GetFullPath(string.IsNullOrWhiteSpace(configured)
-            ? defaultDirectory
-            : Environment.ExpandEnvironmentVariables(configured.Trim().Trim('"')));
+        if (!string.IsNullOrWhiteSpace(configured))
+            return Path.GetFullPath(Environment.ExpandEnvironmentVariables(configured.Trim().Trim('"')));
+        if (!string.IsNullOrWhiteSpace(portableDirectory)
+            && File.Exists(Path.Combine(portableDirectory, ManifestFileName)))
+            return Path.GetFullPath(portableDirectory);
+        return Path.GetFullPath(defaultDirectory);
     }
 
     public async Task<EmbeddedSttPackInspection> InspectAsync(CancellationToken cancellationToken)

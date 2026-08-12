@@ -88,6 +88,13 @@ public interface ILocalAiPathSettings
     string? LmStudioApplicationPath { get; }
 }
 
+public sealed record LocalAiBootstrapInstallResult(string CliPath, string InstallHome, string InstallerSha256);
+
+public interface ILocalAiBootstrapInstaller
+{
+    Task<LocalAiBootstrapInstallResult> InstallAsync(string installHome, CancellationToken cancellationToken);
+}
+
 public sealed record LocalAiRecommendedModel(
     string Id,
     string DisplayName,

@@ -92,6 +92,15 @@ public sealed class ProviderTests
         Assert.False(report.IsCompatible);
         Assert.Contains("Модель не умеет безопасно воздерживаться.", report.Warnings);
     }
+
+    [Fact]
+    public async Task CapabilityTester_TreatsProviderTimeoutAsFailedSample()
+    {
+        var report = await new LocalAiCapabilityTester().TestAsync(new CapabilityProvider(timeout: true), default);
+
+        Assert.False(report.IsCompatible);
+        Assert.Contains("Timeout", report.Warnings);
+    }
     [Fact]
     public async Task SpeechToText_SendsWaveAndParsesText()
     {
@@ -127,7 +136,7 @@ public sealed class ProviderTests
     private static HttpResponseMessage Json(string value) => new(HttpStatusCode.OK) { Content = new StringContent(value, Encoding.UTF8, "application/json") };
     private sealed class FakeHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> send) : HttpMessageHandler { protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => send(request, cancellationToken); }
 
-    private sealed class CapabilityProvider(bool unsafeAbstain = false) : IChatProvider
+    private sealed class CapabilityProvider(bool unsafeAbstain = false, bool timeout = false) : IChatProvider
     {
         public string Id => "test";
         public ProviderKind Kind => ProviderKind.LmStudio;
@@ -136,6 +145,7 @@ public sealed class ProviderTests
         public Task<IReadOnlyList<ProviderModelInfo>> GetModelsAsync(CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<ProviderModelInfo>>([new("test", "test")]);
         public Task<GroundedAnswerResponse> CreateGroundedAnswerAsync(GroundedAnswerRequest request, CancellationToken cancellationToken)
         {
+            if (timeout) throw new TaskCanceledException("provider timeout");
             var abstain = request.VerifiedFacts.Count == 0;
             var json = abstain
                 ? unsafeAbstain

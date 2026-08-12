@@ -61,8 +61,22 @@ public sealed class LocalAiCapabilityTester : ILocalAiCapabilityTester
         try
         {
             var response = await provider.CreateGroundedAnswerAsync(request, cancellationToken);
-            var payload = JsonSerializer.Deserialize<GroundedAnswerPayload>(response.Json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            return new(response.Json, payload, HasFullSchema(response.Json));
+            try
+            {
+                var payload = JsonSerializer.Deserialize<GroundedAnswerPayload>(response.Json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return new(response.Json, payload, HasFullSchema(response.Json));
+            }
+            catch (JsonException ex)
+            {
+                var preview = response.Json.Replace('\r', ' ').Replace('\n', ' ');
+                warnings.Add($"JsonException: {ex.Message} Response: {preview[..Math.Min(preview.Length, 240)]}");
+                return new(response.Json, null, false);
+            }
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            warnings.Add("Timeout");
+            return new(null, null, false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

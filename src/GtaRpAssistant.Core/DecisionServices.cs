@@ -139,6 +139,32 @@ public static partial class AssistantQuestionPolicy
     private static partial Regex UnverifiablePredictionRegex();
 }
 
+public static partial class AssistantConversationGrounding
+{
+    public static KnowledgeMatch? TryCreate(string question)
+    {
+        var normalized = TranscriptDeduplicator.Normalize(question);
+        if (!SmallTalkRegex().IsMatch(normalized)) return null;
+        var updatedAt = new DateTimeOffset(2026, 8, 3, 0, 0, 0, TimeSpan.Zero);
+        const string articleId = "assistant.conversation.basics";
+        return new(
+            articleId,
+            "GTA RP Assistant",
+            1,
+            [
+                new("assistant.conversation.identity", articleId,
+                    "Я GTA RP Assistant — локальный помощник по GTA5RP, который отвечает по проверенной базе знаний и может продолжать текущий диалог.", true, updatedAt),
+                new("assistant.conversation.help", articleId,
+                    "Я готов помочь: можно поздороваться, уточнить предыдущий ответ или спросить о механиках GTA5RP; если подтверждённых игровых данных нет, я честно попрошу уточнение.", true, updatedAt),
+            ],
+            false,
+            false);
+    }
+
+    [GeneratedRegex(@"^(?:помощник[ ,.!-]*)?(?:привет|здравствуй(?:те)?|добрый\s+(?:день|вечер|утро)|как\s+(?:дела|ты)|кто\s+ты|что\s+ты\s+умеешь|чем\s+можешь\s+помочь|спасибо|благодарю|пока|до\s+свидания)[?!. ]*$", RegexOptions.IgnoreCase)]
+    private static partial Regex SmallTalkRegex();
+}
+
 public sealed partial class GroundedAnswerValidator
 {
     public const string PassedReason = "Ответ прошёл проверку";

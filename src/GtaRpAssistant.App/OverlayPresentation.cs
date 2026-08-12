@@ -3,7 +3,7 @@ using GtaRpAssistant.Core;
 namespace GtaRpAssistant.App;
 
 public enum OverlayTone { Success, Warning, Neutral }
-public enum OverlayActivity { None, Listening, Thinking }
+public enum OverlayActivity { None, Listening, Thinking, Answering }
 
 public sealed record OverlayPresentation(
     string Title,
@@ -49,7 +49,8 @@ public static class OverlayPresentationFactory
             answer.ProblemSolution?.Steps,
             answer.ProblemSolution?.PossibleCauses,
             answer.ProblemSolution?.FollowUpSuggestions,
-            answer.ProviderId is null ? null : $"{answer.ProviderId}{(answer.ModelId is null ? "" : $" · {answer.ModelId}")}");
+            answer.ProviderId is null ? null : $"{answer.ProviderId}{(answer.ModelId is null ? "" : $" · {answer.ModelId}")}",
+            Activity: OverlayActivity.Answering);
     }
 
     public static OverlayPresentation Create(MicroModelStatus status)

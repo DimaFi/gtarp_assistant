@@ -92,6 +92,15 @@ public sealed class UiArchitectureTests
     }
 
     [Fact]
+    public void OverlayPlacement_ClampsDraggedPositionInsideWorkingArea()
+    {
+        var point = OverlayPlacement.Clamp(new(100, 50, 900, 600), new(390, 180), new(5000, -200));
+
+        Assert.Equal(610, point.X);
+        Assert.Equal(50, point.Y);
+    }
+
+    [Fact]
     public void ApplicationUiState_RecalculatesKnowledgeTotal()
     {
         var state = new ApplicationUiState { OfficialArticleCount = 37, CommunityArticleCount = 415 };
@@ -129,6 +138,7 @@ public sealed class UiArchitectureTests
         var presentation = OverlayPresentationFactory.Create(answer);
         Assert.True(presentation.IsCommunity);
         Assert.Equal(OverlayTone.Success, presentation.Tone);
+        Assert.Equal(OverlayActivity.Answering, presentation.Activity);
     }
 
     [Theory]

@@ -140,6 +140,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<ILocalAiPathSettings, WorkspaceLocalAiPathSettings>();
         services.AddSingleton<ILocalAiEngineAdapter, LmStudioEngineAdapter>();
         services.AddSingleton<ILocalAiEngineManager, LocalAiEngineManager>();
+        services.AddSingleton<ILocalAiBootstrapInstaller, LmStudioBootstrapInstaller>();
         services.AddSingleton<ITranscriptDeduplicator, TranscriptDeduplicator>();
         services.AddSingleton<IProactivePolicy, ProactivePolicy>();
         services.AddSingleton<ISessionEventSink, SessionEventLogger>();
@@ -165,7 +166,8 @@ public partial class App : System.Windows.Application
         services.AddSingleton<VoiceInteractionCoordinator>();
         services.AddSingleton(sp => new EmbeddedSttPackLocator(
             () => sp.GetRequiredService<SettingsService>().Current.EmbeddedSttPackPath,
-            Path.Combine(AppPaths.DataDirectory, "model-packs", "stt")));
+            Path.Combine(AppPaths.DataDirectory, "model-packs", "stt"),
+            Path.Combine(AppContext.BaseDirectory, "model-packs", "stt")));
         services.AddSingleton<WhisperCppSpeechToTextProvider>();
         services.AddSingleton<ISpeechToTextProviderCatalog>(sp => new SpeechToTextProviderCatalog(
             sp.GetRequiredService<ISecretStore>(),

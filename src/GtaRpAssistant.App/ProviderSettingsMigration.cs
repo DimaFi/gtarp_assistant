@@ -4,7 +4,7 @@ namespace GtaRpAssistant.App;
 
 public static class ProviderSettingsMigration
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
     public const string LocalChatId = "legacy-local-chat";
     public const string CloudChatId = "legacy-cloud-chat";
     public const string LocalSttId = "legacy-local-stt";
@@ -22,7 +22,7 @@ public static class ProviderSettingsMigration
             return settings;
 
         if (settings.ProviderConnections is not null && settings.ProviderRouting is not null)
-            return settings with { ProviderSettingsVersion = CurrentVersion };
+            return UpgradeIndependentRoutes(settings);
 
         var connections = new List<ProviderConnectionSettings>();
         var endpoint = ParseEndpoint(settings.Endpoint);
@@ -37,7 +37,6 @@ public static class ProviderSettingsMigration
         if (endpoint is { IsLoopback: true })
         {
             localChat = AddConnection(connections, LocalChatId, "Legacy local Chat", endpoint, settings.Model, "chat-provider-api-key", true);
-            stt = AddConnection(connections, LocalSttId, "Legacy local STT", endpoint, settings.SttModel, "chat-provider-api-key", true);
             localVision = AddConnection(connections, LocalVisionId, "Legacy local Vision", endpoint, VisionModel(settings, settings.Model), "chat-provider-api-key", true);
         }
         else if (endpoint is not null && settings.AllowCloud && endpoint.Scheme == Uri.UriSchemeHttps)
@@ -148,5 +147,38 @@ public static class ProviderSettingsMigration
     {
         var currentIds = Enumerable.Repeat(current.PrimaryProviderId, 1).Concat(current.FallbackProviderIds).Where(id => !string.IsNullOrWhiteSpace(id));
         return currentIds.Any(id => !LegacyIds.Contains(id!)) ? current : rebuilt with { Mode = current.Mode };
+    }
+
+    private static AppSettings UpgradeIndependentRoutes(AppSettings settings)
+    {
+        var connections = settings.ProviderConnections!
+            .Where(connection => !string.Equals(connection.Id, LocalSttId, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        var routing = settings.ProviderRouting!;
+        var stt = routing.SpeechToText;
+        if (string.Equals(stt.PrimaryProviderId, LocalSttId, StringComparison.OrdinalIgnoreCase))
+        {
+            var fallbacks = stt.FallbackProviderIds
+                .Where(id => !string.Equals(id, LocalSttId, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            stt = fallbacks.Length == 0
+                ? new ProviderRouteSettings()
+                : stt with { PrimaryProviderId = fallbacks[0], FallbackProviderIds = fallbacks.Skip(1).ToArray() };
+        }
+        else if (stt.FallbackProviderIds.Contains(LocalSttId, StringComparer.OrdinalIgnoreCase))
+        {
+            stt = stt with
+            {
+                FallbackProviderIds = stt.FallbackProviderIds
+                    .Where(id => !string.Equals(id, LocalSttId, StringComparison.OrdinalIgnoreCase))
+                    .ToArray(),
+            };
+        }
+        return settings with
+        {
+            ProviderSettingsVersion = CurrentVersion,
+            ProviderConnections = connections,
+            ProviderRouting = routing with { SpeechToText = stt },
+        };
     }
 }

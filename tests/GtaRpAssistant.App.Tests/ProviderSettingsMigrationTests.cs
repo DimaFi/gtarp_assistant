@@ -31,12 +31,37 @@ public sealed class ProviderSettingsMigrationTests
 
         Assert.Equal(ProviderSettingsMigration.CurrentVersion, migrated.ProviderSettingsVersion);
         Assert.NotSame(migrated.ProviderRouting!.SpeechToText, migrated.ProviderRouting.Chat);
-        Assert.Equal(ProviderSettingsMigration.LocalSttId, migrated.ProviderRouting.SpeechToText.PrimaryProviderId);
+        Assert.Equal(ProviderSelectionMode.Disabled, migrated.ProviderRouting.SpeechToText.Mode);
+        Assert.DoesNotContain(migrated.ProviderConnections!, connection => connection.Id == ProviderSettingsMigration.LocalSttId);
         Assert.Equal(ProviderSettingsMigration.LocalChatId, migrated.ProviderRouting.Chat.PrimaryProviderId);
         Assert.Equal([ProviderSettingsMigration.CloudChatId], migrated.ProviderRouting.Chat.FallbackProviderIds);
         Assert.Equal(ProviderSettingsMigration.LocalVisionId, migrated.ProviderRouting.Vision.PrimaryProviderId);
         Assert.Equal(ProviderSettingsMigration.WindowsTtsId, migrated.ProviderRouting.TextToSpeech.PrimaryProviderId);
         Assert.Contains(migrated.ProviderConnections!, connection => connection.Id == ProviderSettingsMigration.CloudVisionId && !connection.IsLocal);
+    }
+
+    [Fact]
+    public void VersionOneSettings_RemoveBogusLmStudioSpeechToTextRoute()
+    {
+        var legacy = new AppSettings(
+            ProviderSettingsVersion: 1,
+            ProviderConnections:
+            [
+                new() { Id = ProviderSettingsMigration.LocalChatId, DisplayName = "Local Chat", Kind = ProviderKind.LmStudio, BaseUri = new("http://127.0.0.1:1234/v1"), ModelId = "qwen3-4b", IsLocal = true },
+                new() { Id = ProviderSettingsMigration.LocalSttId, DisplayName = "Legacy STT", Kind = ProviderKind.LmStudio, BaseUri = new("http://127.0.0.1:1234/v1"), ModelId = "whisper-1", IsLocal = true },
+            ],
+            ProviderRouting: new()
+            {
+                Chat = new() { Mode = ProviderSelectionMode.Local, PrimaryProviderId = ProviderSettingsMigration.LocalChatId },
+                SpeechToText = new() { Mode = ProviderSelectionMode.Local, PrimaryProviderId = ProviderSettingsMigration.LocalSttId },
+            });
+
+        var migrated = ProviderSettingsMigration.Migrate(legacy);
+
+        Assert.Equal(ProviderSettingsMigration.CurrentVersion, migrated.ProviderSettingsVersion);
+        Assert.Equal(ProviderSelectionMode.Disabled, migrated.ProviderRouting!.SpeechToText.Mode);
+        Assert.DoesNotContain(migrated.ProviderConnections!, connection => connection.Id == ProviderSettingsMigration.LocalSttId);
+        Assert.Equal(ProviderSettingsMigration.LocalChatId, migrated.ProviderRouting.Chat.PrimaryProviderId);
     }
 
     [Fact]
@@ -140,6 +165,36 @@ public sealed class ProviderSettingsMigrationTests
             var editor = SettingsEditor.From(reader.Current);
             Assert.True(editor.EnableLongTermConversation);
             Assert.True(editor.ToSettings(null, null, reader.Current).EnableLongTermConversation);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public async Task SettingsService_RoundTripsOverlayPreferencesAndDraggedPosition()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "gta-rp-settings-test-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var writer = new SettingsService(directory);
+            await writer.SaveAsync(new AppSettings(
+                OverlayEnabled: false,
+                OverlayPinned: true,
+                OverlayPosition: "Custom",
+                OverlayLeft: 412.5,
+                OverlayTop: 96.25), default);
+
+            var reader = new SettingsService(directory);
+            await reader.LoadAsync(default);
+
+            Assert.False(reader.Current.OverlayEnabled);
+            Assert.True(reader.Current.OverlayPinned);
+            Assert.Equal("Custom", reader.Current.OverlayPosition);
+            Assert.Equal(412.5, reader.Current.OverlayLeft);
+            Assert.Equal(96.25, reader.Current.OverlayTop);
         }
         finally
         {

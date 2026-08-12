@@ -45,7 +45,11 @@ public sealed record AppSettings(
     bool VoiceAutoSubmit = false,
     int VoiceHotkeyMode = 0,
     bool EmbeddedSttEnabled = true,
-    string EmbeddedSttPackPath = "");
+    string EmbeddedSttPackPath = "",
+    bool OverlayEnabled = true,
+    bool OverlayPinned = false,
+    double? OverlayLeft = null,
+    double? OverlayTop = null);
 
 public sealed class SettingsService
 {

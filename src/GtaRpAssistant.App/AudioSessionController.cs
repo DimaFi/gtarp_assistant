@@ -63,7 +63,8 @@ public sealed class AudioSessionController(
             _cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             _sttProviderRoute = await speechToTextProviders.CreateAvailableRouteAsync(value, _cancellation.Token);
             _sttRoute = _sttProviderRoute.Providers;
-            if (_sttRoute.Count == 0) throw new InvalidOperationException("STT route выключен или не содержит доступных провайдеров.");
+            if (_sttRoute.Count == 0) throw new InvalidOperationException(
+                "Микрофон найден, но распознавание речи не настроено. Установите локальный голосовой пакет или выберите отдельный STT-провайдер.");
             lock (_microphoneSegmenterSync) _microphoneSegmenter.Reset();
             lock (_gameSegmenterSync) _gameSegmenter.Reset();
             _microphoneSegments = CreateChannel(); _gameSegments = CreateChannel(); _segmentSignal = new(0);

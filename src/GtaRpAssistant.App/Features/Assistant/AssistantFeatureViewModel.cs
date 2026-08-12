@@ -15,6 +15,8 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     private readonly IUiDispatcher _dispatcher;
     private readonly IAppDialogService _dialogs;
     private readonly AudioSessionController _audioSession;
+    private readonly AudioFeatureViewModel _audioFeature;
+    private readonly OverlayService _overlay;
     private readonly VoiceInteractionCoordinator _voiceInteraction;
     private readonly RelayCommand _cancelRequestCommand;
     private readonly RelayCommand _renameConversationCommand;
@@ -24,7 +26,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     private readonly RelayCommand _confirmVoicePreviewCommand;
     private readonly RelayCommand _cancelVoicePreviewCommand;
     private int _selectedSourceIndex;
-    private string _transcriptText = "Помощник, почему не запускается контракт?";
+    private string _transcriptText = "";
     private AssistantAnswer? _lastAnswer;
     private AssistantConversationInfo? _selectedConversation;
     private string _conversationTitleDraft = "";
@@ -40,6 +42,8 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         TranscriptBuffer transcripts,
         AssistantSessionCoordinator coordinator,
         AudioSessionController audioSession,
+        AudioFeatureViewModel audioFeature,
+        OverlayService overlay,
         VoiceInteractionCoordinator voiceInteraction,
         SettingsSaveCoordinator save,
         IAppDialogService dialogs,
@@ -50,9 +54,12 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _dispatcher = dispatcher;
         _dialogs = dialogs;
         _audioSession = audioSession;
+        _audioFeature = audioFeature;
+        _overlay = overlay;
         _voiceInteraction = voiceInteraction;
         AddContextCommand = new RelayCommand(AddContext);
         ProcessQuestionCommand = new AsyncRelayCommand(ProcessQuestionAsync);
+        StartVoiceCommand = new AsyncRelayCommand(StartVoiceAsync);
         NewConversationCommand = new RelayCommand(NewConversation, () => !IsBusy);
         _cancelRequestCommand = new RelayCommand(CancelRequest, () => IsBusy);
         _renameConversationCommand = new RelayCommand(RenameConversation, CanRenameConversation);
@@ -79,6 +86,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         {
             Raise(nameof(IsVoicePreview));
             Raise(nameof(VoicePreviewStatus));
+            Raise(nameof(VoiceButtonText));
             _confirmVoicePreviewCommand.RaiseCanExecuteChanged();
             _cancelVoicePreviewCommand.RaiseCanExecuteChanged();
         });
@@ -103,6 +111,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     public string VoicePreviewStatus => IsVoicePreview
         ? "Проверьте распознанный текст выше. Он не будет отправлен без подтверждения."
         : string.Empty;
+    public string VoiceButtonText => _voiceInteraction.Snapshot.IsActive ? "Остановить" : "Говорить";
     public string PipelineStatus => Ui.PipelineStatus;
     public AssistantAnswer? LastAnswer
     {
@@ -151,6 +160,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     public string LastRequestDurationText => _lastRequestDuration is null ? "—" : $"{_lastRequestDuration.Value.TotalSeconds:F1} с";
     public ICommand AddContextCommand { get; }
     public ICommand ProcessQuestionCommand { get; }
+    public ICommand StartVoiceCommand { get; }
     public ICommand NewConversationCommand { get; }
     public ICommand CancelRequestCommand { get; }
     public ICommand RenameConversationCommand { get; }
@@ -199,6 +209,19 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
             IsBusy = false;
             RefreshConversation();
         }
+    }
+
+    private async Task StartVoiceAsync()
+    {
+        if (_voiceInteraction.Snapshot.IsActive)
+        {
+            _audioSession.CancelManualVoiceRequest("Голосовой вопрос остановлен пользователем.");
+            await _overlay.HideAsync();
+            Ui.PipelineStatus = "Голосовой вопрос остановлен.";
+            return;
+        }
+        if (await _audioFeature.BeginManualVoiceRequestAsync(VoiceInteractionMode.Toggle))
+            _ = _overlay.ShowListeningAsync(CancellationToken.None);
     }
 
     private void NewConversation()

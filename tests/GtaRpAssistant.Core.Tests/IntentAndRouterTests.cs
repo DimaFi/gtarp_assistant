@@ -47,4 +47,24 @@ public sealed class IntentAndRouterTests
         Assert.True(selected.Count <= 3);
         Assert.True(selected.Sum(x => x.Text.Length) <= 700);
     }
+
+    [Theory]
+    [InlineData("привет")]
+    [InlineData("Кто ты?")]
+    [InlineData("Что ты умеешь?")]
+    [InlineData("Спасибо!")]
+    public void ConversationGrounding_RecognizesSafeSmallTalk(string question)
+    {
+        var match = AssistantConversationGrounding.TryCreate(question);
+
+        Assert.NotNull(match);
+        Assert.All(match.Facts, fact => Assert.True(fact.Verified));
+    }
+
+    [Theory]
+    [InlineData("сколько дают BP за достижение")]
+    [InlineData("когда следующий ивент")]
+    [InlineData("придумай правило сервера")]
+    public void ConversationGrounding_DoesNotReplaceGameKnowledge(string question) =>
+        Assert.Null(AssistantConversationGrounding.TryCreate(question));
 }

@@ -6,53 +6,96 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         Foreground="{DynamicResource Brush.TextPrimary}" FontFamily="Segoe UI"
         ShowInTaskbar="False" ShowActivated="False" Topmost="True"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown"
         AutomationProperties.AutomationId="Overlay.Compact">
     <design:OverlayCardShell x:Name="CardShell" Style="{StaticResource Surface.OverlayCardShell}"
                              AutomationProperties.AutomationId="Overlay.CardShell">
-        <StackPanel>
-            <Grid x:Name="HeaderGrid">
+        <Grid>
+            <Grid x:Name="ActivityGrid" Visibility="Collapsed" MinHeight="76">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="76" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="TitleText" Style="{StaticResource Text.Heading}" VerticalAlignment="Center"
-                           AutomationProperties.AutomationId="Overlay.Title" />
-                <design:OverlayStatusPill x:Name="StatusPill" Grid.Column="1" Margin="12,0,0,0"
-                                          Style="{StaticResource Status.OverlayPill}"
-                                          AutomationProperties.AutomationId="Overlay.Status" />
+
+                <Grid Width="64" Height="64" VerticalAlignment="Center">
+                    <Ellipse x:Name="OuterActivityRing" Opacity="0.22">
+                        <Ellipse.RenderTransform>
+                            <ScaleTransform x:Name="OuterRingScale" CenterX="32" CenterY="32" />
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse x:Name="InnerActivityRing" Margin="9" Opacity="0.42">
+                        <Ellipse.RenderTransform>
+                            <ScaleTransform x:Name="InnerRingScale" CenterX="23" CenterY="23" />
+                        </Ellipse.RenderTransform>
+                    </Ellipse>
+                    <Ellipse x:Name="ActivityCore" Margin="18" />
+                    <TextBlock Text="✦" Foreground="White" FontSize="15" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Grid.Column="1" Margin="10,0,12,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="ActivityStatusText" FontSize="13" FontWeight="SemiBold"
+                               AutomationProperties.AutomationId="Overlay.ActivityStatus" />
+                    <TextBlock x:Name="ActivityMessageText" Margin="0,5,0,0" Style="{StaticResource Text.Body}"
+                               MaxHeight="62" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                               AutomationProperties.AutomationId="Overlay.ActivityMessage" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                    <Button Style="{StaticResource Button.Ghost}" Content="•••" Padding="7,3"
+                            Click="Expand_Click" ToolTip="Подробнее"
+                            AutomationProperties.AutomationId="Overlay.ActivityExpand" />
+                    <Button Style="{StaticResource Button.Ghost}" Content="×" Padding="7,3" Margin="0,2,0,0"
+                            Click="Hide_Click" ToolTip="Скрыть"
+                            AutomationProperties.AutomationId="Overlay.ActivityHide" />
+                </StackPanel>
             </Grid>
 
-            <TextBlock x:Name="MessageText" Margin="0,14,0,0" Style="{StaticResource Text.Body}" LineHeight="21"
-                       MaxHeight="108" TextTrimming="CharacterEllipsis"
-                       AutomationProperties.AutomationId="Overlay.Message" />
+            <StackPanel x:Name="AnswerPanel">
+                <Grid x:Name="HeaderGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="TitleText" Style="{StaticResource Text.Heading}" VerticalAlignment="Center"
+                               AutomationProperties.AutomationId="Overlay.Title" />
+                    <design:OverlayStatusPill x:Name="StatusPill" Grid.Column="1" Margin="12,0,0,0"
+                                              Style="{StaticResource Status.OverlayPill}"
+                                              AutomationProperties.AutomationId="Overlay.Status" />
+                </Grid>
 
-            <ItemsControl x:Name="StepsList" Margin="0,10,0,0" AutomationProperties.AutomationId="Overlay.Steps">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="0,3">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="18" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{DynamicResource Brush.Accent}" Text="•" FontWeight="Bold" />
-                            <TextBlock Grid.Column="1" Text="{Binding}" Style="{StaticResource Text.Secondary}"
-                                       TextWrapping="Wrap" />
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                <TextBlock x:Name="MessageText" Margin="0,14,0,0" Style="{StaticResource Text.Body}" LineHeight="21"
+                           MaxHeight="108" TextTrimming="CharacterEllipsis" TextWrapping="Wrap"
+                           AutomationProperties.AutomationId="Overlay.Message" />
 
-            <Border x:Name="SourceBadge" Margin="0,14,0,0" Style="{StaticResource Badge.Source}">
-                <TextBlock x:Name="SourceText" Style="{StaticResource Text.Caption}" TextWrapping="Wrap"
-                           AutomationProperties.AutomationId="Overlay.Source" />
-            </Border>
+                <ItemsControl x:Name="StepsList" Margin="0,10,0,0" AutomationProperties.AutomationId="Overlay.Steps">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Foreground="{DynamicResource Brush.Accent}" Text="•" FontWeight="Bold" />
+                                <TextBlock Grid.Column="1" Text="{Binding}" Style="{StaticResource Text.Secondary}"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-            <WrapPanel x:Name="ActionsPanel" Margin="0,10,0,-6">
-                <Button x:Name="ExpandButton" Style="{StaticResource Button.Primary}" Content="Раскрыть" Click="Expand_Click" Padding="10,6"
-                        AutomationProperties.AutomationId="Overlay.Expand" />
-                <Button Style="{StaticResource Button.Ghost}" Content="Скрыть" Click="Hide_Click" Padding="10,6"
-                        AutomationProperties.AutomationId="Overlay.Hide" />
-            </WrapPanel>
-        </StackPanel>
+                <Border x:Name="SourceBadge" Margin="0,14,0,0" Style="{StaticResource Badge.Source}">
+                    <TextBlock x:Name="SourceText" Style="{StaticResource Text.Caption}" TextWrapping="Wrap"
+                               AutomationProperties.AutomationId="Overlay.Source" />
+                </Border>
+
+                <WrapPanel x:Name="ActionsPanel" Margin="0,10,0,-6">
+                    <Button x:Name="ExpandButton" Style="{StaticResource Button.Primary}" Content="Подробнее" Click="Expand_Click" Padding="10,6"
+                            AutomationProperties.AutomationId="Overlay.Expand" />
+                    <Button Style="{StaticResource Button.Ghost}" Content="Скрыть" Click="Hide_Click" Padding="10,6"
+                            AutomationProperties.AutomationId="Overlay.Hide" />
+                </WrapPanel>
+            </StackPanel>
+        </Grid>
     </design:OverlayCardShell>
 </Window>

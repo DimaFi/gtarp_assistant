@@ -4,7 +4,13 @@ namespace GtaRpAssistant.App;
 
 internal static class OverlayWindowPositioner
 {
-    public static void Position(Window window, string position, nint targetWindow, double minimumHeight = 180)
+    public static void Position(
+        Window window,
+        string position,
+        nint targetWindow,
+        double minimumHeight = 180,
+        double? customLeft = null,
+        double? customTop = null)
     {
         var screen = targetWindow != 0
             ? System.Windows.Forms.Screen.FromHandle(targetWindow)
@@ -18,10 +24,10 @@ internal static class OverlayWindowPositioner
             area.Top * scaleY,
             area.Width * scaleX,
             area.Height * scaleY);
-        var point = OverlayPlacement.Calculate(
-            workingArea,
-            new System.Windows.Size(window.Width, Math.Max(window.ActualHeight, minimumHeight)),
-            position);
+        var overlaySize = new System.Windows.Size(window.Width, Math.Max(window.ActualHeight, minimumHeight));
+        var point = customLeft.HasValue && customTop.HasValue
+            ? OverlayPlacement.Clamp(workingArea, overlaySize, new System.Windows.Point(customLeft.Value, customTop.Value))
+            : OverlayPlacement.Calculate(workingArea, overlaySize, position);
         window.Left = point.X;
         window.Top = point.Y;
     }
@@ -45,5 +51,14 @@ public static class OverlayPlacement
         return new(
             Math.Clamp(left, workingArea.Left, maximumLeft),
             Math.Clamp(top, workingArea.Top, maximumTop));
+    }
+
+    public static System.Windows.Point Clamp(System.Windows.Rect workingArea, System.Windows.Size overlaySize, System.Windows.Point point)
+    {
+        var maximumLeft = Math.Max(workingArea.Left, workingArea.Right - overlaySize.Width);
+        var maximumTop = Math.Max(workingArea.Top, workingArea.Bottom - overlaySize.Height);
+        return new(
+            Math.Clamp(point.X, workingArea.Left, maximumLeft),
+            Math.Clamp(point.Y, workingArea.Top, maximumTop));
     }
 }

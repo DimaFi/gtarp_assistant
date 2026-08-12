@@ -145,11 +145,12 @@ public sealed class UiAutomationScenarioService
         var listeningLifetime = _overlay.ShowListeningAsync(CancellationToken.None);
         await YieldRenderAsync();
         var listeningPill = UiVisualTestHelper.Find<OverlayStatusPill>(_compact, "Overlay.Status");
-        if (!_compact.IsVisible || listeningPill.Activity != OverlayActivity.Listening || Math.Abs(_compact.Width - 250) > 1)
+        if (!_compact.IsVisible || listeningPill.Activity != OverlayActivity.Listening || Math.Abs(_compact.Width - 390) > 2)
             throw new InvalidOperationException(
-                $"Listening pill compact layout contract failed: visible={_compact.IsVisible}, activity={listeningPill.Activity}, width={_compact.Width:0.##}.");
-        if (UiVisualTestHelper.Find<FrameworkElement>(_compact, "Overlay.Title").Visibility != Visibility.Collapsed)
-            throw new InvalidOperationException("Listening pill unexpectedly exposes the full answer title.");
+                $"Listening orb compact layout contract failed: visible={_compact.IsVisible}, activity={listeningPill.Activity}, width={_compact.Width:0.##}.");
+        if (UiVisualTestHelper.Find<FrameworkElement>(_compact, "Overlay.ActivityStatus").Visibility != Visibility.Visible ||
+            UiVisualTestHelper.Find<FrameworkElement>(_compact, "Overlay.ActivityMessage").Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Listening orb must expose its state and recognized-text area.");
         await _overlay.HideAsync();
         await listeningLifetime;
 
@@ -213,7 +214,7 @@ public sealed class UiAutomationScenarioService
             viewModel.PendingModelKey = selected.Key;
             await ExecuteAndWaitAsync(viewModel.LoadModelCommand, TimeSpan.FromMinutes(3));
             if (!viewModel.SetupProgress.StartsWith("✓", StringComparison.Ordinal))
-                throw new InvalidOperationException($"Selected model was not activated. Status: {viewModel.SetupProgress}");
+                throw new InvalidOperationException($"Selected model was not activated. Status: {viewModel.SetupProgress} Capability: {viewModel.CapabilityStatus}");
         }
 
         if (!string.Equals(viewModel.PendingModelKey, modelKey, StringComparison.OrdinalIgnoreCase)

@@ -26,6 +26,10 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource Text.Heading}" Text="Оверлей" />
                     <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Compact-режим не забирает фокус; expanded открывается только вручную." />
+                    <CheckBox Content="Показывать ответы поверх игры" IsChecked="{Binding Settings.OverlayEnabled}"
+                              AutomationProperties.AutomationId="Behavior.OverlayEnabled" />
+                    <CheckBox Content="Оставлять последний ответ на экране" IsChecked="{Binding Settings.OverlayPinned}"
+                              AutomationProperties.AutomationId="Behavior.OverlayPinned" />
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                         <StackPanel>
@@ -33,6 +37,7 @@
                             <ComboBox SelectedValue="{Binding Settings.OverlayPosition}" SelectedValuePath="Tag" AutomationProperties.AutomationId="Behavior.OverlayPosition">
                                 <ComboBoxItem Content="Сверху справа" Tag="TopRight" /><ComboBoxItem Content="Сверху слева" Tag="TopLeft" />
                                 <ComboBoxItem Content="Снизу справа" Tag="BottomRight" /><ComboBoxItem Content="Снизу слева" Tag="BottomLeft" />
+                                <ComboBoxItem Content="Перемещено мышкой" Tag="Custom" />
                             </ComboBox>
                         </StackPanel>
                         <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="Время показа, секунд" /><TextBox Text="{Binding Settings.OverlaySeconds}" AutomationProperties.AutomationId="Behavior.OverlaySeconds" /></StackPanel>

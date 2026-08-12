@@ -156,7 +156,7 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
         }
         catch (Exception ex)
         {
-            _logger.LogError("Audio session failed; type={ErrorType}", ex.GetType().Name);
+            _logger.LogError("Audio session failed; type={ErrorType}; message={ErrorMessage}", ex.GetType().Name, ex.Message);
             _ui.PipelineStatus = $"Ошибка аудиосессии: {ex.Message}";
         }
     }

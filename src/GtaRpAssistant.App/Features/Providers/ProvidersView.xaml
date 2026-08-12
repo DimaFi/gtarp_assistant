@@ -34,7 +34,7 @@
                         <Button Style="{StaticResource Button.Primary}" Content="Настроить автоматически" Command="{Binding AutoConfigureCommand}" AutomationProperties.AutomationId="Providers.AutoConfigure" />
                         <Button Content="Обновить статус" Command="{Binding RefreshLocalAiCommand}" AutomationProperties.AutomationId="Providers.RefreshLocalAi" />
                         <Button Content="Запустить API" Command="{Binding StartServerCommand}" AutomationProperties.AutomationId="Providers.StartServer" />
-                        <Button Content="Установить LM Studio" Command="{Binding InstallLmStudioCommand}" AutomationProperties.AutomationId="Providers.InstallLmStudio" />
+                        <Button Content="Установить и настроить" Command="{Binding InstallLmStudioCommand}" AutomationProperties.AutomationId="Providers.InstallLmStudio" ToolTip="Установить официальный LM Studio Core в выбранную папку, скачать и проверить модель" />
                         <Button Style="{StaticResource Button.Ghost}" Content="Отменить" Command="{Binding CancelLocalAiCommand}" AutomationProperties.AutomationId="Providers.CancelLocalAi" />
                     </WrapPanel>
                     <TextBlock Margin="0,12,0,2" Style="{StaticResource Text.Label}" Text="Установленная chat-модель" />

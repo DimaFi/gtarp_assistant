@@ -30,6 +30,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
 {
     private readonly ILocalAiCapabilityTester _capabilityTester;
     private readonly ILocalAiEngineManager _engineManager;
+    private readonly ILocalAiBootstrapInstaller _bootstrapInstaller;
     private readonly SettingsSaveCoordinator _save;
     private readonly IAppDialogService _dialogs;
     private readonly ILocalModelFileDiscovery _modelFiles;
@@ -52,6 +53,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         SettingsSaveCoordinator save,
         ILocalAiCapabilityTester capabilityTester,
         ILocalAiEngineManager engineManager,
+        ILocalAiBootstrapInstaller bootstrapInstaller,
         IAppDialogService dialogs,
         ILocalModelFileDiscovery modelFiles,
         IUiDispatcher dispatcher,
@@ -59,6 +61,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
     {
         _capabilityTester = capabilityTester;
         _engineManager = engineManager;
+        _bootstrapInstaller = bootstrapInstaller;
         _save = save;
         _dialogs = dialogs;
         _modelFiles = modelFiles;
@@ -67,7 +70,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         CheckEndpointCommand = new AsyncRelayCommand(CheckEndpointAsync);
         DiscoverModelsCommand = new AsyncRelayCommand(DiscoverModelsAsync);
         TestCapabilityCommand = new AsyncRelayCommand(TestCapabilityAsync);
-        RefreshLocalAiCommand = new AsyncRelayCommand(RefreshLocalAiAsync);
+        RefreshLocalAiCommand = new AsyncRelayCommand(() => RefreshLocalAiAsync());
         AutoConfigureCommand = new AsyncRelayCommand(AutoConfigureAsync);
         StartServerCommand = new AsyncRelayCommand(StartServerAsync);
         DownloadModelCommand = new AsyncRelayCommand(DownloadSelectedAsync);
@@ -75,7 +78,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         UnloadModelCommand = new AsyncRelayCommand(UnloadAsync);
         EstimateResourcesCommand = new AsyncRelayCommand(EstimateSelectedAsync);
         CancelLocalAiCommand = new RelayCommand(CancelOperation);
-        InstallLmStudioCommand = new RelayCommand(OpenLmStudioDownload);
+        InstallLmStudioCommand = new AsyncRelayCommand(InstallLmStudioAsync);
         ShowLocalAiHelpCommand = new RelayCommand(ShowHelp);
         BrowseLmStudioCliCommand = new RelayCommand(BrowseLmStudioCli);
         BrowseLmStudioApplicationCommand = new RelayCommand(BrowseLmStudioApplication);
@@ -143,7 +146,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         return endpoint;
     }
 
-    private OpenAiCompatibleChatProvider CreateProvider(HttpClient client, TimeSpan timeout, string? modelId = null)
+    private OpenAiCompatibleChatProvider CreateProvider(HttpClient client, TimeSpan timeout, string? modelId = null, int? maxOutputTokens = null)
     {
         if (!Uri.TryCreate(Settings.Endpoint, UriKind.Absolute, out var endpoint))
             throw new InvalidOperationException("Укажите корректный URI локального endpoint.");
@@ -152,7 +155,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         var selectedModel = string.IsNullOrWhiteSpace(modelId) ? Settings.Model : modelId;
         if (string.IsNullOrWhiteSpace(selectedModel)) throw new InvalidOperationException("Выберите chat-модель.");
         return new(client, new(endpoint, selectedModel, string.IsNullOrWhiteSpace(ApiKey) ? null : ApiKey,
-            timeout, true, "lm-studio", ProviderKind.LmStudio));
+            timeout, true, "lm-studio", ProviderKind.LmStudio, maxOutputTokens));
     }
 
     private async Task CheckEndpointAsync()
@@ -210,7 +213,8 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
             var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), Settings.LocalAiPerformanceProfile)
                 ? (LocalAiPerformanceProfile)Settings.LocalAiPerformanceProfile
                 : LocalAiPerformanceProfile.Balanced;
-            var provider = CreateProvider(client, LocalAiGenerationSettings.For(profile).Timeout, modelId);
+            var generation = LocalAiGenerationSettings.For(profile);
+            var provider = CreateProvider(client, generation.Timeout, modelId, generation.MaxOutputTokens);
             var report = await _capabilityTester.TestAsync(provider, cancellationToken);
             var warnings = report.Warnings.Count == 0 ? "" : $" Предупреждения: {string.Join("; ", report.Warnings)}";
             CapabilityStatus = $"{report.Recommendation}. Средняя задержка: {report.AverageLatency.TotalSeconds:F1} с.{warnings}";
@@ -227,12 +231,12 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         }
     }
 
-    private async Task RefreshLocalAiAsync()
+    private async Task RefreshLocalAiAsync(bool updateProgress = true)
     {
         try
         {
             var snapshot = await _engineManager.InspectAsync(Engine, Endpoint(), CancellationToken.None);
-            ApplySnapshot(snapshot);
+            ApplySnapshot(snapshot, updateProgress);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
@@ -242,7 +246,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         }
     }
 
-    private void ApplySnapshot(LocalAiEngineSnapshot snapshot)
+    private void ApplySnapshot(LocalAiEngineSnapshot snapshot, bool updateProgress = true)
     {
         _snapshot = snapshot;
         EngineStatus = snapshot.IsInstalled ? $"✓ {snapshot.DisplayName} установлен" : $"✕ {snapshot.DisplayName} не обнаружен";
@@ -250,7 +254,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         var chatModels = snapshot.Models.Where(x => x.IsChatModel).OrderBy(x => x.DisplayName).ToArray();
         ModelStatus = snapshot.ActiveModelKey is not null ? $"✓ В памяти: {snapshot.ActiveModelKey}"
             : chatModels.Length > 0 ? $"Доступно chat-моделей: {chatModels.Length}" : "Chat-модель не найдена";
-        SetupProgress = snapshot.Message;
+        if (updateProgress) SetupProgress = snapshot.Message;
         InstallationPaths = $"CLI: {snapshot.CliPath ?? "не найден"}\nLM Studio: {snapshot.ApplicationPath ?? "не найден"}";
         AvailableModels.Clear();
         InstalledModels.Clear();
@@ -289,6 +293,46 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         Settings.LmStudioApplicationPath = "";
         InstallationPaths = "Пути LM Studio определяются автоматически.";
         SetupProgress = "Ручные пути очищены. Будет использован автоматический поиск.";
+    }
+
+    private async Task InstallLmStudioAsync()
+    {
+        LocalAiEngineSnapshot? existing = null;
+        try { existing = await _engineManager.InspectAsync(Engine, Endpoint(), CancellationToken.None); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { SetupProgress = $"Не удалось проверить текущую установку: {ex.Message}"; }
+        if (existing?.IsInstalled == true)
+        {
+            SetupProgress = "LM Studio Core уже установлен. Запускаю автоматическую настройку модели…";
+            await AutoConfigureAsync();
+            return;
+        }
+
+        var home = _dialogs.PickFolder("Выберите существующую папку для LM Studio Core и моделей", AppContext.BaseDirectory);
+        if (home is null) return;
+        if (!_dialogs.Confirm("Установка LM Studio Core",
+            $"Приложение скачает официальный HTTPS-установщик с lmstudio.ai и установит локальный движок в:\n{home}\\.lmstudio\n\nПосле этого будет автоматически выбрана, скачана и проверена подходящая модель. Продолжить?")) return;
+
+        var operation = BeginOperation();
+        try
+        {
+            SetupProgress = "Скачиваю и проверяю официальный установщик LM Studio Core…";
+            var result = await _bootstrapInstaller.InstallAsync(home, operation.Token);
+            Settings.LmStudioCliPath = result.CliPath;
+            Settings.LmStudioApplicationPath = "";
+            await _save.SaveAsync();
+            InstallationPaths = $"CLI: {result.CliPath}\nLM Studio Core: {result.InstallHome}";
+            SetupProgress = $"LM Studio Core установлен (SHA-256 сценария: {result.InstallerSha256[..12]}…). Настраиваю модель…";
+            await AutoConfigureAsync();
+        }
+        catch (OperationCanceledException) when (operation.IsCancellationRequested)
+        {
+            SetupProgress = "Установка LM Studio Core отменена.";
+        }
+        catch (Exception ex)
+        {
+            SetupProgress = $"Не удалось установить LM Studio Core: {ex.Message}";
+            _dialogs.ShowError("Установка LM Studio Core", SetupProgress);
+        }
     }
 
     private async Task AutoConfigureAsync()
@@ -353,14 +397,14 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
             if (!await TestCapabilityInternalAsync(ct, modelKey))
             {
                 SetupProgress = "Модель загружена, но не прошла capability-test. Действующий маршрут не изменён.";
-                await RefreshLocalAiAsync();
+                await RefreshLocalAiAsync(updateProgress: false);
                 return;
             }
             SetupProgress = "Шаг 8/8 · сохранение профиля";
             Settings.Model = modelKey;
             Settings.ChatProviderMode = (int)ProviderSelectionMode.Local;
             await _save.SaveAsync();
-            await RefreshLocalAiAsync();
+            await RefreshLocalAiAsync(updateProgress: false);
             SetupProgress = "✓ Local AI готов к работе.";
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { SetupProgress = "Автоматическая настройка отменена."; }
@@ -456,7 +500,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         SetupProgress = $"Проверяю и импортирую {Path.GetFileName(path)}. Исходный файл будет сохранён…";
         var imported = await _engineManager.ImportModelAsync(Engine, path, cancellationToken);
         PendingModelKey = imported.Key;
-        await RefreshLocalAiAsync();
+        await RefreshLocalAiAsync(updateProgress: false);
         SetupProgress = $"Импортирована {imported.DisplayName}. Загружаю и проверяю совместимость…";
         await ActivateModelAsync(imported.Key, cancellationToken);
     }
@@ -474,13 +518,13 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         if (!await TestCapabilityInternalAsync(cancellationToken, modelKey))
         {
             SetupProgress = "Модель осталась в памяти, но не прошла capability-test. Действующий маршрут не изменён.";
-            await RefreshLocalAiAsync();
+            await RefreshLocalAiAsync(updateProgress: false);
             return false;
         }
         Settings.Model = modelKey;
         Settings.ChatProviderMode = (int)ProviderSelectionMode.Local;
         await _save.SaveAsync();
-        await RefreshLocalAiAsync();
+        await RefreshLocalAiAsync(updateProgress: false);
         SetupProgress = $"✓ Модель {modelKey} используется ассистентом.";
         return true;
     }
@@ -526,7 +570,6 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
     }
     private void CancelOperation() { _operation?.Cancel(); _operation?.Dispose(); _operation = null; }
     private static string FormatBytes(double value) => value <= 0 ? "неизвестно" : value >= 1024 * 1024 * 1024 ? $"{value / 1024 / 1024 / 1024:F1} ГБ" : $"{value / 1024 / 1024:F0} МБ";
-    private static void OpenLmStudioDownload() => Process.Start(new ProcessStartInfo("https://lmstudio.ai/download") { UseShellExecute = true });
     private void ShowHelp() => _dialogs.ShowInformation("Как работает Local AI", "LM Studio — локальный backend. GTA RP Assistant проверяет API, управляет загрузкой модели и применяет безопасный профиль. Модель занимает RAM/VRAM только пока загружена. Для снижения нагрузки используйте компактный профиль или кнопку «Освободить память». Первая загрузка долгая из-за скачивания нескольких гигабайт. Удаление файла модели пока выполняется в LM Studio; приложение безопасно умеет выгружать её из памяти.");
 }
 
