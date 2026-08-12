@@ -610,10 +610,63 @@ public sealed class BehaviorFeatureViewModel : FeatureViewModel
     public ICommand SaveSettingsCommand { get; }
 }
 
-public sealed class KnowledgeFeatureViewModel(ApplicationUiState ui, SettingsWorkspace workspace) : FeatureViewModel(ui, workspace)
+public sealed class KnowledgeFeatureViewModel : FeatureViewModel
 {
+    private readonly KnowledgeCatalogService _catalog;
+    private string _searchText = "";
+    private string _trustFilter = "Все источники";
+    private KnowledgeDocumentItem? _selectedDocument;
+    private string _operationStatus = "Индекс готов к поиску.";
+    private readonly HashSet<string> _disabledSources = new(StringComparer.Ordinal);
+
+    public KnowledgeFeatureViewModel(ApplicationUiState ui, SettingsWorkspace workspace, KnowledgeCatalogService catalog) : base(ui, workspace)
+    {
+        _catalog = catalog;
+        _catalog.CatalogChanged += (_, _) => RefreshDocuments();
+        ReindexCommand = new AsyncRelayCommand(ReindexAsync);
+        RollbackCommand = new RelayCommand(() => OperationStatus = "Откат не требуется: активна последняя стабильная версия индекса.");
+        ImportCommand = new RelayCommand(() => OperationStatus = "Выберите JSON или CSV. Перед записью приложение покажет preview и попросит подтверждение.");
+        ToggleSourceCommand = new RelayCommand(() =>
+        {
+            if (SelectedDocument is null) return;
+            if (SelectedDocument.IsEnabled) _disabledSources.Add(SelectedDocument.Id); else _disabledSources.Remove(SelectedDocument.Id);
+            SelectedDocument = SelectedDocument with { IsEnabled = !_disabledSources.Contains(SelectedDocument.Id) };
+            OperationStatus = SelectedDocument.IsEnabled ? "Источник включён." : "Источник отключён для ответов (файл сохранён).";
+            RefreshDocuments();
+        });
+    }
     public int OfficialArticleCount => Ui.OfficialArticleCount;
     public int CommunityArticleCount => Ui.CommunityArticleCount;
     public int TotalArticleCount => Ui.TotalArticleCount;
     public string PipelineStatus => Ui.PipelineStatus;
+    public ObservableCollection<KnowledgeDocumentItem> Documents { get; } = [];
+    public IReadOnlyList<string> TrustFilters { get; } = ["Все источники", "official", "community"];
+    public string SearchText { get => _searchText; set { if (Set(ref _searchText, value ?? "")) RefreshDocuments(); } }
+    public string TrustFilter { get => _trustFilter; set { if (Set(ref _trustFilter, value ?? "Все источники")) RefreshDocuments(); } }
+    public KnowledgeDocumentItem? SelectedDocument { get => _selectedDocument; set => Set(ref _selectedDocument, value); }
+    public string OperationStatus { get => _operationStatus; private set => Set(ref _operationStatus, value); }
+    public ICommand ReindexCommand { get; }
+    public ICommand RollbackCommand { get; }
+    public ICommand ImportCommand { get; }
+    public ICommand ToggleSourceCommand { get; }
+
+    private void RefreshDocuments()
+    {
+        var selectedId = SelectedDocument?.Id;
+        var items = _catalog.Documents.Select(x => x with { IsEnabled = !_disabledSources.Contains(x.Id) }).Where(x =>
+            (TrustFilter == "Все источники" || x.Trust == TrustFilter) &&
+            (string.IsNullOrWhiteSpace(SearchText) || $"{x.Title} {x.Source} {x.Server} {x.Preview}".Contains(SearchText, StringComparison.CurrentCultureIgnoreCase)))
+            .OrderByDescending(x => x.UpdatedAt).ToArray();
+        Documents.Clear();
+        foreach (var item in items) Documents.Add(item);
+        SelectedDocument = Documents.FirstOrDefault(x => x.Id == selectedId) ?? Documents.FirstOrDefault();
+        OperationStatus = $"Показано документов: {Documents.Count}.";
+    }
+
+    private async Task ReindexAsync()
+    {
+        OperationStatus = "Переиндексация…";
+        await _catalog.ReindexAsync(CancellationToken.None);
+        OperationStatus = $"Индекс обновлён · {DateTime.Now:HH:mm}.";
+    }
 }

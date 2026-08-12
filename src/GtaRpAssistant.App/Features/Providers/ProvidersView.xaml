@@ -61,6 +61,20 @@
                     <CheckBox Margin="0,12,0,0" Content="Расширенные настройки" IsChecked="{Binding Settings.LocalAiAdvancedMode}" AutomationProperties.AutomationId="Providers.AdvancedMode" />
                 </StackPanel>
             </Border>
+            <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,0,0,14" AutomationProperties.AutomationId="Providers.CloudQuickSetup">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Облачный AI · быстрое подключение" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="1. Включите облако  2. Вставьте данные провайдера  3. Нажмите «Сохранить». Ключ защищён Windows DPAPI." TextWrapping="Wrap" />
+                    <CheckBox Content="Разрешить облачный AI" IsChecked="{Binding Settings.AllowCloud}" AutomationProperties.AutomationId="Providers.QuickAllowCloud" />
+                    <Grid Margin="0,8,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="HTTPS endpoint" /><TextBox Text="{Binding Settings.CloudEndpoint}" ToolTip="Например: https://api.openai.com/v1" AutomationProperties.AutomationId="Providers.QuickCloudEndpoint" /></StackPanel>
+                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="Модель" /><TextBox Text="{Binding Settings.CloudModel}" ToolTip="Имя модели из кабинета провайдера" AutomationProperties.AutomationId="Providers.QuickCloudModel" /></StackPanel>
+                    </Grid>
+                    <TextBlock Margin="0,8,0,2" Style="{StaticResource Text.Label}" Text="API-ключ" />
+                    <PasswordBox components:PasswordBoxBinding.IsEnabled="True" components:PasswordBoxBinding.Password="{Binding CloudApiKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.QuickCloudApiKey" />
+                    <Button Margin="0,10,0,0" HorizontalAlignment="Left" Style="{StaticResource Button.Primary}" Content="Сохранить и применить" Command="{Binding SaveSettingsCommand}" AutomationProperties.AutomationId="Providers.QuickCloudSave" />
+                </StackPanel>
+            </Border>
             <StackPanel>
                 <StackPanel.Style>
                     <Style TargetType="StackPanel">

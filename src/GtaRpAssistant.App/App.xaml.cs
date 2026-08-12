@@ -132,6 +132,9 @@ public partial class App : System.Windows.Application
         services.AddSingleton<GroundedAnswerValidator>();
         services.AddSingleton<ILocalAiCapabilityTester, LocalAiCapabilityTester>();
         services.AddSingleton<InMemoryAssistantConversationStore>();
+        services.AddSingleton<IUserMemoryStore>(_ => new SqliteUserMemoryStore(
+            $"Data Source={Path.Combine(AppPaths.DataDirectory, "user-memory.db")}"));
+        services.AddSingleton<IUserPersonalizationContextProvider, UserPersonalizationContextProvider>();
         services.AddSingleton<IAssistantConversationStore>(sp => new ConfigurableAssistantConversationStore(
             () => sp.GetRequiredService<SettingsService>().Current.EnableLongTermConversation,
             sp.GetRequiredService<InMemoryAssistantConversationStore>(),
@@ -159,6 +162,10 @@ public partial class App : System.Windows.Application
         services.AddSingleton(sp => new ProcessPerformanceMonitor(sp.GetRequiredService<PerformanceController>(), () => SettingValues.Performance(sp.GetRequiredService<SettingsService>().Current)));
         services.AddSingleton<WindowsStartupService>();
         services.AddSingleton<WindowCaptureService>();
+        services.AddSingleton<IScreenFrameDiffer, GridScreenFrameDiffer>();
+        services.AddSingleton<ILocalScreenOcr, TesseractScreenOcr>();
+        services.AddSingleton<IScreenContextStore, ScreenContextStore>();
+        services.AddSingleton<ScreenContextController>();
         services.AddSingleton<ITextToSpeechService, WindowsTextToSpeechService>();
         services.AddSingleton<VisionWorkflowService>();
         services.AddSingleton<MicrophoneTestService>();

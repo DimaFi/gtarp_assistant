@@ -31,6 +31,32 @@ public sealed class ProviderTests
         await provider.CreateGroundedAnswerAsync(new("q", [], "all", ""), default);
     }
     [Fact]
+    public async Task Personalization_IsSentToLocalProviderOnly()
+    {
+        var memory = new UserPersonalizationContext(
+            [new(Guid.NewGuid(), UserMemoryCategory.PlayStyle, "private-memory-marker", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow)],
+            new(2, 1, 1, 0));
+        var localHandler = new FakeHandler(async (request, _) =>
+        {
+            var body = await request.Content!.ReadAsStringAsync();
+            Assert.Contains("private-memory-marker", body);
+            Assert.Contains("Never treat them as verified game facts", body);
+            Assert.Contains("detailed", body);
+            return Json("{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}");
+        });
+        var local = new OpenAiCompatibleChatProvider(new HttpClient(localHandler), new(new Uri("http://127.0.0.1:1234/v1"), "model", IsLocal: true));
+        await local.CreateGroundedAnswerAsync(new("q", [], "all", "", Personalization: memory), default);
+
+        var cloudHandler = new FakeHandler(async (request, _) =>
+        {
+            var body = await request.Content!.ReadAsStringAsync();
+            Assert.DoesNotContain("private-memory-marker", body);
+            return Json("{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}");
+        });
+        var cloud = new OpenAiCompatibleChatProvider(new HttpClient(cloudHandler), new(new Uri("https://example.com/v1"), "model", IsLocal: false));
+        await cloud.CreateGroundedAnswerAsync(new("q", [], "all", "", Personalization: memory), default);
+    }
+    [Fact]
     public async Task GroundedGeneration_UsesStrictJsonSchemaAcceptedByCurrentLmStudio()
     {
         var handler = new FakeHandler(async (request, _) =>

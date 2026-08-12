@@ -38,6 +38,7 @@ public sealed record GroundedAnswerRequest(
     string TranscriptContext,
     AssistantRequestType RequestType = AssistantRequestType.DirectKnowledgeQuestion,
     IReadOnlyList<AssistantConversationTurn>? Conversation = null,
+    UserPersonalizationContext? Personalization = null,
     bool IsRepair = false,
     string? InvalidResponse = null);
 public sealed record GroundedAnswerResponse(string Json);

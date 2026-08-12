@@ -44,6 +44,7 @@ public static class FeatureRegistration
         Add<ProvidersFeatureViewModel, ProvidersView>(services, "providers", "AI и модели", "AI", 30);
         Add<BehaviorFeatureViewModel, BehaviorView>(services, "behavior", "Поведение", "⌁", 40);
         Add<PrivacyFeatureViewModel, PrivacyView>(services, "privacy", "Приватность", "◇", 50);
+        Add<MemoryFeatureViewModel, MemoryView>(services, "memory", "Память", "◈", 55);
         Add<KnowledgeFeatureViewModel, KnowledgeView>(services, "knowledge", "База знаний", "▤", 60);
         Add<AboutFeatureViewModel, AboutView>(services, "about", "О приложении", "i", 70);
         services.AddSingleton<FeatureRegistry>();

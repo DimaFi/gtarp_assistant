@@ -43,6 +43,12 @@ public sealed class MainViewModel : ObservableObject
     public void ReportHotkeyFailures(IReadOnlyCollection<GlobalHotkeyAction> failures) => _lifecycle.ReportHotkeyFailures(failures);
     public Task HandleVisionHotkeyAsync() => _lifecycle.HandleVisionHotkeyAsync();
 
+    public void SelectFeature(string id)
+    {
+        var item = NavigationItems.FirstOrDefault(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase));
+        if (item is not null) SelectPage(item);
+    }
+
     private void SelectPage(ShellNavigationItem selected)
     {
         foreach (var item in NavigationItems) item.IsSelected = ReferenceEquals(item, selected);

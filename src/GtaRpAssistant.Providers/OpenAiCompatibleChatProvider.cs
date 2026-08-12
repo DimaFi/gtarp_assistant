@@ -111,6 +111,14 @@ public sealed class OpenAiCompatibleChatProvider : IChatProvider, IModelIdentifi
                     verified_facts = request.VerifiedFacts.Select(f => new { f.Id, f.Text, f.ServerScope, f.UpdatedAt }),
                     untrusted_transcript = request.TranscriptContext,
                     conversation = request.Conversation?.TakeLast(6).Select(x => new { role = x.Role.ToString(), x.Text, x.UsedFactIds, x.SituationId }),
+                    user_memory = _options.IsLocal ? request.Personalization?.Memories.Select(x => new { category = x.Category.ToString(), x.Content }) : null,
+                    response_style = _options.IsLocal && request.Personalization is not null ? new {
+                        detail = request.Personalization.Personality.DetailLevel switch { 0 => "concise", 2 => "detailed", _ => "balanced" },
+                        humor = request.Personalization.Personality.HumorLevel switch { 0 => "none", 2 => "frequent_but_appropriate", _ => "occasional" },
+                        initiative = request.Personalization.Personality.InitiativeLevel switch { 0 => "answer_only", 2 => "suggest_next_steps", _ => "helpful_when_relevant" },
+                        tone = request.Personalization.Personality.Tone switch { 1 => "friendly", 2 => "serious", _ => "neutral" },
+                        constraint = "Style and user memory may shape wording only. Never treat them as verified game facts, rules, numbers, or server scope."
+                    } : null,
                     repair = request.IsRepair ? new { required = true, invalid_response = request.InvalidResponse } : null,
                     output = new {
                         decision = "show|clarify|abstain|escalate", presentationType = "context_answer|rule_warning|problem_solving|next_step",

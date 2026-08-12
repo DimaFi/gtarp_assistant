@@ -23,6 +23,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
     private readonly GameSessionMonitor _gameMonitor;
     private readonly ProcessPerformanceMonitor _performanceMonitor;
     private readonly VisionWorkflowService _vision;
+    private readonly ScreenContextController _screenContext;
     private readonly AudioFeatureViewModel _audioFeature;
     private readonly PrivacyFeatureViewModel _privacyFeature;
     private readonly VoiceInteractionCoordinator _voiceInteraction;
@@ -44,6 +45,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         GameSessionMonitor gameMonitor,
         ProcessPerformanceMonitor performanceMonitor,
         VisionWorkflowService vision,
+        ScreenContextController screenContext,
         AudioFeatureViewModel audioFeature,
         PrivacyFeatureViewModel privacyFeature,
         VoiceInteractionCoordinator voiceInteraction,
@@ -64,6 +66,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         _gameMonitor = gameMonitor;
         _performanceMonitor = performanceMonitor;
         _vision = vision;
+        _screenContext = screenContext;
         _audioFeature = audioFeature;
         _privacyFeature = privacyFeature;
         _voiceInteraction = voiceInteraction;
@@ -109,6 +112,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         if (!_executionMode.IsAutomation && _settingsService.Current.WatchGta)
             await _gameMonitor.StartAsync(cancellationToken);
         await _performanceMonitor.StartAsync(cancellationToken);
+        _screenContext.Start();
 
         _ui.PipelineStatus = $"Готово: статей {catalog.TotalArticles}. Transcript → Intent → Knowledge → Router → Validator → Overlay";
         IsInitialized = true;
@@ -122,9 +126,11 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         _session.SetPaused(_paused);
         if (_paused)
         {
+            await _screenContext.StopAsync();
             _privacyFeature.StopSpeech();
             await _audioFeature.StopAsync();
         }
+        else _screenContext.Start();
         UpdateAppStatus();
     }
 
@@ -271,10 +277,10 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         else System.Windows.Application.Current.Dispatcher.Invoke(action);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         _voiceInteraction.StateChanged -= OnVoiceInteractionStateChanged;
         _privacyFeature.StopSpeech();
-        return ValueTask.CompletedTask;
+        await _screenContext.StopAsync();
     }
 }

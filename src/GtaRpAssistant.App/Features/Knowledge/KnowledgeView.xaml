@@ -24,6 +24,32 @@
                                    AutomationProperties.AutomationId="Knowledge.Community" />
             </UniformGrid>
 
+            <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0,0,0,12"
+                                   Title="Документы и источники"
+                                   Description="Поиск по названию, источнику и фактам. Выберите документ, чтобы увидеть его chunks и дату актуальности.">
+                <StackPanel>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="150" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="Название, источник или факт" AutomationProperties.AutomationId="Knowledge.Search" />
+                        <ComboBox Grid.Column="1" Margin="8,0" ItemsSource="{Binding TrustFilters}" SelectedItem="{Binding TrustFilter}" AutomationProperties.AutomationId="Knowledge.TrustFilter" />
+                        <Button Grid.Column="2" Content="Импорт файла…" Command="{Binding ImportCommand}" AutomationProperties.AutomationId="Knowledge.Import" />
+                    </Grid>
+                    <ListBox Height="210" ItemsSource="{Binding Documents}" SelectedItem="{Binding SelectedDocument}" AutomationProperties.AutomationId="Knowledge.Documents">
+                        <ListBox.ItemTemplate><DataTemplate><Grid Margin="5"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel><TextBlock Text="{Binding Title}" FontWeight="SemiBold" /><TextBlock Style="{StaticResource Text.Secondary}"><Run Text="{Binding Trust}" /><Run Text=" · " /><Run Text="{Binding Source}" /><Run Text=" · " /><Run Text="{Binding Server}" /><Run Text=" · " /><Run Text="{Binding FactLabel, Mode=OneWay}" /></TextBlock></StackPanel>
+                            <TextBlock Grid.Column="1" Text="{Binding UpdatedLabel, Mode=OneWay}" Style="{StaticResource Text.Secondary}" />
+                        </Grid></DataTemplate></ListBox.ItemTemplate>
+                    </ListBox>
+                    <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,10,0,0" DataContext="{Binding SelectedDocument}">
+                        <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="PREVIEW ФАКТОВ / CHUNKS" /><TextBlock Margin="0,6,0,0" Text="{Binding Preview}" TextWrapping="Wrap" MaxHeight="120" /></StackPanel>
+                    </Border>
+                    <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Text="{Binding OperationStatus}" Style="{StaticResource Text.Secondary}" AutomationProperties.AutomationId="Knowledge.Status" />
+                        <WrapPanel Grid.Column="1"><Button Content="Вкл / выкл источник" Command="{Binding ToggleSourceCommand}" AutomationProperties.AutomationId="Knowledge.ToggleSource" /><Button Content="Reindex" Command="{Binding ReindexCommand}" AutomationProperties.AutomationId="Knowledge.Reindex" /><Button Content="Rollback" Command="{Binding RollbackCommand}" AutomationProperties.AutomationId="Knowledge.Rollback" /></WrapPanel>
+                    </Grid>
+                </StackPanel>
+            </design:FeatureSection>
+
             <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0"
                                    Title="Правила доверия"
                                    Description="Источник и актуальность проверяются до формирования ответа.">

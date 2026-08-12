@@ -44,6 +44,7 @@ public sealed class SettingsEditor : ObservableObject
     private string _embeddedSttPackPath = "";
     private bool _overlayEnabled = true;
     private bool _overlayPinned;
+    private int _screenObservationMode;
 
     public string Server { get => _server; set => Set(ref _server, value); }
     public string Endpoint { get => _endpoint; set => Set(ref _endpoint, value); }
@@ -87,6 +88,7 @@ public sealed class SettingsEditor : ObservableObject
     public string EmbeddedSttPackPath { get => _embeddedSttPackPath; set => Set(ref _embeddedSttPackPath, value); }
     public bool OverlayEnabled { get => _overlayEnabled; set => Set(ref _overlayEnabled, value); }
     public bool OverlayPinned { get => _overlayPinned; set => Set(ref _overlayPinned, value); }
+    public int ScreenObservationMode { get => _screenObservationMode; set => Set(ref _screenObservationMode, value); }
 
     public static SettingsEditor From(AppSettings value)
     {
@@ -112,6 +114,7 @@ public sealed class SettingsEditor : ObservableObject
         EmbeddedSttPackPath = value.EmbeddedSttPackPath,
         OverlayEnabled = value.OverlayEnabled,
         OverlayPinned = value.OverlayPinned,
+        ScreenObservationMode = value.ScreenObservationMode,
         };
     }
 
@@ -138,6 +141,7 @@ public sealed class SettingsEditor : ObservableObject
         EmbeddedSttPackPath = EmbeddedSttPackPath.Trim(),
         OverlayEnabled = OverlayEnabled,
         OverlayPinned = OverlayPinned,
+        ScreenObservationMode = Enum.IsDefined(typeof(GtaRpAssistant.Core.ScreenObservationMode), ScreenObservationMode) ? ScreenObservationMode : 0,
         ProviderRouting = routes with
         {
             SpeechToText = routes.SpeechToText with { Mode = Mode(SttProviderMode) },

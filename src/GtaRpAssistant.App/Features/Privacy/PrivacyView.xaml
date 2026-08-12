@@ -67,6 +67,22 @@
                             AutomationProperties.AutomationId="Privacy.Save" />
                 </StackPanel>
             </design:FeatureSection>
+
+            <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0"
+                                   Title="Локальное понимание экрана"
+                                   Description="Только окно GTA. Кадры не сохраняются и OCR-текст не отправляется облачным провайдерам.">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Режим наблюдения" />
+                    <ComboBox SelectedValue="{Binding Settings.ScreenObservationMode}" SelectedValuePath="Tag"
+                              AutomationProperties.AutomationId="Privacy.ScreenObservationMode">
+                        <ComboBoxItem Content="Выключено" Tag="0" />
+                        <ComboBoxItem Content="По событиям · 1 кадр / 1,5 с" Tag="1" />
+                        <ComboBoxItem Content="Низкая частота · 1 кадр / с" Tag="2" />
+                    </ComboBox>
+                    <TextBlock Style="{StaticResource Text.Secondary}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Text="OCR запускается только после заметного изменения кадра. Требуется локальный tesseract.exe с языками rus+eng; путь можно задать переменной GTA_RP_TESSERACT_PATH." />
+                </StackPanel>
+            </design:FeatureSection>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

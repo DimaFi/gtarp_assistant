@@ -49,7 +49,12 @@ public sealed record AppSettings(
     bool OverlayEnabled = true,
     bool OverlayPinned = false,
     double? OverlayLeft = null,
-    double? OverlayTop = null);
+    double? OverlayTop = null,
+    bool FirstRunCompleted = false,
+    int ScreenObservationMode = 0,
+    int ScreenCaptureIntervalMs = 1000,
+    double ScreenDiffThreshold = 0.015,
+    int ScreenContextTtlSeconds = 20);
 
 public sealed class SettingsService
 {
@@ -120,6 +125,10 @@ public static class SettingValues
         Enum.IsDefined(typeof(VoiceInteractionMode), settings.VoiceHotkeyMode)
             ? (VoiceInteractionMode)settings.VoiceHotkeyMode
             : VoiceInteractionMode.Toggle;
+    public static ScreenObservationMode ScreenObservation(AppSettings settings) =>
+        Enum.IsDefined(typeof(ScreenObservationMode), settings.ScreenObservationMode)
+            ? (ScreenObservationMode)settings.ScreenObservationMode
+            : ScreenObservationMode.Off;
     public static LocalAiGenerationSettings LocalAi(AppSettings settings)
     {
         var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), settings.LocalAiPerformanceProfile)

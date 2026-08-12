@@ -17,6 +17,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IProactivePolicy _proactive;
     private readonly ISessionEventSink _events;
     private readonly IAssistantConversationStore _conversation;
+    private readonly IUserPersonalizationContextProvider? _personalization;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -34,7 +35,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         ITranscriptDeduplicator deduplicator,
         IProactivePolicy proactive,
         ISessionEventSink events,
-        IAssistantConversationStore? conversation = null)
+        IAssistantConversationStore? conversation = null,
+        IUserPersonalizationContextProvider? personalization = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -48,6 +50,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _proactive = proactive;
         _events = events;
         _conversation = conversation ?? new InMemoryAssistantConversationStore();
+        _personalization = personalization;
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -105,6 +108,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             }
             _transcripts.Add(entry);
             if (entry.Source == AudioSourceKind.GameAudio) return null;
+            _personalization?.ApplyExplicitFeedback(entry.Text);
 
             if (!_proactive.CanProcess(request.Activation, entry.Text, DateTimeOffset.UtcNow, out var policyReason))
             {
@@ -197,7 +201,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                     {
                         try
                         {
-                            var groundedRequest = new GroundedAnswerRequest(entry.Text, verifiedFacts, request.Server, FormatContext(context), requestType, relevantConversation.Turns);
+                            var groundedRequest = new GroundedAnswerRequest(entry.Text, verifiedFacts, request.Server, FormatContext(context), requestType, relevantConversation.Turns, _personalization?.Build(entry.Text));
                             var response = await provider.CreateGroundedAnswerAsync(groundedRequest, ct);
                             var candidate = _validator.Validate(response.Json, match, request.Server, request.VoiceEnabled);
                             if (candidate.DiagnosticReason != GroundedAnswerValidator.PassedReason)

@@ -45,6 +45,13 @@ public partial class MainWindow : Window
         try
         {
             await _viewModel.InitializeAsync(CancellationToken.None);
+            if (!_executionMode.IsAutomation && !_settings.Current.FirstRunCompleted)
+            {
+                var wizard = new FirstRunWindow { Owner = this };
+                wizard.ShowDialog();
+                await _settings.SaveAsync(_settings.Current with { FirstRunCompleted = true }, CancellationToken.None);
+                _viewModel.SelectFeature(wizard.KnowledgeOnly ? "knowledge" : "providers");
+            }
             ConfigureGlobalInput();
         }
         catch (Exception ex) { _dialogs.ShowError("GTA RP Assistant", $"Ошибка инициализации: {ex.Message}"); }
