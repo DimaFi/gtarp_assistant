@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.Json;
 using GtaRpAssistant.Infrastructure.Windows;
 
@@ -6,16 +8,22 @@ public static class SttLifecycleBenchmark
 {
     public static async Task<int> RunAsync(string[] args)
     {
-        if (args.Length != 4 || !int.TryParse(args[2], out var iterations) || iterations is < 1 or > 100)
+        if (args.Length is < 4 or > 5 || !int.TryParse(args[2], out var iterations) || iterations is < 1 or > 100)
         {
-            Console.Error.WriteLine("Usage: GtaRpAssistant.SttBenchmark lifecycle <pack-directory> <audio.wav> <iterations:1-100> <report.json>");
+            Console.Error.WriteLine("Usage: GtaRpAssistant.SttBenchmark lifecycle <pack-directory> <audio.wav> <iterations:1-100> <report.json> [hardware-profile]");
             return 1;
         }
         var packDirectory = Path.GetFullPath(args[0]);
         var wavePath = Path.GetFullPath(args[1]);
         var reportPath = Path.GetFullPath(args[3]);
+        var hardwareProfile = args.Length == 5 ? args[4].Trim() : "unspecified";
+        if (string.IsNullOrWhiteSpace(hardwareProfile)) throw new InvalidDataException("Lifecycle hardware profile is required.");
         var segment = ReadWave(wavePath);
         var results = new List<SttLifecycleIteration>();
+        var locator = new EmbeddedSttPackLocator(() => packDirectory, packDirectory);
+        var inspection = await locator.InspectAsync(CancellationToken.None);
+        if (!inspection.IsValid) throw new InvalidDataException(inspection.Message);
+        var manifestPath = Path.Combine(packDirectory, "stt-pack.json");
 
         for (var index = 1; index <= iterations; index++)
         {
@@ -27,7 +35,6 @@ public static class SttLifecycleBenchmark
             var orphaned = false;
             try
             {
-                var locator = new EmbeddedSttPackLocator(() => packDirectory, packDirectory);
                 await using (var provider = new WhisperCppSpeechToTextProvider(locator))
                 {
                     _ = await provider.TranscribeAsync(segment with { Id = Guid.NewGuid() }, CancellationToken.None);
@@ -45,7 +52,9 @@ public static class SttLifecycleBenchmark
             Console.WriteLine($"Lifecycle {index}/{iterations}: {(error is null ? "PASS" : "FAIL")}, {stopwatch.Elapsed.TotalMilliseconds:F0} ms, private {privateBytes / 1024d / 1024d:F0} MiB");
         }
 
-        var report = new SttLifecycleReport(DateTimeOffset.UtcNow, packDirectory, wavePath, results.All(item => item.Error is null),
+        var report = new SttLifecycleReport(DateTimeOffset.UtcNow, inspection.Manifest!.Id, inspection.Manifest.ModelId,
+            await ComputeSha256Async(manifestPath), await ComputeSha256Async(wavePath), hardwareProfile, CaptureHardware(),
+            results.All(item => item.Error is null),
             results.Count(item => item.Error is not null), Percentile(results.Select(item => item.ElapsedMs), .95),
             results.Max(item => item.WorkingSetBytes), results.Max(item => item.PrivateBytes), results);
         Directory.CreateDirectory(Path.GetDirectoryName(reportPath)!);
@@ -55,6 +64,20 @@ public static class SttLifecycleBenchmark
             WriteIndented = true,
         }));
         return report.Passed ? 0 : 2;
+    }
+
+    private static SttHardwareSnapshot CaptureHardware() => new(
+        RuntimeInformation.OSDescription,
+        RuntimeInformation.ProcessArchitecture.ToString(),
+        Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? RuntimeInformation.ProcessArchitecture.ToString(),
+        Environment.ProcessorCount,
+        GC.GetGCMemoryInfo().TotalAvailableMemoryBytes);
+
+    private static async Task<string> ComputeSha256Async(string path)
+    {
+        await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        return Convert.ToHexString(await SHA256.HashDataAsync(stream)).ToLowerInvariant();
     }
 
     private static async Task<bool> IsStillRunningAsync(int processId)
@@ -108,5 +131,9 @@ public static class SttLifecycleBenchmark
 
 public sealed record SttLifecycleIteration(int Iteration, int? ProcessId, double ElapsedMs, long WorkingSetBytes,
     long PrivateBytes, bool OrphanedProcess, string? Error);
-public sealed record SttLifecycleReport(DateTimeOffset CreatedAt, string PackDirectory, string AudioFile, bool Passed,
-    int Failures, double P95ElapsedMs, long PeakWorkingSetBytes, long PeakPrivateBytes, IReadOnlyList<SttLifecycleIteration> Iterations);
+public sealed record SttHardwareSnapshot(string OperatingSystem, string Architecture, string Processor,
+    int LogicalProcessorCount, long AvailableMemoryBytes);
+public sealed record SttLifecycleReport(DateTimeOffset CreatedAt, string PackId, string ModelId,
+    string PackManifestSha256, string AudioSha256, string HardwareProfile, SttHardwareSnapshot Hardware, bool Passed,
+    int Failures, double P95ElapsedMs, long PeakWorkingSetBytes, long PeakPrivateBytes,
+    IReadOnlyList<SttLifecycleIteration> Iterations, int SchemaVersion = 2);

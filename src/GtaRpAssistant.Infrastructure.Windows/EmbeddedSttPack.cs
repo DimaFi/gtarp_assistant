@@ -30,6 +30,7 @@ public sealed record EmbeddedSttPackManifest
     public required string EntryPoint { get; init; }
     public required string ModelId { get; init; }
     public required string ModelFile { get; init; }
+    public string TokenFile { get; init; } = "";
     public string Language { get; init; } = "ru";
     public string InferencePath { get; init; } = "/inference";
     public required string LicenseFile { get; init; }
@@ -47,6 +48,7 @@ public sealed record EmbeddedSttPackInspection(
 {
     public string? EntryPointPath => Manifest is null ? null : System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory, Manifest.EntryPoint));
     public string? ModelPath => Manifest is null ? null : System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory, Manifest.ModelFile));
+    public string? TokenPath => Manifest is null || string.IsNullOrWhiteSpace(Manifest.TokenFile) ? null : System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory, Manifest.TokenFile));
 }
 
 public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string defaultDirectory, string? portableDirectory = null)
@@ -132,7 +134,9 @@ public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string 
             ValidateManifest(manifest);
 
             var declared = manifest.Files.ToDictionary(file => NormalizeRelativePath(file.Path), StringComparer.OrdinalIgnoreCase);
-            foreach (var required in new[] { manifest.EntryPoint, manifest.ModelFile, manifest.LicenseFile })
+            var requiredFiles = new List<string> { manifest.EntryPoint, manifest.ModelFile, manifest.LicenseFile };
+            if (!string.IsNullOrWhiteSpace(manifest.TokenFile)) requiredFiles.Add(manifest.TokenFile);
+            foreach (var required in requiredFiles)
                 if (!declared.ContainsKey(NormalizeRelativePath(required)))
                     throw new InvalidDataException($"Обязательный файл '{required}' не включён в список контроля целостности.");
 
@@ -181,7 +185,11 @@ public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string 
         if (manifest.Files is null) throw new InvalidDataException("Список файлов STT-пака отсутствует.");
         if (manifest.Limits is null) throw new InvalidDataException("Лимиты STT-пака отсутствуют.");
         if (manifest.SchemaVersion != 1) throw new InvalidDataException($"Неподдерживаемая версия манифеста: {manifest.SchemaVersion}.");
-        if (!string.Equals(manifest.Runtime, "whisper.cpp", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Поддерживается только runtime whisper.cpp.");
+        if (!string.Equals(manifest.Runtime, "whisper.cpp", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(manifest.Runtime, "sherpa-onnx", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Неподдерживаемый STT runtime.");
+        if (string.Equals(manifest.Runtime, "sherpa-onnx", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(manifest.TokenFile))
+            throw new InvalidDataException("sherpa-onnx pack должен содержать TokenFile.");
         if (!string.Equals(manifest.Architecture, "win-x64", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("STT-пак должен быть собран для win-x64.");
         if (!string.Equals(manifest.Language, "ru", StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("STT-пак должен использовать русскую модель.");
         if (!manifest.InferencePath.StartsWith('/') || manifest.InferencePath.Contains("..", StringComparison.Ordinal)) throw new InvalidDataException("Некорректный inference endpoint.");

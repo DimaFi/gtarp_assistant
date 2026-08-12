@@ -1,7 +1,7 @@
 {
   "id": "stt-russian-gta5rp-v1",
   "gate": {
-    "minimumCases": 40,
+    "minimumCases": 48,
     "maximumAverageWordErrorRate": 0.25,
     "minimumTermRecall": 0.85,
     "maximumP95LatencyMs": 5000,
@@ -79,6 +79,54 @@
       "audioFile": "audio/stt-russian-gta5rp-v1/bp-farm-taxi.wav",
       "reference": "Можно ли фармить Би Пи за работу в такси?",
       "requiredTerms": ["Би Пи", "такси"]
+    },
+    {
+      "id": "bp-spoken-short",
+      "audioFile": "audio/stt-russian-gta5rp-v1/bp-spoken-short.wav",
+      "reference": "Сколько БП дают за выполнение ежедневных заданий?",
+      "requiredTerms": ["BP", "ежедневных заданий"]
+    },
+    {
+      "id": "bp-spoken-colloquial",
+      "audioFile": "audio/stt-russian-gta5rp-v1/bp-spoken-colloquial.wav",
+      "reference": "Где быстрее фармить БПишки?",
+      "requiredTerms": ["BP", "фармить"]
+    },
+    {
+      "id": "bp-spoken-points",
+      "audioFile": "audio/stt-russian-gta5rp-v1/bp-spoken-points.wav",
+      "reference": "Где получить бонус-поинты без вип-статуса?",
+      "requiredTerms": ["BP", "вип-статуса"]
+    },
+    {
+      "id": "dp-spoken-letters",
+      "audioFile": "audio/stt-russian-gta5rp-v1/dp-spoken-letters.wav",
+      "reference": "На что можно потратить Ди Пи?",
+      "requiredTerms": ["DP", "потратить"]
+    },
+    {
+      "id": "dp-spoken-short",
+      "audioFile": "audio/stt-russian-gta5rp-v1/dp-spoken-short.wav",
+      "reference": "Где посмотреть баланс ДП?",
+      "requiredTerms": ["DP", "баланс"]
+    },
+    {
+      "id": "dp-spoken-colloquial",
+      "audioFile": "audio/stt-russian-gta5rp-v1/dp-spoken-colloquial.wav",
+      "reference": "Для чего нужны ДПишки?",
+      "requiredTerms": ["DP"]
+    },
+    {
+      "id": "dp-spoken-points",
+      "audioFile": "audio/stt-russian-gta5rp-v1/dp-spoken-points.wav",
+      "reference": "Что можно купить за донат-поинты?",
+      "requiredTerms": ["DP", "купить"]
+    },
+    {
+      "id": "dp-spoken-currency",
+      "audioFile": "audio/stt-russian-gta5rp-v1/dp-spoken-currency.wav",
+      "reference": "Где используется донатная валюта?",
+      "requiredTerms": ["DP", "используется"]
     },
     {
       "id": "jobs-trucker-level-five",

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Vosk" Version="0.3.38" />
     <ProjectReference Include="..\..\src\GtaRpAssistant.Core\GtaRpAssistant.Core.csproj" />
     <ProjectReference Include="..\..\src\GtaRpAssistant.Infrastructure.Windows\GtaRpAssistant.Infrastructure.Windows.csproj" />
   </ItemGroup>

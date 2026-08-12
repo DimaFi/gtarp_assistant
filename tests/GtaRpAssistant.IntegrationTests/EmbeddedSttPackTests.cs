@@ -79,8 +79,48 @@ public sealed class EmbeddedSttPackTests
         Assert.Contains("49152", args);
         Assert.Contains("--no-gpu", args);
         Assert.Contains("--no-flash-attn", args);
+        Assert.DoesNotContain("--prompt", args);
         Assert.Equal("2", args[Array.IndexOf(args, "--threads") + 1]);
         Assert.DoesNotContain("0.0.0.0", args);
+    }
+
+    [Theory]
+    [InlineData("BP", "BP")]
+    [InlineData("БП", "BP")]
+    [InlineData("БПишки", "BP")]
+    [InlineData("бпэшки", "BP")]
+    [InlineData("Би Пи", "BP")]
+    [InlineData("бипи", "BP")]
+    [InlineData("бонус-поинты", "BP")]
+    [InlineData("бонус пониты", "BP")]
+    [InlineData("DP", "DP")]
+    [InlineData("ДП", "DP")]
+    [InlineData("ДПишки", "DP")]
+    [InlineData("дпэшки", "DP")]
+    [InlineData("Ди Пи", "DP")]
+    [InlineData("дипи", "DP")]
+    [InlineData("донат-поинты", "DP")]
+    [InlineData("донатная валюта", "DP")]
+    public void CurrencyPronunciation_IsCanonicalized(string spoken, string expected)
+    {
+        Assert.Equal(expected, GtaRpSttLexicon.NormalizeCurrencies(spoken));
+    }
+
+    [Fact]
+    public void BonusAndDonatePoints_RemainDistinct()
+    {
+        Assert.Equal("BP и DP", GtaRpSttLexicon.NormalizeCurrencies("БП и донат-поинты"));
+    }
+
+    [Theory]
+    [InlineData("мэриуэзер", "Мерривезер")]
+    [InlineData("аэродропе", "аирдропе")]
+    [InlineData("роднекс", "Реднекс")]
+    [InlineData("кармит", "Кар Мит")]
+    [InlineData("ипсион", "Эпсилон")]
+    public void DomainNames_AreCanonicalized(string spoken, string expected)
+    {
+        Assert.Equal(expected, GtaRpSttLexicon.NormalizeTranscript(spoken));
     }
 
     [Fact]

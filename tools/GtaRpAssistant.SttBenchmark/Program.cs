@@ -13,6 +13,10 @@ if (args.Length > 0 && string.Equals(args[0], "lifecycle", StringComparison.Ordi
     return await SttLifecycleBenchmark.RunAsync(args[1..]);
 if (args.Length > 0 && string.Equals(args[0], "compare", StringComparison.OrdinalIgnoreCase))
     return await SttComparison.RunAsync(args[1..]);
+if (args.Length > 0 && string.Equals(args[0], "finalize", StringComparison.OrdinalIgnoreCase))
+    return await SttProductionGate.RunAsync(args[1..]);
+if (args.Length > 0 && string.Equals(args[0], "vosk-evaluate", StringComparison.OrdinalIgnoreCase))
+    return await VoskSttBenchmark.RunAsync(args[1..]);
 
 if (args.Length != 4 || !string.Equals(args[0], "evaluate", StringComparison.OrdinalIgnoreCase))
 {
@@ -20,8 +24,10 @@ if (args.Length != 4 || !string.Equals(args[0], "evaluate", StringComparison.Ord
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark evaluate <pack-directory> <dataset.json> <report.json>");
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark record <dataset.json> [device-id] [--overwrite]");
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark devices");
-    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark lifecycle <pack-directory> <audio.wav> <iterations> <report.json>");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark lifecycle <pack-directory> <audio.wav> <iterations> <report.json> [hardware-profile]");
     Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark compare <first-report.json> <second-report.json> <comparison.json>");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark finalize <comparison.json> <pack-directory> <output.zip> <attestation.json> <lifecycle.json> [more lifecycle reports...]");
+    Console.Error.WriteLine("  GtaRpAssistant.SttBenchmark vosk-evaluate <model-directory> <dataset.json> <report.json>");
     return 1;
 }
 
@@ -241,5 +247,8 @@ public static partial class SttTextMetrics
         return terms.Count(term => normalized.Contains($" {string.Join(' ', Words(term))} ", StringComparison.Ordinal)) / (double)terms.Count;
     }
 
-    private static string[] Words(string value) => Separators().Split(value.ToLowerInvariant()).Where(word => word.Length > 0).ToArray();
+    private static string[] Words(string value) => Separators()
+        .Split(GtaRpSttLexicon.NormalizeTranscript(value).ToLowerInvariant().Replace("репутаций", "репутации", StringComparison.Ordinal))
+        .Where(word => word.Length > 0)
+        .ToArray();
 }

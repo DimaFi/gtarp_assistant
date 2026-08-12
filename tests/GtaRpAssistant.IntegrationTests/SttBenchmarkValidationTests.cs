@@ -33,6 +33,24 @@ public sealed class SttBenchmarkValidationTests
         Assert.Contains("between 0 and 1", error.Message, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory]
+    [InlineData("Би Пи", "БПишки")]
+    [InlineData("BP", "бонус-поинты")]
+    [InlineData("Ди Пи", "ДПишки")]
+    [InlineData("DP", "донатная валюта")]
+    public void CurrencyPronunciations_AreEquivalentForScoring(string reference, string transcript)
+    {
+        Assert.Equal(0, SttTextMetrics.WordErrorRate(reference, transcript));
+        Assert.Equal(1, SttTextMetrics.TermRecall([reference], transcript));
+    }
+
+    [Fact]
+    public void BonusPointsAndDonatePoints_AreNotEquivalentForScoring()
+    {
+        Assert.Equal(1, SttTextMetrics.WordErrorRate("BP", "DP"));
+        Assert.Equal(0, SttTextMetrics.TermRecall(["BP"], "DP"));
+    }
+
     private static SttDataset Dataset(IReadOnlyList<SttCase> cases) =>
         new("dataset", new SttGate(MinimumCases: 1), cases);
 

@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using GtaRpAssistant.Core;
 
@@ -96,6 +97,12 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
             }, watchdogCancellation.Token);
             try
             {
+                if (string.Equals(pack.Manifest.Runtime, "sherpa-onnx", StringComparison.OrdinalIgnoreCase))
+                {
+                    var sherpaText = await TranscribeWithSherpaAsync(segment.PcmData, timeout.Token);
+                    if (string.IsNullOrWhiteSpace(sherpaText)) throw new InvalidDataException("Локальный STT вернул пустой transcript.");
+                    return new(GtaRpSttLexicon.NormalizeTranscript(sherpaText), 1);
+                }
                 using var form = new MultipartFormDataContent();
                 form.Add(new StringContent("json"), "response_format");
                 form.Add(new StringContent(pack.Manifest.Language), "language");
@@ -112,7 +119,7 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
                 using var json = await JsonDocument.ParseAsync(stream, cancellationToken: timeout.Token);
                 var text = json.RootElement.TryGetProperty("text", out var value) ? value.GetString()?.Trim() : null;
                 if (string.IsNullOrWhiteSpace(text)) throw new InvalidDataException("Локальный STT вернул пустой transcript.");
-                return new(text, 1);
+                return new(GtaRpSttLexicon.NormalizeTranscript(text), 1);
             }
             catch (OperationCanceledException) when (memoryExceeded)
             {
@@ -154,10 +161,11 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
             return;
         await StopRuntimeAsync();
 
-        var port = ReserveLoopbackPort();
         var manifest = pack.Manifest!;
-        var publicDirectory = Path.Combine(Path.GetTempPath(), "GtaRpAssistant", "stt-public");
-        Directory.CreateDirectory(publicDirectory);
+        var isSherpa = string.Equals(manifest.Runtime, "sherpa-onnx", StringComparison.OrdinalIgnoreCase);
+        var port = isSherpa ? 0 : ReserveLoopbackPort();
+        var publicDirectory = Path.Combine(pack.Directory, ".runtime", "public");
+        if (!isSherpa) Directory.CreateDirectory(publicDirectory);
         var startInfo = new ProcessStartInfo
         {
             FileName = pack.EntryPointPath!,
@@ -168,15 +176,22 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
             RedirectStandardOutput = true,
             RedirectStandardError = true,
         };
-        AddArguments(startInfo, pack.ModelPath!, publicDirectory, port, manifest);
-        var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Не удалось запустить whisper.cpp.");
+        if (isSherpa)
+        {
+            startInfo.RedirectStandardInput = true;
+            startInfo.ArgumentList.Add(pack.ModelPath!);
+            startInfo.ArgumentList.Add(pack.TokenPath!);
+            startInfo.ArgumentList.Add(manifest.Limits.Threads.ToString(CultureInfo.InvariantCulture));
+        }
+        else AddArguments(startInfo, pack.ModelPath!, publicDirectory, port, manifest);
+        var process = Process.Start(startInfo) ?? throw new InvalidOperationException($"Не удалось запустить {manifest.Runtime}.");
         lock (_processGate) _diagnostics.Clear();
-        _ = DrainAsync(process.StandardOutput, capture: false);
+        if (!isSherpa) _ = DrainAsync(process.StandardOutput, capture: false);
         _ = DrainAsync(process.StandardError, capture: true);
         lock (_processGate)
         {
             _process = process;
-            _baseUri = new($"http://127.0.0.1:{port}/");
+            _baseUri = isSherpa ? null : new($"http://127.0.0.1:{port}/");
             _activePack = pack;
         }
 
@@ -188,9 +203,15 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
             {
                 startup.Token.ThrowIfCancellationRequested();
                 if (process.HasExited) throw new InvalidOperationException(
-                    $"whisper.cpp завершился с кодом {process.ExitCode} до загрузки модели. {GetDiagnostics()}");
+                    $"{manifest.Runtime} завершился с кодом {process.ExitCode} до загрузки модели. {GetDiagnostics()}");
                 if (MaximumMemory(process) >= manifest.Limits.HardMemoryLimitBytes)
-                    throw new InvalidOperationException("whisper.cpp превысил лимит памяти при загрузке модели.");
+                    throw new InvalidOperationException($"{manifest.Runtime} превысил лимит памяти при загрузке модели.");
+                if (isSherpa)
+                {
+                    if (GetDiagnostics().Contains("READY", StringComparison.Ordinal)) return;
+                    await Task.Delay(100, startup.Token);
+                    continue;
+                }
                 try
                 {
                     using var response = await _http.GetAsync(new Uri(_baseUri!, "health"), startup.Token);
@@ -203,7 +224,7 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             await StopRuntimeAsync();
-            throw new TimeoutException("whisper.cpp не успел загрузить модель.");
+            throw new TimeoutException($"{manifest.Runtime} не успел загрузить модель.");
         }
         catch
         {
@@ -227,6 +248,27 @@ public sealed class WhisperCppSpeechToTextProvider : ISpeechToTextProvider, IAsy
             "--no-timestamps",
             "--no-flash-attn",
         }) info.ArgumentList.Add(argument);
+    }
+
+    private async Task<string> TranscribeWithSherpaAsync(ReadOnlyMemory<byte> pcm, CancellationToken cancellationToken)
+    {
+        var process = GetProcess() ?? throw new InvalidOperationException("sherpa-onnx worker не запущен.");
+        var header = new byte[5];
+        header[0] = 1;
+        BinaryPrimitives.WriteInt32LittleEndian(header.AsSpan(1), pcm.Length);
+        await process.StandardInput.BaseStream.WriteAsync(header, cancellationToken);
+        await process.StandardInput.BaseStream.WriteAsync(pcm, cancellationToken);
+        await process.StandardInput.BaseStream.FlushAsync(cancellationToken);
+
+        await process.StandardOutput.BaseStream.ReadExactlyAsync(header, cancellationToken);
+        var status = header[0];
+        var length = BinaryPrimitives.ReadInt32LittleEndian(header.AsSpan(1));
+        if (length is < 0 or > 1024 * 1024) throw new InvalidDataException("Некорректный ответ sherpa-onnx worker.");
+        var payload = new byte[length];
+        await process.StandardOutput.BaseStream.ReadExactlyAsync(payload, cancellationToken);
+        var value = Encoding.UTF8.GetString(payload);
+        if (status != 0) throw new InvalidOperationException($"sherpa-onnx: {value}");
+        return value.Trim();
     }
 
     private async Task WatchMemoryAsync(long hardLimitBytes, Action onExceeded, CancellationToken cancellationToken)

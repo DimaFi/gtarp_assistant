@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('base-q8_0', 'small-q5_1')]
+    [ValidateSet('base-q8_0', 'small-q5_1', 'small-q8_0')]
     [string]$Candidate = 'base-q8_0',
     [string]$Destination,
     [string]$DownloadDirectory,
@@ -25,6 +25,14 @@ $candidates = @{
         SizeBytes = 190085487L
         PackId = 'gta-rp-assistant-stt-small-q5_1'
         ModelId = 'whisper-small-q5_1-multilingual'
+        HardMemoryLimitBytes = 1153433600L
+    }
+    'small-q8_0' = [ordered]@{
+        FileName = 'ggml-small-q8_0.bin'
+        Sha256 = '49c8fb02b65e6049d5fa6c04f81f53b867b5ec9540406812c643f177317f779f'
+        SizeBytes = 264464607L
+        PackId = 'gta-rp-assistant-stt-small-q8_0'
+        ModelId = 'whisper-small-q8_0-multilingual'
         HardMemoryLimitBytes = 1153433600L
     }
 }

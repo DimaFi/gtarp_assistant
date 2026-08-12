@@ -6,6 +6,8 @@ param(
     [string]$OutputDirectory,
     [switch]$RunLifecycle,
     [string]$LifecycleWave,
+    [ValidateSet('reference', 'weak-pc')]
+    [string]$LifecycleHardwareProfile = 'reference',
     [ValidateRange(1, 100)]
     [int]$LifecycleIterations = 100
 )
@@ -86,8 +88,8 @@ if ($RunLifecycle) {
         if ($comparison.recommendedPackId -eq $baseId) { $selectedPack = $BasePack }
         elseif ($comparison.recommendedPackId -eq $smallId) { $selectedPack = $SmallPack }
         else { throw "Comparison selected an unknown pack: $($comparison.recommendedPackId)" }
-        $lifecycleReport = Join-Path $OutputDirectory 'winner-lifecycle.json'
-        & dotnet run --project $project -c Release --no-build -- lifecycle $selectedPack $LifecycleWave $LifecycleIterations $lifecycleReport
+        $lifecycleReport = Join-Path $OutputDirectory "winner-lifecycle-$LifecycleHardwareProfile.json"
+        & dotnet run --project $project -c Release --no-build -- lifecycle $selectedPack $LifecycleWave $LifecycleIterations $lifecycleReport $LifecycleHardwareProfile
         if ($LASTEXITCODE -ne 0) { throw "Winner lifecycle gate failed with exit code $LASTEXITCODE." }
     }
 }
