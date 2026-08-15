@@ -76,6 +76,13 @@ public sealed record ProductBenchmarkCaseResult
     public string SourceTitle { get; init; } = "";
     public IReadOnlyList<string> UsedFactIds { get; init; } = [];
     public string DiagnosticReason { get; init; } = "";
+    public string Route { get; init; } = "unresolved";
+    public bool CacheHit { get; init; }
+    public bool AvoidedLlm { get; init; }
+    public int ProviderAvailabilityChecks { get; init; }
+    public int LlmCalls { get; init; }
+    public int EstimatedInputTokens { get; init; }
+    public int EstimatedOutputBudgetTokens { get; init; }
 }
 
 public sealed record ProductBenchmarkMetrics
@@ -102,6 +109,12 @@ public sealed record ProductBenchmarkMetrics
     public int BlockingWrongServerCases { get; init; }
     public double AverageLatencyMs { get; init; }
     public double P95LatencyMs { get; init; }
+    public double AvoidedLlmRate { get; init; }
+    public double CacheHitRate { get; init; }
+    public int ProviderAvailabilityChecks { get; init; }
+    public int LlmCalls { get; init; }
+    public int EstimatedInputTokens { get; init; }
+    public int EstimatedOutputBudgetTokens { get; init; }
 }
 
 public sealed record ProductBenchmarkReport

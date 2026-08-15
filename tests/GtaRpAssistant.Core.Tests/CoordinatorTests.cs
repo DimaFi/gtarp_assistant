@@ -51,6 +51,41 @@ public sealed class CoordinatorTests
     }
 
     [Fact]
+    public async Task RepeatedGroundedQuestion_UsesValidatedCacheBeforeProviderDiscovery()
+    {
+        var overlay = new FakeOverlay();
+        var provider = new FakeProvider();
+        var catalog = new FakeCatalog(provider);
+        var cache = new FakeAnswerCache();
+        var events = new CapturingEvents();
+        await using var coordinator = Create(overlay, catalog, prepared: false, events: events, answerCache: cache);
+        coordinator.Start(true);
+
+        async Task<AssistantAnswer?> AskAsync()
+        {
+            coordinator.ClearContext();
+            coordinator.StartNewConversation();
+            var now = DateTimeOffset.UtcNow;
+            return await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now,
+                "сколько стоит контракт?", 1), AssistantActivationKind.ManualText, "all", false, false), default);
+        }
+
+        var first = await AskAsync();
+        var second = await AskAsync();
+
+        Assert.Equal("fake", first!.ProviderId);
+        Assert.Equal("answer-cache", second!.ProviderId);
+        Assert.Equal(1, provider.Calls);
+        Assert.Equal(1, catalog.AvailabilityCalls);
+        var metrics = events.Metrics();
+        Assert.Equal(2, metrics.Count);
+        Assert.Equal(1, metrics[1].CacheLookups);
+        Assert.Equal(1, metrics[1].CacheHits);
+        Assert.Equal(0, metrics[1].ProviderAvailabilityChecks);
+        Assert.Equal(0, metrics[1].LlmCalls);
+    }
+
+    [Fact]
     public async Task ScreenQuestion_UsesFreshLocalContextWithoutCallingProvider()
     {
         var now = DateTimeOffset.UtcNow;
@@ -174,11 +209,11 @@ public sealed class CoordinatorTests
     private static AssistantSessionCoordinator Create(FakeOverlay overlay, FakeProvider provider, bool prepared)
         => Create(overlay, new FakeCatalog(provider), prepared);
 
-    private static AssistantSessionCoordinator Create(FakeOverlay overlay, IChatProviderCatalog catalog, bool prepared, IUserPersonalizationContextProvider? personalization = null, IScreenContextStore? screenContext = null, ISessionEventSink? events = null)
+    private static AssistantSessionCoordinator Create(FakeOverlay overlay, IChatProviderCatalog catalog, bool prepared, IUserPersonalizationContextProvider? personalization = null, IScreenContextStore? screenContext = null, ISessionEventSink? events = null, IAnswerCache? answerCache = null)
     {
         var fact = new KnowledgeFact("f", "a", "Проверьте актуальные требования", true, DateTimeOffset.UtcNow);
         var knowledge = new FakeKnowledge(new("a", "Контракт", 1, [fact], false, false, prepared ? "Проверьте актуальные требования" : null, prepared));
-        return new(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector(["контракт"]), knowledge, new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(), new ProactivePolicy(), events ?? new NullEvents(), personalization: personalization, screenContext: screenContext);
+        return new(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector(["контракт"]), knowledge, new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(), new ProactivePolicy(), events ?? new NullEvents(), personalization: personalization, screenContext: screenContext, answerCache: answerCache);
     }
 
     private sealed class FakeKnowledge(KnowledgeMatch match) : IKnowledgeRepository
@@ -253,6 +288,21 @@ public sealed class CoordinatorTests
             var detail = Assert.Single(Items.Where(x => x.Name == "Assistant request metrics")).Detail;
             return JsonSerializer.Deserialize<AssistantRequestMetrics>(detail!)!;
         }
+        public IReadOnlyList<AssistantRequestMetrics> Metrics() => Items.Where(x => x.Name == "Assistant request metrics")
+            .Select(x => JsonSerializer.Deserialize<AssistantRequestMetrics>(x.Detail!)!).ToArray();
+    }
+    private sealed class FakeAnswerCache : IAnswerCache
+    {
+        private readonly Dictionary<string, AnswerCacheEntry> _entries = [];
+        public Task<AnswerCacheEntry?> TryGetAsync(string key, CancellationToken cancellationToken) =>
+            Task.FromResult(_entries.GetValueOrDefault(key));
+        public Task StoreAsync(string key, AssistantAnswer answer, TimeSpan ttl, CancellationToken cancellationToken)
+        {
+            var now = DateTimeOffset.UtcNow;
+            _entries[key] = new(answer, now, now.Add(ttl), 0);
+            return Task.CompletedTask;
+        }
+        public Task ClearAsync(CancellationToken cancellationToken) { _entries.Clear(); return Task.CompletedTask; }
     }
     private sealed class FakePersonalization : IUserPersonalizationContextProvider
     {

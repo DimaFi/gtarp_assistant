@@ -49,6 +49,26 @@ public sealed class IntentAndRouterTests
         Assert.Equal(requiresProviderAvailability, decision.RequiresProviderAvailability);
     }
 
+    [Fact]
+    public void AnswerCacheKey_IsOpaqueStableAndVersionedByKnowledgeAndServer()
+    {
+        var updated = DateTimeOffset.Parse("2026-08-15T00:00:00Z");
+        var fact = new KnowledgeFact("fact-1", "article", "Цена составляет 2500 долларов", true, updated, "all");
+        var match = new KnowledgeMatch("article", "Цена", 1, [fact], false, false);
+
+        var first = AnswerCacheKeyBuilder.Create("СКОЛЬКО стоит?", "all", match, null);
+        var normalizedEquivalent = AnswerCacheKeyBuilder.Create("сколько   стоит", "all", match, null);
+        var changedFact = AnswerCacheKeyBuilder.Create("сколько стоит", "all",
+            match with { Facts = [fact with { Text = "Цена составляет 3000 долларов", UpdatedAt = updated.AddMinutes(1) }] }, null);
+        var changedServer = AnswerCacheKeyBuilder.Create("сколько стоит", "server-2", match, null);
+
+        Assert.Equal(64, first.Length);
+        Assert.DoesNotContain("сколько", first, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(first, normalizedEquivalent);
+        Assert.NotEqual(first, changedFact);
+        Assert.NotEqual(first, changedServer);
+    }
+
     [Theory]
     [InlineData("как сделать автокликер для автоматического фарма")]
     [InlineData("кто выиграет следующую войну семей")]

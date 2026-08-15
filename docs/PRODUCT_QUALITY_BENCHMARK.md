@@ -46,6 +46,8 @@ question
 dotnet run --project tools/GtaRpAssistant.ProductBenchmark/GtaRpAssistant.ProductBenchmark.csproj -c Release -- evaluate ml/evaluation/product-pipeline-eval.json knowledge/packs/gta5rp knowledge/reference/community artifacts/product-benchmark
 ```
 
+Помимо quality/latency отчёт фиксирует экономичность smart-assistant route: `route`, долю запросов без LLM, cache-hit, число provider availability checks и LLM calls, а также консервативную оценку input/output-budget tokens. Эти поля диагностические и пока не являются release thresholds. На 15 августа 2026 года повторный прогон корректно заблокирован просроченными `validUntil` у части knowledge sources; сроки нельзя продлевать только ради зелёного benchmark без повторной проверки источников.
+
 Полный release gate:
 
 ```powershell

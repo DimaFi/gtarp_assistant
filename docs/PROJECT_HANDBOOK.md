@@ -18,7 +18,7 @@ src/
   GtaRpAssistant.Knowledge/             SQLite/FTS knowledge repository
   GtaRpAssistant.Providers/             OpenAI-compatible и provider adapters
   GtaRpAssistant.Infrastructure.Windows/ Windows audio, process, hotkeys, capture
-  GtaRpAssistant.LocalData/             assistant-data.db и история диалогов
+  GtaRpAssistant.LocalData/             assistant-data.db, история диалогов и validated answer cache
   GtaRpAssistant.MicroModelHost/         отдельный optional mock host
   GtaRpAssistant.App/                   WPF, DI composition root и feature modules
 tests/                                  семь автоматических test projects
@@ -42,6 +42,7 @@ manual text / microphone
 → ContextSelector
 → IKnowledgeRepository (exact/prepared/FTS)
 → AiRouter
+→ versioned IAnswerCache (до provider discovery)
 → prepared/extractive answer или configured provider chain
 → GroundedAnswerValidator
 → IAssistantConversationStore
@@ -57,7 +58,7 @@ manual text / microphone
 - `EnableLongTermConversation=false` — `InMemoryAssistantConversationStore`, данные исчезают после выхода;
 - `true` — лениво создаваемый `SqliteAssistantConversationStore` в `assistant-data.db`.
 
-SQLite хранит conversations, messages, provider/model IDs, used fact IDs и situation ID. Используются WAL, foreign keys, транзакции и индексы. Повреждённый JSON одного сообщения не ломает загрузку; повреждённая БД переносится в `.corrupt-*` перед созданием чистой.
+SQLite хранит conversations, messages, provider/model IDs, used fact IDs, situation ID и opt-in таблицу `answer_cache`. Cache key — SHA-256 от нормализованного запроса, server, knowledge revision и personalization; исходный вопрос в cache table не хранится. При выключенной постоянной истории используется только bounded in-memory cache. Используются WAL, foreign keys, транзакции и индексы. Повреждённый JSON одного сообщения не ломает загрузку; повреждённая БД переносится в `.corrupt-*` перед созданием чистой.
 
 Интерфейс M2 умеет создавать, открывать, переименовывать и удалять диалоги, повторять последний вопрос, копировать ответ и отменять активный запрос. Enter отправляет, Shift+Enter добавляет строку. Markdown отображается нативным безопасным подмножеством без WebView, HTML и активных ссылок.
 
@@ -70,7 +71,7 @@ SQLite хранит conversations, messages, provider/model IDs, used fact IDs �
 ```text
 settings.json             несекретные настройки и provider routes
 knowledge.db              индекс проверенной игровой базы
-assistant-data.db         opt-in история пользователя
+assistant-data.db         opt-in история пользователя и validated answer cache
 assistant-data.db-wal/shm служебные SQLite-файлы во время работы
 secrets/                  DPAPI CurrentUser API keys
 logs/                     privacy-safe rotating logs

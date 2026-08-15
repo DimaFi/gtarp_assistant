@@ -68,8 +68,8 @@ public sealed class ProductBenchmarkTests
     {
         var results = new[]
         {
-            new ProductBenchmarkCaseResult { Id = "blocking", Blocking = true, ExpectedDecision = "show", ActualDecision = "show", Passed = true, DecisionMatched = true, ArticleMatched = true, CitationPresent = true },
-            new ProductBenchmarkCaseResult { Id = "exploratory", Blocking = false, ExpectedDecision = "show", ActualDecision = "abstain", Passed = false, FalseAbstain = true },
+            new ProductBenchmarkCaseResult { Id = "blocking", Blocking = true, ExpectedDecision = "show", ActualDecision = "show", Passed = true, DecisionMatched = true, ArticleMatched = true, CitationPresent = true, AvoidedLlm = true, ProviderAvailabilityChecks = 0 },
+            new ProductBenchmarkCaseResult { Id = "exploratory", Blocking = false, ExpectedDecision = "show", ActualDecision = "abstain", Passed = false, FalseAbstain = true, AvoidedLlm = false, ProviderAvailabilityChecks = 1, LlmCalls = 1, EstimatedInputTokens = 900, EstimatedOutputBudgetTokens = 420 },
         };
 
         var metrics = ProductBenchmarkRunner.Summarize(results);
@@ -79,6 +79,10 @@ public sealed class ProductBenchmarkTests
         Assert.Equal(1, metrics.BlockingArticleAccuracy);
         Assert.Equal(1, metrics.BlockingCitationCoverage);
         Assert.Equal(.5, metrics.PassRate);
+        Assert.Equal(.5, metrics.AvoidedLlmRate);
+        Assert.Equal(1, metrics.ProviderAvailabilityChecks);
+        Assert.Equal(1, metrics.LlmCalls);
+        Assert.Equal(900, metrics.EstimatedInputTokens);
     }
 
     private static string RepositoryRoot() =>

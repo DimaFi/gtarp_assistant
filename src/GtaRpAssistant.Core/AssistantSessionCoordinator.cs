@@ -6,6 +6,7 @@ namespace GtaRpAssistant.Core;
 
 public sealed class AssistantSessionCoordinator : IAsyncDisposable
 {
+    private static readonly TimeSpan ValidatedAnswerCacheTtl = TimeSpan.FromDays(7);
     private readonly TranscriptBuffer _transcripts;
     private readonly IIntentDetector _intent;
     private readonly IKnowledgeRepository _knowledge;
@@ -20,6 +21,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IAssistantConversationStore _conversation;
     private readonly IUserPersonalizationContextProvider? _personalization;
     private readonly IScreenContextStore? _screenContext;
+    private readonly IAnswerCache? _answerCache;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -39,7 +41,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         ISessionEventSink events,
         IAssistantConversationStore? conversation = null,
         IUserPersonalizationContextProvider? personalization = null,
-        IScreenContextStore? screenContext = null)
+        IScreenContextStore? screenContext = null,
+        IAnswerCache? answerCache = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -55,6 +58,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _conversation = conversation ?? new InMemoryAssistantConversationStore();
         _personalization = personalization;
         _screenContext = screenContext;
+        _answerCache = answerCache;
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -190,6 +194,23 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             var match = matches[0];
             _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], match.ArticleId));
             var preflight = _router.SelectBeforeProvider(new(match.HasVerifiedPreparedAnswer, HasGrounding(match)));
+            var personalization = _personalization?.Build(entry.Text);
+            string? cacheKey = null;
+            if (preflight.RequiresProviderAvailability && requestType == AssistantRequestType.DirectKnowledgeQuestion && _answerCache is not null)
+            {
+                cacheKey = AnswerCacheKeyBuilder.Create(entry.Text, request.Server, match, personalization);
+                metrics.CacheLookups++;
+                var cached = await _answerCache.TryGetAsync(cacheKey, ct);
+                if (cached is not null)
+                {
+                    metrics.CacheHits++;
+                    metrics.SetRoute(AnswerRoute.ResponseCache.ToString(), "validated_versioned_cache_hit");
+                    Transition(AssistantSessionState.ValidatingAnswer);
+                    var cachedAnswer = cached.Answer with { ProviderId = "answer-cache" };
+                    Status("Router: ResponseCache; Validator: cached validated answer");
+                    return await PresentAsync(cachedAnswer, request, match.ArticleId, ct);
+                }
+            }
             ChatProviderAvailability? availability = null;
             AnswerRoute route;
             string routeReason;
@@ -235,7 +256,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                     {
                         try
                         {
-                            var groundedRequest = new GroundedAnswerRequest(entry.Text, verifiedFacts, request.Server, FormatContext(context), requestType, relevantConversation.Turns, _personalization?.Build(entry.Text));
+                            var groundedRequest = new GroundedAnswerRequest(entry.Text, verifiedFacts, request.Server, FormatContext(context), requestType, relevantConversation.Turns, personalization);
                             metrics.RecordLlmCall(groundedRequest);
                             var response = await provider.CreateGroundedAnswerAsync(groundedRequest, ct);
                             var candidate = _validator.Validate(response.Json, match, request.Server, request.VoiceEnabled);
@@ -276,6 +297,11 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 Transition(AssistantSessionState.ValidatingAnswer);
                 answer = Abstain("Router selected abstain");
             }
+
+            if (cacheKey is not null && _answerCache is not null && answer.Decision == AnswerDecision.Show
+                && route is AnswerRoute.ConfiguredChat or AnswerRoute.LocalChat or AnswerRoute.CloudChat
+                && !string.IsNullOrWhiteSpace(answer.ProviderId) && answer.ProviderId != "knowledge-fallback")
+                await _answerCache.StoreAsync(cacheKey, answer, ValidatedAnswerCacheTtl, ct);
 
             if (answer.Decision == AnswerDecision.Abstain) _events.Write(new(DateTimeOffset.UtcNow, "Answer rejected", State, answer.DiagnosticReason));
             Status($"Router: {route}; Validator: {answer.DiagnosticReason}");
@@ -361,6 +387,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private static string DescribeRoute(AnswerRoute route, ChatProviderAvailability availability, bool userAllowsCloud) => route switch
     {
         AnswerRoute.ConfiguredChat => "configured_provider_route_available",
+        AnswerRoute.ResponseCache => "validated_versioned_cache_hit",
         AnswerRoute.LocalChat => "local_provider_available",
         AnswerRoute.CloudChat => "cloud_provider_available_and_allowed",
         AnswerRoute.Deterministic when availability.CloudAvailable && !userAllowsCloud => "cloud_not_allowed_grounded_fallback",
@@ -375,6 +402,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         private string _routeReason = "request_not_routed";
 
         public int ProviderAvailabilityChecks { get; set; }
+        public int CacheLookups { get; set; }
+        public int CacheHits { get; set; }
         public int LlmCalls { get; private set; }
         public int RepairCalls { get; set; }
         public int EstimatedInputTokens { get; private set; }
@@ -398,6 +427,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             _route,
             _routeReason,
             ProviderAvailabilityChecks,
+            CacheLookups,
+            CacheHits,
             LlmCalls,
             RepairCalls,
             EstimatedInputTokens,

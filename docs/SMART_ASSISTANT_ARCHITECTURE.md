@@ -475,7 +475,7 @@ Debug panel (opt-in) показывает `route`, selected facts/memories, budg
 
 Первым этапом должен быть **Fast Knowledge Path & Budget Telemetry**, а не новая память, web или vision. Он даёт измеримый выигрыш на всех уже поддерживаемых вопросах и уменьшает нагрузку GPT‑5VP без ухудшения качества.
 
-Статус первого среза: ранний preflight route и request-level telemetry реализованы. Prepared answers больше не инициируют проверку каталога/health локальной модели. Versioned response cache, confidence/cost в полном route decision и агрегаты product benchmark остаются следующей отдельной задачей.
+Статус Phase 1A–1B: ранний preflight route, request-level telemetry, versioned response cache и агрегаты product benchmark реализованы. Prepared answers и cache hits больше не инициируют проверку каталога/health локальной модели. Persistent SQLite cache активируется только вместе с opt-in постоянной историей; иначе используется bounded in-memory cache. Confidence/cost-aware extractive route остаётся частью будущего Knowledge Intelligence.
 
 Конкретно следующий этап:
 

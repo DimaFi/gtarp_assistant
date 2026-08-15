@@ -136,6 +136,11 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IUserMemoryStore>(_ => new SqliteUserMemoryStore(
             $"Data Source={Path.Combine(AppPaths.DataDirectory, "user-memory.db")}"));
         services.AddSingleton<IUserPersonalizationContextProvider, UserPersonalizationContextProvider>();
+        services.AddSingleton<InMemoryAnswerCache>();
+        services.AddSingleton<IAnswerCache>(sp => new ConfigurableAnswerCache(
+            () => sp.GetRequiredService<SettingsService>().Current.EnableLongTermConversation,
+            sp.GetRequiredService<InMemoryAnswerCache>(),
+            () => new SqliteAnswerCache($"Data Source={Path.Combine(AppPaths.DataDirectory, "assistant-data.db")}")));
         services.AddSingleton<IAssistantConversationStore>(sp => new ConfigurableAssistantConversationStore(
             () => sp.GetRequiredService<SettingsService>().Current.EnableLongTermConversation,
             sp.GetRequiredService<InMemoryAssistantConversationStore>(),

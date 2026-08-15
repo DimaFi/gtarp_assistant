@@ -7,7 +7,7 @@ public enum ConversationRole { User, Assistant }
 public enum AssistantRequestType { DirectKnowledgeQuestion, CurrentSituationQuestion, FollowUpQuestion, RuleRiskQuestion, ProblemSolving, VisionQuestion, GeneralConversation }
 public enum ProactiveMode { Off, Strict, Balanced, Experimental }
 public enum AnswerDecision { Show, AskForMoreInformation, Abstain }
-public enum AnswerRoute { Deterministic, ConfiguredChat, LocalChat, CloudChat, Abstain }
+public enum AnswerRoute { Deterministic, ResponseCache, ConfiguredChat, LocalChat, CloudChat, Abstain }
 public enum AssistantActivationKind { ManualText, ManualVoice, AutomaticVoice, Hotkey }
 public enum AssistantSessionState { Dormant, WaitingForGame, Listening, SpeechDetected, Transcribing, EvaluatingIntent, SearchingKnowledge, GeneratingAnswer, ValidatingAnswer, ShowingOverlay, Cooldown, Paused, Faulted }
 public enum VoiceInteractionMode { Toggle = 0, Hold = 1 }
@@ -79,6 +79,8 @@ public sealed record AssistantRequestMetrics(
     string Route,
     string RouteReason,
     int ProviderAvailabilityChecks,
+    int CacheLookups,
+    int CacheHits,
     int LlmCalls,
     int RepairCalls,
     int EstimatedInputTokens,

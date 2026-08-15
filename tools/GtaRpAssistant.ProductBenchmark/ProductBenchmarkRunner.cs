@@ -40,13 +40,15 @@ public sealed class ProductBenchmarkRunner
         {
             var repository = new SqliteKnowledgeRepository($"Data Source={databasePath}");
             await repository.InitializeAsync(articles, cancellationToken);
-            await using var coordinator = CreateCoordinator(repository);
+            var eventSink = new MetricsEventSink();
+            await using var coordinator = CreateCoordinator(repository, eventSink);
             coordinator.Start(true);
 
             var results = new List<ProductBenchmarkCaseResult>(cases.Count);
             foreach (var item in cases)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                eventSink.Clear();
                 coordinator.ClearContext();
                 coordinator.StartNewConversation();
                 var now = DateTimeOffset.UtcNow;
@@ -58,7 +60,7 @@ public sealed class ProductBenchmarkRunner
                     false,
                     false), cancellationToken);
                 stopwatch.Stop();
-                results.Add(Score(item, answer, stopwatch.Elapsed.TotalMilliseconds, articleMap, factMap));
+                results.Add(Score(item, answer, stopwatch.Elapsed.TotalMilliseconds, articleMap, factMap, eventSink.LastMetrics));
             }
 
             var metrics = Summarize(results);
@@ -87,7 +89,8 @@ public sealed class ProductBenchmarkRunner
         AssistantAnswer? answer,
         double latencyMs,
         IReadOnlyDictionary<string, KnowledgePackArticle> articles,
-        IReadOnlyDictionary<string, KnowledgeFact> facts)
+        IReadOnlyDictionary<string, KnowledgeFact> facts,
+        AssistantRequestMetrics? requestMetrics = null)
     {
         var expected = item.ExpectedDecision;
         var actual = answer?.Decision switch
@@ -167,6 +170,13 @@ public sealed class ProductBenchmarkRunner
             SourceTitle = answer?.SourceTitle ?? "",
             UsedFactIds = usedFactIds,
             DiagnosticReason = answer?.DiagnosticReason ?? "Pipeline returned no answer.",
+            Route = requestMetrics?.Route ?? "unresolved",
+            CacheHit = requestMetrics?.CacheHits > 0,
+            AvoidedLlm = requestMetrics?.AvoidedLlm ?? true,
+            ProviderAvailabilityChecks = requestMetrics?.ProviderAvailabilityChecks ?? 0,
+            LlmCalls = requestMetrics?.LlmCalls ?? 0,
+            EstimatedInputTokens = requestMetrics?.EstimatedInputTokens ?? 0,
+            EstimatedOutputBudgetTokens = requestMetrics?.EstimatedOutputBudgetTokens ?? 0,
         };
     }
 
@@ -201,6 +211,12 @@ public sealed class ProductBenchmarkRunner
             BlockingWrongServerCases = blocking.Count(x => x.WrongServer),
             AverageLatencyMs = cases.Count == 0 ? 0 : cases.Average(x => x.LatencyMs),
             P95LatencyMs = orderedLatency.Length == 0 ? 0 : orderedLatency[p95Index],
+            AvoidedLlmRate = cases.Count == 0 ? 1 : (double)cases.Count(x => x.AvoidedLlm) / cases.Count,
+            CacheHitRate = cases.Count == 0 ? 0 : (double)cases.Count(x => x.CacheHit) / cases.Count,
+            ProviderAvailabilityChecks = cases.Sum(x => x.ProviderAvailabilityChecks),
+            LlmCalls = cases.Sum(x => x.LlmCalls),
+            EstimatedInputTokens = cases.Sum(x => x.EstimatedInputTokens),
+            EstimatedOutputBudgetTokens = cases.Sum(x => x.EstimatedOutputBudgetTokens),
         };
     }
 
@@ -213,7 +229,7 @@ public sealed class ProductBenchmarkRunner
         await File.WriteAllTextAsync(markdownPath, BuildMarkdown(report), new UTF8Encoding(false), cancellationToken);
     }
 
-    private static AssistantSessionCoordinator CreateCoordinator(IKnowledgeRepository repository) => new(
+    private static AssistantSessionCoordinator CreateCoordinator(IKnowledgeRepository repository, ISessionEventSink eventSink) => new(
         new(TimeSpan.FromMinutes(3)),
         new RuleBasedIntentDetector([]),
         repository,
@@ -224,7 +240,7 @@ public sealed class ProductBenchmarkRunner
         new NullOverlay(),
         new TranscriptDeduplicator(),
         new ProactivePolicy(),
-        new NullEventSink());
+        eventSink);
 
     private static string UserText(AssistantAnswer? answer)
     {
@@ -259,6 +275,9 @@ public sealed class ProductBenchmarkRunner
         builder.AppendLine($"- Unsupported-number cases: {m.BlockingUnsupportedNumberCases}");
         builder.AppendLine($"- Wrong-server cases: {m.BlockingWrongServerCases}");
         builder.AppendLine($"- Latency average/p95: {m.AverageLatencyMs:F2}/{m.P95LatencyMs:F2} ms");
+        builder.AppendLine($"- LLM avoided: {m.AvoidedLlmRate:P2}; cache hit: {m.CacheHitRate:P2}");
+        builder.AppendLine($"- Provider checks / LLM calls: {m.ProviderAvailabilityChecks}/{m.LlmCalls}");
+        builder.AppendLine($"- Estimated input/output-budget tokens: {m.EstimatedInputTokens}/{m.EstimatedOutputBudgetTokens}");
         if (report.GateFailures.Count > 0)
         {
             builder.AppendLine();
@@ -296,8 +315,14 @@ public sealed class ProductBenchmarkRunner
             Task.FromResult(new ChatProviderAvailability(null, null, false, false));
     }
 
-    private sealed class NullEventSink : ISessionEventSink
+    private sealed class MetricsEventSink : ISessionEventSink
     {
-        public void Write(SessionEvent value) { }
+        public AssistantRequestMetrics? LastMetrics { get; private set; }
+        public void Clear() => LastMetrics = null;
+        public void Write(SessionEvent value)
+        {
+            if (value.Name != "Assistant request metrics" || string.IsNullOrWhiteSpace(value.Detail)) return;
+            LastMetrics = JsonSerializer.Deserialize<AssistantRequestMetrics>(value.Detail);
+        }
     }
 }

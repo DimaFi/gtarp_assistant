@@ -1,15 +1,19 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — Smart Assistant Phase 1A завершён
+## ACTIVE CHECKPOINT — Smart Assistant Phase 1A–1B завершён
 
 Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
 
 - `AiRouter.SelectBeforeProvider` завершает prepared/insufficient-grounding маршруты до discovery и health-check AI-провайдеров.
 - Verified prepared answer не вызывает `IChatProviderCatalog.GetAvailabilityAsync` и не может разбудить GPT‑5VP/LM Studio.
 - Каждый запрос пишет структурированные `AssistantRequestMetrics`: route/reason, provider availability checks, LLM/repair calls, консервативную оценку input/output tokens, avoided-LLM и total latency.
-- Core: 108/108 тестов; интеграционный `TextPipelineTests`: 4/4.
+- Добавлен versioned answer cache: SHA-256 ключ включает server, facts и personalization; повторный direct knowledge request возвращает только ранее validated answer до provider discovery.
+- При выключенной постоянной истории кэш существует только в RAM; opt-in включает SQLite-таблицу `answer_cache` с TTL 7 дней и максимумом 1000 записей.
+- Product benchmark теперь выводит route, cache-hit, LLM-avoidance, provider/model calls и token estimates.
+- Все 365 тестов решения прошли: Core 110, Providers 22, Knowledge 68, Integration 92, App 56, ModelBenchmark 13, ProductBenchmark 4.
+- Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
-Следующая отдельная задача: Smart Assistant Phase 1B — versioned response cache, cache invalidation по knowledge revision и агрегаты LLM-avoidance/cache-hit в product benchmark.
+Следующая задача: Phase 2 — единый bounded Context Builder. Отдельно требуется governance-проверка просроченных knowledge sources.
 
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 

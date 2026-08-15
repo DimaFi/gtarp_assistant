@@ -12,7 +12,7 @@
 
 ## Phase 1 — Fast Knowledge Path & Budget Telemetry
 
-**Прогресс.** Срез 1A завершён: `AiRouter` выполняет preflight до discovery провайдеров; verified prepared answer и недостаточный grounding не вызывают `GetAvailabilityAsync`. Введены `AiRouteDecision`, `AssistantRequestMetrics` и консервативный `AssistantTokenEstimator`; session events фиксируют route/reason, проверки каталога, LLM/repair calls, token estimates и latency. Следующий срез 1B — versioned response cache и benchmark counters.
+**Прогресс.** Срезы 1A–1B завершены: `AiRouter` выполняет preflight до discovery провайдеров; verified prepared answer и недостаточный grounding не вызывают `GetAvailabilityAsync`. Введены `AiRouteDecision`, `AssistantRequestMetrics`, консервативный `AssistantTokenEstimator` и versioned answer cache. Повторный direct knowledge request получает только ранее validated answer до provider discovery; ключ автоматически меняется вместе с server/facts/personalization. По умолчанию кэш bounded in-memory, SQLite включается только вместе с opt-in постоянной историей. Product benchmark выводит route, LLM-avoidance, cache-hit, provider/model calls и token estimates. Следующий этап — Phase 2 Context Builder.
 
 **Цель.** Типовые вопросы получают ответ из SQLite/prepared/cache без health-check, загрузки или вызова GPT‑5VP.
 
