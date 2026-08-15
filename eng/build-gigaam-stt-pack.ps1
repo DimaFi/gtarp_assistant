@@ -46,7 +46,7 @@ try {
     $env:TEMP = Join-Path $artifactRoot 'temp'
     $env:TMP = $env:TEMP
     dotnet publish (Join-Path $root 'src\GtaRpAssistant.SttHost\GtaRpAssistant.SttHost.csproj') `
-        -c Release -r win-x64 --self-contained false --no-restore -o $publish
+        -c Release -r win-x64 --self-contained true --no-restore -o $publish
     if ($LASTEXITCODE -ne 0) { throw 'STT host publish failed.' }
 
     if (Test-Path -LiteralPath $Destination) {

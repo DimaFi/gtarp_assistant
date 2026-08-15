@@ -6,7 +6,8 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="Padding" Value="9,8" />
-        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="Margin" Value="0,3" />
+        <Setter Property="MinHeight" Value="42" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsSelected}" Value="True">
                 <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />

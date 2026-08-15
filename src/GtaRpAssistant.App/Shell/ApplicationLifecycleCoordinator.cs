@@ -114,7 +114,11 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         await _performanceMonitor.StartAsync(cancellationToken);
         _screenContext.Start();
 
-        _ui.PipelineStatus = $"Готово: статей {catalog.TotalArticles}. Transcript → Intent → Knowledge → Router → Validator → Overlay";
+        if (!_executionMode.IsAutomation)
+            await _audioFeature.StartWakePhraseListeningAsync();
+
+        if (!_audioFeature.IsListening)
+            _ui.PipelineStatus = $"Готово: статей {catalog.TotalArticles}. Включите микрофон на странице «Аудио» для голосовой активации.";
         IsInitialized = true;
         UpdateAppStatus();
     }

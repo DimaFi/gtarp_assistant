@@ -26,7 +26,7 @@
 
             <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0,0,0,12"
                                    Title="Документы и источники"
-                                   Description="Поиск по названию, источнику и фактам. Выберите документ, чтобы увидеть его chunks и дату актуальности.">
+                                   Description="Поиск по названию, источнику и фактам. Выберите документ, чтобы увидеть его фрагменты и дату актуальности.">
                 <StackPanel>
                     <Grid Margin="0,0,0,10">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="150" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -41,11 +41,11 @@
                         </Grid></DataTemplate></ListBox.ItemTemplate>
                     </ListBox>
                     <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,10,0,0" DataContext="{Binding SelectedDocument}">
-                        <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="PREVIEW ФАКТОВ / CHUNKS" /><TextBlock Margin="0,6,0,0" Text="{Binding Preview}" TextWrapping="Wrap" MaxHeight="120" /></StackPanel>
+                        <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="ПРЕДПРОСМОТР ФАКТОВ И ФРАГМЕНТОВ" /><TextBlock Margin="0,6,0,0" Text="{Binding Preview}" TextWrapping="Wrap" MaxHeight="120" /></StackPanel>
                     </Border>
                     <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <TextBlock VerticalAlignment="Center" Text="{Binding OperationStatus}" Style="{StaticResource Text.Secondary}" AutomationProperties.AutomationId="Knowledge.Status" />
-                        <WrapPanel Grid.Column="1"><Button Content="Вкл / выкл источник" Command="{Binding ToggleSourceCommand}" AutomationProperties.AutomationId="Knowledge.ToggleSource" /><Button Content="Reindex" Command="{Binding ReindexCommand}" AutomationProperties.AutomationId="Knowledge.Reindex" /><Button Content="Rollback" Command="{Binding RollbackCommand}" AutomationProperties.AutomationId="Knowledge.Rollback" /></WrapPanel>
+                        <WrapPanel Grid.Column="1"><Button Content="Включить / выключить" Command="{Binding ToggleSourceCommand}" AutomationProperties.AutomationId="Knowledge.ToggleSource" /><Button Content="Переиндексировать" Command="{Binding ReindexCommand}" AutomationProperties.AutomationId="Knowledge.Reindex" /><Button Content="Откатить" Command="{Binding RollbackCommand}" AutomationProperties.AutomationId="Knowledge.Rollback" /></WrapPanel>
                     </Grid>
                 </StackPanel>
             </design:FeatureSection>

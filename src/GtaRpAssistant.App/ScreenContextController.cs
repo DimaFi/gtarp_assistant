@@ -53,8 +53,9 @@ public sealed partial class ScreenContextController(WindowCaptureService capture
             var ocrResult = await ocr.RecognizeAsync(png, cancellationToken);
             if (ocrResult.Fields.Count == 0) return;
             var recognition = KnownScreenRecognizer.Recognize(ocrResult.Fields);
-            store.Publish(new(capturedAt, recognition.Kind, recognition.Confidence, diff.ChangedRegions, ocrResult.Fields, ExtractNumbers(ocrResult.Fields), capturedAt.AddSeconds(Math.Clamp(settings.Current.ScreenContextTtlSeconds, 5, 60))));
-            logger.LogInformation("Local screen context updated; screen={Screen}; fields={FieldCount}; change={ChangedRatio:0.000}", recognition.Kind, ocrResult.Fields.Count, diff.ChangedRatio);
+            var profiledFields = ScreenFieldProfiler.Apply(recognition.Kind, ocrResult.Fields);
+            store.Publish(new(capturedAt, recognition.Kind, recognition.Confidence, diff.ChangedRegions, profiledFields, ExtractNumbers(profiledFields), capturedAt.AddSeconds(Math.Clamp(settings.Current.ScreenContextTtlSeconds, 5, 60))));
+            logger.LogInformation("Local screen context updated; screen={Screen}; fields={FieldCount}; change={ChangedRatio:0.000}", recognition.Kind, profiledFields.Count, diff.ChangedRatio);
         }
         finally { if (png is not null) Array.Clear(png); }
     }

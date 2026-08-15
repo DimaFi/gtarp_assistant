@@ -65,6 +65,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _renameConversationCommand = new RelayCommand(RenameConversation, CanRenameConversation);
         _deleteConversationCommand = new RelayCommand(DeleteConversation, () => SelectedConversation is not null && !IsBusy);
         _copyAnswerCommand = new RelayCommand(CopyAnswer, HasAssistantAnswer);
+        CopyMessageCommand = new RelayCommand<AssistantConversationTurn>(CopyMessage);
         _retryQuestionCommand = new AsyncRelayCommand(RetryQuestionAsync, () => !IsBusy && LastUserQuestion() is not null);
         _confirmVoicePreviewCommand = new RelayCommand(ConfirmVoicePreview, () => IsVoicePreview && !string.IsNullOrWhiteSpace(TranscriptText));
         _cancelVoicePreviewCommand = new RelayCommand(CancelVoicePreview, () => IsVoicePreview);
@@ -166,6 +167,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     public ICommand RenameConversationCommand { get; }
     public ICommand DeleteConversationCommand { get; }
     public ICommand CopyAnswerCommand { get; }
+    public ICommand CopyMessageCommand { get; }
     public ICommand RetryQuestionCommand { get; }
     public ICommand ConfirmVoicePreviewCommand { get; }
     public ICommand CancelVoicePreviewCommand { get; }
@@ -184,6 +186,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     {
         if (Ui.IsPaused || IsBusy || string.IsNullOrWhiteSpace(TranscriptText)) return;
         var question = TranscriptText.Trim();
+        TranscriptText = string.Empty;
         _lastQuestion = question;
         var now = DateTimeOffset.UtcNow;
         var entry = new TranscriptEntry(Guid.NewGuid(), SelectedSource, now - TimeSpan.FromSeconds(2), now, question, 1);
@@ -346,6 +349,25 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         {
             System.Windows.Clipboard.SetText(text);
             Ui.PipelineStatus = "Ответ скопирован в буфер обмена.";
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or ThreadStateException)
+        {
+            Ui.PipelineStatus = "Буфер обмена временно недоступен. Попробуйте ещё раз.";
+        }
+    }
+
+    private void CopyMessage(AssistantConversationTurn? turn)
+    {
+        if (turn is null || string.IsNullOrWhiteSpace(turn.Text)) return;
+        CopyText(turn.Text, "Сообщение скопировано в буфер обмена.");
+    }
+
+    private void CopyText(string text, string successStatus)
+    {
+        try
+        {
+            System.Windows.Clipboard.SetText(text);
+            Ui.PipelineStatus = successStatus;
         }
         catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or ThreadStateException)
         {

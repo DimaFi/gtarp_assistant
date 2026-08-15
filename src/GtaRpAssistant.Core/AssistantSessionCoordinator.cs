@@ -18,6 +18,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly ISessionEventSink _events;
     private readonly IAssistantConversationStore _conversation;
     private readonly IUserPersonalizationContextProvider? _personalization;
+    private readonly IScreenContextStore? _screenContext;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -36,7 +37,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         IProactivePolicy proactive,
         ISessionEventSink events,
         IAssistantConversationStore? conversation = null,
-        IUserPersonalizationContextProvider? personalization = null)
+        IUserPersonalizationContextProvider? personalization = null,
+        IScreenContextStore? screenContext = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -51,6 +53,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _events = events;
         _conversation = conversation ?? new InMemoryAssistantConversationStore();
         _personalization = personalization;
+        _screenContext = screenContext;
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -135,6 +138,13 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], entry.Text));
                 Transition(AssistantSessionState.ValidatingAnswer);
                 return await PresentAsync(Abstain(blockedReason), request, entry.Text, ct);
+            }
+
+            if (ScreenQuestionClassifier.NeedsScreenContext(entry.Text) && _screenContext?.GetFresh(DateTimeOffset.UtcNow) is { } screen)
+            {
+                _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], "screen-context"));
+                Transition(AssistantSessionState.ValidatingAnswer);
+                return await PresentAsync(ScreenContextAnswerFactory.Create(screen), request, "screen-context", ct);
             }
 
             var currentConversation = _conversation.GetCurrent();
@@ -272,7 +282,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     public bool OpenConversation(Guid conversationId) => _conversation.TryOpenConversation(conversationId);
     public void RenameConversation(Guid conversationId, string title) => _conversation.RenameConversation(conversationId, title);
     public void DeleteConversation(Guid conversationId) => _conversation.DeleteConversation(conversationId);
-    public void ClearContext() { _transcripts.Clear(); _conversation.Clear(); }
+    public void ClearContext() { _transcripts.Clear(); _conversation.Clear(); _screenContext?.Clear(); }
     public void StartNewConversation() => _conversation.StartNewConversation();
 
     private async Task<AssistantAnswer> PresentAsync(AssistantAnswer answer, AssistantProcessingRequest request, string topic, CancellationToken ct)

@@ -19,7 +19,7 @@ public sealed class SettingsEditor : ObservableObject
     private string _language = "ru";
     private string _overlayPosition = "TopRight";
     private int _transcriptMinutes = 3;
-    private string _wakeWord = "помощник";
+    private string _wakeWord = "Лаберти, слушай";
     private bool _allowGameAudioCloud;
     private int _voiceMode;
     private string? _voiceName;
@@ -128,7 +128,7 @@ public sealed class SettingsEditor : ObservableObject
         CloudEndpoint = CloudEndpoint.Trim(), CloudModel = CloudModel.Trim(), OverlaySeconds = int.TryParse(OverlaySeconds, out var seconds) ? Math.Clamp(seconds, 2, 60) : 8,
         PerformanceProfile = PerformanceProfile, ProactiveMode = ProactiveMode, AllowCloud = AllowCloud, WatchGta = WatchGta,
         EnableGameAudio = EnableGameAudio, PreferProcessLoopback = PreferProcessLoopback, StartWithWindows = StartWithWindows,
-        Language = Language, OverlayPosition = OverlayPosition, TranscriptMinutes = TranscriptMinutes, WakeWord = string.IsNullOrWhiteSpace(WakeWord) ? "помощник" : WakeWord.Trim(),
+        Language = Language, OverlayPosition = OverlayPosition, TranscriptMinutes = TranscriptMinutes, WakeWord = string.IsNullOrWhiteSpace(WakeWord) ? "Лаберти, слушай" : WakeWord.Trim(),
         AllowGameAudioCloud = AllowGameAudioCloud, VoiceMode = VoiceMode, VoiceName = VoiceName, VoiceOutputDevice = VoiceOutputDevice, VisionEnabled = VisionEnabled, VisionModel = VisionModel.Trim(),
         MicrophoneDeviceId = microphoneId, RenderDeviceId = renderDeviceId,
         LocalAiPerformanceProfile = LocalAiPerformanceProfile,

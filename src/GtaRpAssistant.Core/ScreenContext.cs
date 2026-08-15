@@ -39,6 +39,71 @@ public static class KnownScreenRecognizer
     private static bool ContainsAny(string text, params string[] values) => values.Any(text.Contains);
 }
 
+public static class ScreenFieldProfiler
+{
+    public static IReadOnlyList<ScreenTextField> Apply(KnownScreenKind kind, IEnumerable<ScreenTextField> fields) =>
+        fields.Select(field => field with { Role = Role(kind, field) }).ToArray();
+
+    private static string Role(KnownScreenKind kind, ScreenTextField field)
+    {
+        var text = field.Text.ToLowerInvariant();
+        if (field.Bounds.Y < .22) return "title";
+        if (text.Contains('$') || text.Contains("₽") || text.Contains("цена") || text.Contains("стоимость")) return "price";
+        return kind switch
+        {
+            KnownScreenKind.Shop => field.Bounds.X > .55 ? "details" : "item",
+            KnownScreenKind.Inventory => "item",
+            KnownScreenKind.Quest => field.Bounds.Y > .72 ? "action" : "objective",
+            KnownScreenKind.Dialog => field.Bounds.Y > .72 ? "button" : "dialogue",
+            KnownScreenKind.Notification => "notification",
+            _ => "text",
+        };
+    }
+}
+
+public static class ScreenContextAnswerFactory
+{
+    public static AssistantAnswer Create(ScreenContextSnapshot snapshot)
+    {
+        var fields = snapshot.TextFields
+            .Where(x => x.Confidence >= .35 && !string.IsNullOrWhiteSpace(x.Text))
+            .Select(x => (x.Role, Text: Clean(x.Text)))
+            .Where(x => x.Text.Length > 1)
+            .DistinctBy(x => $"{x.Role}\0{x.Text}", StringComparer.OrdinalIgnoreCase)
+            .Take(8)
+            .ToArray();
+        if (fields.Length == 0)
+            return new(AnswerDecision.AskForMoreInformation, "Экран не распознан", "Свежий кадр есть, но локальный OCR не смог уверенно прочитать текст.", [], "Временное локальное наблюдение", snapshot.CapturedAt, false, "Local screen context empty", ProviderId: "local-screen-context");
+
+        var screenName = snapshot.ScreenKind switch
+        {
+            KnownScreenKind.Shop => "магазин",
+            KnownScreenKind.Inventory => "инвентарь",
+            KnownScreenKind.Quest => "задание",
+            KnownScreenKind.Dialog => "диалог",
+            KnownScreenKind.Notification => "уведомление",
+            _ => "неизвестное окно",
+        };
+        var message = $"Похоже, открыт {screenName}.\n" + string.Join("\n", fields.Select(x => $"{Label(x.Role)}: {x.Text}"));
+        if (message.Length > 900) message = message[..897].TrimEnd() + "…";
+        return new(AnswerDecision.Show, "Локальное распознавание экрана", message, [], "Временное локальное наблюдение — не источник игровых правил", snapshot.CapturedAt, false, "Local screen context", ProviderId: "local-screen-context");
+    }
+
+    private static string Clean(string value)
+    {
+        var safe = new string(value.Where(character => !char.IsControl(character) && character is not '\u202A' and not '\u202B' and not '\u202D' and not '\u202E' and not '\u2066' and not '\u2067' and not '\u2068' and not '\u2069').ToArray());
+        safe = safe.Replace("http://", "[ссылка скрыта]", StringComparison.OrdinalIgnoreCase).Replace("https://", "[ссылка скрыта]", StringComparison.OrdinalIgnoreCase);
+        safe = string.Join(' ', safe.Replace('\r', ' ').Replace('\n', ' ').Split(' ', StringSplitOptions.RemoveEmptyEntries)).Trim();
+        return safe.Length <= 160 ? safe : safe[..157].TrimEnd() + "…";
+    }
+    private static string Label(string role) => role switch
+    {
+        "title" => "Заголовок", "price" => "Цена", "details" => "Описание", "item" => "Элемент",
+        "objective" => "Цель", "action" => "Действие", "button" => "Кнопка", "dialogue" => "Текст",
+        "notification" => "Уведомление", _ => "Текст",
+    };
+}
+
 public sealed class GridScreenFrameDiffer(int columns = 8, int rows = 6, byte pixelThreshold = 24) : IScreenFrameDiffer
 {
     public ScreenFrameDiff Compare(ScreenFrame previous, ScreenFrame current)

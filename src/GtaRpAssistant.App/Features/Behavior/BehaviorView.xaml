@@ -25,7 +25,7 @@
             <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Text.Heading}" Text="Оверлей" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Compact-режим не забирает фокус; expanded открывается только вручную." />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Небольшая светлая карточка с ответом поверх игры. Нажмите «Подробнее», чтобы развернуть её." />
                     <CheckBox Content="Показывать ответы поверх игры" IsChecked="{Binding Settings.OverlayEnabled}"
                               AutomationProperties.AutomationId="Behavior.OverlayEnabled" />
                     <CheckBox Content="Оставлять последний ответ на экране" IsChecked="{Binding Settings.OverlayPinned}"
@@ -46,12 +46,13 @@
             </Border>
             <Border Style="{StaticResource Surface.Card}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource Text.Heading}" Text="Проактивность" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Автоматические подсказки ограничены cooldown и могут быть остановлены в любой момент." />
-                    <TextBlock Style="{StaticResource Text.Label}" Text="Wake word" /><TextBox Text="{Binding Settings.WakeWord}" AutomationProperties.AutomationId="Behavior.WakeWord" />
-                    <TextBlock Style="{StaticResource Text.Label}" Text="Режим" />
+                    <TextBlock Style="{StaticResource Text.Heading}" Text="Голосовая активация" />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Назовите ассистента этой фразой, затем задайте вопрос. После паузы он сам начнёт обработку; если продолжить говорить до окончания паузы, вопрос дополнится." TextWrapping="Wrap" />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Фраза активации" /><TextBox Text="{Binding Settings.WakeWord}" AutomationProperties.AutomationId="Behavior.WakeWord" />
+                    <TextBlock Margin="0,4,0,10" Style="{StaticResource Text.Caption}" Text='Например: «Лаберти, слушай, как выполнить контракт?»' />
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Когда ассистент может откликаться" />
                     <ComboBox SelectedIndex="{Binding Settings.ProactiveMode}" AutomationProperties.AutomationId="Behavior.ProactiveMode">
-                        <ComboBoxItem Content="Off" /><ComboBoxItem Content="Strict" /><ComboBoxItem Content="Balanced" /><ComboBoxItem Content="Experimental" />
+                        <ComboBoxItem Content="Никогда автоматически" /><ComboBoxItem Content="Только после фразы активации" /><ComboBoxItem Content="Фраза или явный вопрос по игре" /><ComboBoxItem Content="Активно предлагать помощь" />
                     </ComboBox>
                     <WrapPanel>
                         <Button Style="{StaticResource Button.Ghost}" Content="Не беспокоить 5 минут" Command="{Binding SnoozeFiveMinutesCommand}" AutomationProperties.AutomationId="Behavior.SnoozeFive" />

@@ -10,6 +10,17 @@ public sealed class IntentAndRouterTests
     [Fact] public async Task OrdinaryConversation_IsIgnored() { var e = Entry(AudioSourceKind.UserMicrophone, "едем дальше"); Assert.False((await _detector.DetectAsync(new([e], e), default)).ShouldConsiderHint); }
     [Fact] public async Task GameAudio_CannotActivate() { var e = Entry(AudioSourceKind.GameAudio, "помощник как сделать контракт"); Assert.False((await _detector.DetectAsync(new([e], e), default)).ShouldConsiderHint); }
     [Fact] public async Task WakeWord_IsDetected() { var e = Entry(AudioSourceKind.UserMicrophone, "помощник подскажи"); Assert.True((await _detector.DetectAsync(new([e], e), default)).ExplicitWakeWord); }
+    [Fact]
+    public async Task CustomWakePhrase_WithPunctuation_IsNormalizedAndActivates()
+    {
+        var detector = new RuleBasedIntentDetector(["контракт"]) { WakeWord = "Лаберти, слушай" };
+        var entry = Entry(AudioSourceKind.UserMicrophone, "Лаберти слушай, помоги мне");
+
+        var result = await detector.DetectAsync(new([entry], entry), default);
+
+        Assert.True(result.ExplicitWakeWord);
+        Assert.True(result.ShouldConsiderHint);
+    }
     [Fact] public async Task IrrelevantQuestion_IsIgnored() { var e = Entry(AudioSourceKind.UserMicrophone, "как приготовить суп"); Assert.False((await _detector.DetectAsync(new([e], e), default)).ShouldConsiderHint); }
     [Theory]
     [InlineData(true, false, false, false, false, AnswerRoute.Deterministic)]

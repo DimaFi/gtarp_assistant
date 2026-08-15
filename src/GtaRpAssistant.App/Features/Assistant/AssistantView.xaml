@@ -21,17 +21,23 @@
             <Border Width="38" Height="38" CornerRadius="19" VerticalAlignment="Center">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#7567F8" Offset="0" />
-                        <GradientStop Color="#55D9A5" Offset="1" />
+                        <GradientStop Color="#E76F24" Offset="0" />
+                        <GradientStop Color="#D3A23D" Offset="1" />
                     </LinearGradientBrush>
                 </Border.Background>
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="17" FontWeight="Bold" Text="✦" />
             </Border>
             <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
                 <TextBlock FontSize="18" FontWeight="SemiBold" Text="GTA RP Assistant" />
-                <TextBlock Style="{StaticResource Text.Caption}" Text="Спросите голосом или напишите сообщение" />
+                <TextBlock Style="{StaticResource Text.Caption}" Text="Скажите или напишите вопрос" />
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <ComboBox Width="210" Margin="0,0,6,0" ItemsSource="{Binding Conversations}"
+                          SelectedItem="{Binding SelectedConversation}" DisplayMemberPath="Title"
+                          ToolTip="История чатов — хранится локально"
+                          AutomationProperties.AutomationId="Assistant.ConversationHistory" />
+                <Button Style="{StaticResource Button.Ghost}" Content="Удалить" Command="{Binding DeleteConversationCommand}"
+                        ToolTip="Удалить выбранный чат" AutomationProperties.AutomationId="Assistant.DeleteConversation" />
                 <Button Style="{StaticResource Button.Ghost}" Content="Повторить" Command="{Binding RetryQuestionCommand}"
                         AutomationProperties.AutomationId="Assistant.Retry" />
                 <Button Style="{StaticResource Button.Ghost}" Content="Новый чат" Command="{Binding NewConversationCommand}"
@@ -63,10 +69,10 @@
             </Border>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Conversation}" AutomationProperties.AutomationId="Assistant.Conversation">
+                <ItemsControl ItemsSource="{Binding Conversation}" VerticalAlignment="Bottom" AutomationProperties.AutomationId="Assistant.Conversation">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Margin="4,5" Padding="14,11" MaxWidth="620" CornerRadius="16">
+                            <Border Margin="4,3" Padding="14,10" MaxWidth="680" CornerRadius="16">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Background" Value="{DynamicResource Brush.SurfaceRaised}" />
@@ -80,6 +86,8 @@
                                     </Style>
                                 </Border.Style>
                                 <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                     <TextBlock>
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
@@ -90,6 +98,10 @@
                                             </Style>
                                         </TextBlock.Style>
                                     </TextBlock>
+                                        <Button Grid.Column="1" Style="{StaticResource Button.Ghost}" Width="28" Height="26" Padding="2" Margin="8,-5,-7,-3"
+                                                Content="⧉" ToolTip="Копировать" Command="{Binding DataContext.CopyMessageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" AutomationProperties.Name="Копировать сообщение" />
+                                    </Grid>
                                     <design:MarkdownTextBlock Margin="0,4,0,0" Markdown="{Binding Text}" />
                                 </StackPanel>
                             </Border>

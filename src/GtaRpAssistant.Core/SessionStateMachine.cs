@@ -9,7 +9,7 @@ public sealed class SessionStateMachine
         [AssistantSessionState.Listening] = [AssistantSessionState.SpeechDetected, AssistantSessionState.WaitingForGame, AssistantSessionState.Paused, AssistantSessionState.Faulted],
         [AssistantSessionState.SpeechDetected] = [AssistantSessionState.Transcribing, AssistantSessionState.Listening, AssistantSessionState.Paused, AssistantSessionState.Faulted],
         [AssistantSessionState.Transcribing] = [AssistantSessionState.EvaluatingIntent, AssistantSessionState.Listening, AssistantSessionState.Paused, AssistantSessionState.Faulted],
-        [AssistantSessionState.EvaluatingIntent] = [AssistantSessionState.SearchingKnowledge, AssistantSessionState.Listening, AssistantSessionState.Paused, AssistantSessionState.Faulted],
+        [AssistantSessionState.EvaluatingIntent] = [AssistantSessionState.SearchingKnowledge, AssistantSessionState.ValidatingAnswer, AssistantSessionState.Listening, AssistantSessionState.Paused, AssistantSessionState.Faulted],
         [AssistantSessionState.SearchingKnowledge] = [AssistantSessionState.GeneratingAnswer, AssistantSessionState.ValidatingAnswer, AssistantSessionState.Listening, AssistantSessionState.Paused, AssistantSessionState.Faulted],
         [AssistantSessionState.GeneratingAnswer] = [AssistantSessionState.ValidatingAnswer, AssistantSessionState.Paused, AssistantSessionState.Faulted],
         [AssistantSessionState.ValidatingAnswer] = [AssistantSessionState.ShowingOverlay, AssistantSessionState.Listening, AssistantSessionState.Paused, AssistantSessionState.Faulted],

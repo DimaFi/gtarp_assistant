@@ -8,6 +8,18 @@
         ShowInTaskbar="False" ShowActivated="True" Topmost="True"
         PreviewKeyDown="Window_PreviewKeyDown"
         AutomationProperties.AutomationId="Overlay.Expanded">
+    <Window.Resources>
+        <SolidColorBrush x:Key="Brush.TextPrimary" Color="#171411" />
+        <SolidColorBrush x:Key="Brush.TextSecondary" Color="#655E57" />
+        <SolidColorBrush x:Key="Brush.TextMuted" Color="#91877D" />
+        <SolidColorBrush x:Key="Brush.Input" Color="#FFF8F1" />
+        <SolidColorBrush x:Key="Brush.SurfaceRaised" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="Brush.Border" Color="#DED7CF" />
+        <SolidColorBrush x:Key="Brush.BorderSubtle" Color="#ECE6DF" />
+        <SolidColorBrush x:Key="Brush.AccentMuted" Color="#FCE8D8" />
+        <SolidColorBrush x:Key="Brush.Overlay" Color="#FFFCF8" />
+        <SolidColorBrush x:Key="Brush.OverlayExpanded" Color="#FFFFFF" />
+    </Window.Resources>
     <design:OverlayCardShell x:Name="CardShell" Style="{StaticResource Surface.OverlayCardShell}" IsExpanded="True"
                              AutomationProperties.AutomationId="Overlay.ExpandedCardShell">
         <Grid>

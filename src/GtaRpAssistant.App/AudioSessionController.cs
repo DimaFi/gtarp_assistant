@@ -16,7 +16,8 @@ public sealed class AudioSessionController(
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly AdaptiveEnergyVoiceActivityDetector _microphoneVad = new();
     private readonly AdaptiveEnergyVoiceActivityDetector _gameVad = new();
-    private readonly EnergyAudioSegmenter _microphoneSegmenter = new();
+    // A short natural pause closes the phrase; speech resumed before it stays in the same question.
+    private readonly EnergyAudioSegmenter _microphoneSegmenter = new(silenceToEnd: TimeSpan.FromMilliseconds(1100));
     private readonly EnergyAudioSegmenter _gameSegmenter = new();
     private readonly object _microphoneSegmenterSync = new();
     private readonly object _gameSegmenterSync = new();
@@ -35,6 +36,7 @@ public sealed class AudioSessionController(
     private AppSettings _sessionSettings = new();
     private bool _gameAudioSuspended;
     private DateTimeOffset _manualVoiceUntil;
+    private DateTimeOffset _voiceContinuationUntil;
     private long _lastMicrophoneLevelTick;
     private string? _microphoneDeviceId;
     private int _microphoneRecoveryActive;
@@ -64,7 +66,7 @@ public sealed class AudioSessionController(
             _sttProviderRoute = await speechToTextProviders.CreateAvailableRouteAsync(value, _cancellation.Token);
             _sttRoute = _sttProviderRoute.Providers;
             if (_sttRoute.Count == 0) throw new InvalidOperationException(
-                "Микрофон найден, но распознавание речи не настроено. Установите локальный голосовой пакет или выберите отдельный STT-провайдер.");
+                "Микрофон найден, но в Windows нет русского распознавания речи. Установите русский языковой пакет с компонентом «Речь» или локальный голосовой пакет в приложении.");
             lock (_microphoneSegmenterSync) _microphoneSegmenter.Reset();
             lock (_gameSegmenterSync) _gameSegmenter.Reset();
             _microphoneSegments = CreateChannel(); _gameSegments = CreateChannel(); _segmentSignal = new(0);
@@ -424,7 +426,14 @@ public sealed class AudioSessionController(
                 return;
             }
             TranscriptRecognized?.Invoke(this, result.Text);
-            var activation = manualRequest ? AssistantActivationKind.ManualVoice : AssistantActivationKind.AutomaticVoice;
+            var normalizedText = TranscriptDeduplicator.Normalize(result.Text);
+            var normalizedWakePhrase = TranscriptDeduplicator.Normalize(value.WakeWord);
+            var explicitlyActivated = normalizedWakePhrase.Length > 0
+                && normalizedText.Contains(normalizedWakePhrase, StringComparison.OrdinalIgnoreCase);
+            var conversationalContinuation = DateTimeOffset.UtcNow <= _voiceContinuationUntil;
+            var activation = manualRequest || conversationalContinuation
+                ? AssistantActivationKind.ManualVoice
+                : AssistantActivationKind.AutomaticVoice;
             if (activation == AssistantActivationKind.AutomaticVoice && SettingValues.Proactive(value) == ProactiveMode.Off) return;
             if (manualRequest)
             {
@@ -437,6 +446,8 @@ public sealed class AudioSessionController(
                 await coordinator.ProcessAsync(
                     new(entry, activation, value.Server, value.AllowCloud, false),
                     operationToken);
+            if (manualRequest || explicitlyActivated || conversationalContinuation)
+                _voiceContinuationUntil = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(12);
             if (manualRequest)
             {
                 _manualVoiceUntil = DateTimeOffset.MinValue;

@@ -31,6 +31,16 @@ public sealed class EmbeddedSttPackTests
     }
 
     [Fact]
+    public void PortablePack_IsUsedWhenSavedCustomPathNoLongerExists()
+    {
+        using var pack = TestPack.Create();
+        var missing = Path.Combine(pack.Directory, "previous-install", "stt");
+        var locator = new EmbeddedSttPackLocator(() => missing, "missing-default", pack.Directory);
+
+        Assert.Equal(Path.GetFullPath(pack.Directory), locator.ResolveDirectory());
+    }
+
+    [Fact]
     public async Task ModifiedModel_IsRejected()
     {
         using var pack = TestPack.Create();

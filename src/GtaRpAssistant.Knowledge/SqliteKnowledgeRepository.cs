@@ -5,6 +5,20 @@ namespace GtaRpAssistant.Knowledge;
 
 public sealed class SqliteKnowledgeRepository(string connectionString) : IKnowledgeRepository
 {
+    public async Task RebuildAsync(IEnumerable<KnowledgePackArticle> articles, CancellationToken cancellationToken)
+    {
+        await using var connection = new SqliteConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        await KnowledgeDatabaseMigrator.MigrateAsync(connection, cancellationToken);
+        foreach (var table in new[] { "facts", "aliases", "article_scopes", "prepared_answers", "article_fts", "fact_fts", "articles" })
+        {
+            await using var clear = connection.CreateCommand();
+            clear.CommandText = $"DELETE FROM {table}";
+            await clear.ExecuteNonQueryAsync(cancellationToken);
+        }
+        foreach (var article in articles) await UpsertAsync(connection, article, cancellationToken);
+    }
+
     public async Task InitializeAsync(IEnumerable<KnowledgePackArticle> articles, CancellationToken cancellationToken)
     {
         await using var connection = new SqliteConnection(connectionString);

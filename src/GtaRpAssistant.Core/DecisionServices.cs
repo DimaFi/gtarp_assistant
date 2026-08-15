@@ -59,10 +59,12 @@ public sealed class RuleBasedIntentDetector(IEnumerable<string>? gameTerms = nul
         if (current is null) return Task.FromResult(new IntentDecision(false, null, 0, false, false, "Нет текущего запроса"));
         if (current.Source != AudioSourceKind.UserMicrophone) return Task.FromResult(new IntentDecision(false, null, 0, false, false, "Game audio используется только как контекст"));
         var text = TranscriptDeduplicator.Normalize(current.Text);
-        var wake = text.Contains(WakeWord, StringComparison.OrdinalIgnoreCase);
+        var normalizedWakeWord = TranscriptDeduplicator.Normalize(WakeWord);
+        var wake = normalizedWakeWord.Length > 0 && text.Contains(normalizedWakeWord, StringComparison.OrdinalIgnoreCase);
         var candidate = CandidatePhrases.Any(text.Contains)
             || (text.Contains("почему", StringComparison.Ordinal) && (text.Contains("не запуска", StringComparison.Ordinal) || text.Contains("не работа", StringComparison.Ordinal)))
-            || current.Text.TrimEnd().EndsWith('?');
+            || current.Text.TrimEnd().EndsWith('?')
+            || wake;
         if (Mode is ProactiveMode.Balanced or ProactiveMode.Experimental)
             candidate |= text.Contains("не получается", StringComparison.Ordinal) || text.Contains("что то не работает", StringComparison.Ordinal);
         if (Mode == ProactiveMode.Experimental)
@@ -144,9 +146,16 @@ public static partial class AssistantConversationGrounding
     public static KnowledgeMatch? TryCreate(string question)
     {
         var normalized = TranscriptDeduplicator.Normalize(question);
-        if (!SmallTalkRegex().IsMatch(normalized)) return null;
+        var isApplicationHelp = ApplicationHelpRegex().IsMatch(normalized);
+        var isMemoryQuestion = MemoryQuestionRegex().IsMatch(normalized);
+        if (!SmallTalkRegex().IsMatch(normalized) && !isApplicationHelp && !isMemoryQuestion) return null;
         var updatedAt = new DateTimeOffset(2026, 8, 3, 0, 0, 0, TimeSpan.Zero);
         const string articleId = "assistant.conversation.basics";
+        var preparedAnswer = isMemoryQuestion
+            ? "Я знаю о вас только то, что вы сами сохранили в разделе «Память»: предпочтения, стиль игры и другие подтверждённые записи. Я не додумываю личные данные. Откройте «Память», чтобы посмотреть, изменить или удалить их."
+            : isApplicationHelp
+                ? "Я помогу настроить приложение по шагам — микрофон и распознавание, локальную или облачную модель, память, базу знаний и горячие клавиши. Напишите, что именно сейчас не работает, и я начну с проверки этого пункта."
+                : "Я — GTA RP Assistant. Помогаю разбираться в GTA5RP: отвечаю по проверенной базе знаний, объясняю механики и правила, учитываю текущий диалог и честно говорю, когда данных недостаточно.";
         return new(
             articleId,
             "GTA RP Assistant",
@@ -158,11 +167,19 @@ public static partial class AssistantConversationGrounding
                     "Я готов помочь: можно поздороваться, уточнить предыдущий ответ или спросить о механиках GTA5RP; если подтверждённых игровых данных нет, я честно попрошу уточнение.", true, updatedAt),
             ],
             false,
-            false);
+            false,
+            preparedAnswer,
+            true);
     }
 
     [GeneratedRegex(@"^(?:помощник[ ,.!-]*)?(?:привет|здравствуй(?:те)?|добрый\s+(?:день|вечер|утро)|как\s+(?:дела|ты)|кто\s+ты|что\s+ты\s+умеешь|чем\s+можешь\s+помочь|спасибо|благодарю|пока|до\s+свидания)[?!. ]*$", RegexOptions.IgnoreCase)]
     private static partial Regex SmallTalkRegex();
+
+    [GeneratedRegex(@"\b(?:настро(?:й|ить|ить приложение)|настройк(?:а|и)|микрофон|распознаван(?:ие|ия) речи|модел(?:ь|и)|локальн(?:ый|ая) ии|как пользоваться приложением)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex ApplicationHelpRegex();
+
+    [GeneratedRegex(@"\b(?:что ты знаешь обо мне|что ты помнишь обо мне|моя память|покажи (?:мою )?память)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex MemoryQuestionRegex();
 }
 
 public sealed partial class GroundedAnswerValidator

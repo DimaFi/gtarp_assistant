@@ -1,11 +1,11 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Thickness x:Key="Space.Window">20</Thickness>
-    <Thickness x:Key="Space.Card">16</Thickness>
-    <Thickness x:Key="Space.Control">12,9</Thickness>
+    <Thickness x:Key="Space.Window">24</Thickness>
+    <Thickness x:Key="Space.Card">20</Thickness>
+    <Thickness x:Key="Space.Control">14,10</Thickness>
     <Thickness x:Key="Space.Field">0,5,0,14</Thickness>
     <Thickness x:Key="Space.Section">0,20,0,8</Thickness>
-    <CornerRadius x:Key="Radius.Control">8</CornerRadius>
-    <CornerRadius x:Key="Radius.Card">12</CornerRadius>
-    <CornerRadius x:Key="Radius.Overlay">16</CornerRadius>
+    <CornerRadius x:Key="Radius.Control">10</CornerRadius>
+    <CornerRadius x:Key="Radius.Card">18</CornerRadius>
+    <CornerRadius x:Key="Radius.Overlay">18</CornerRadius>
 </ResourceDictionary>

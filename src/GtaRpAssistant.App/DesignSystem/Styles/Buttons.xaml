@@ -43,6 +43,7 @@
     </Style>
     <Style TargetType="Button" BasedOn="{StaticResource Button.Base}" />
     <Style x:Key="Button.Primary" TargetType="Button" BasedOn="{StaticResource Button.Base}">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.OnAccent}" />
         <Setter Property="Background" Value="{DynamicResource Brush.Accent}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
         <Setter Property="FontWeight" Value="SemiBold" />

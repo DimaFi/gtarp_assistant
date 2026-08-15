@@ -14,6 +14,7 @@
 8. [ASSISTANT_MEMORY_AND_CHAT_PLAN](ASSISTANT_MEMORY_AND_CHAT_PLAN.md) — состояние чата и контролируемой памяти.
 9. [TOP1_PRODUCT_ROADMAP](TOP1_PRODUCT_ROADMAP.md) — измеримая стратегия развития до лучшего GTA5RP-помощника.
 10. [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — аудит и целевая архитектура автономного voice-сценария без LM Studio.
+11. [RELEASE_NOTES_0.4.1](RELEASE_NOTES_0.4.1.md) — реализованные изменения, установка и проверка текущей версии.
 
 ## Для пользователя
 
@@ -26,6 +27,8 @@
 
 - [ARCHITECTURE](ARCHITECTURE.md) — проекты, DI и главный pipeline.
 - [OFFLINE_ASSISTANT_ARCHITECTURE](OFFLINE_ASSISTANT_ARCHITECTURE.md) — реализованное/отсутствующее, voice orchestrator, runtime, ресурсы, память и этапы P0–P10.
+- [SMART_ASSISTANT_ARCHITECTURE](SMART_ASSISTANT_ARCHITECTURE.md) — актуальный аудит knowledge-first ассистента, GPT-5VP, токен-бюджеты, кэш, ресурсы и hardware tiers.
+- [SMART_ASSISTANT_ROADMAP](SMART_ASSISTANT_ROADMAP.md) — последовательные вертикальные этапы развития и первая следующая задача.
 - [AI_ROUTING](AI_ROUTING.md) — deterministic/provider/fallback/validator.
 - [AUDIO_PIPELINE](AUDIO_PIPELINE.md) — microphone, game audio, VAD и STT.
 - [SCREEN_CONTEXT](SCREEN_CONTEXT.md) — локальный frame diff, OCR, распознавание экранов и privacy boundary.

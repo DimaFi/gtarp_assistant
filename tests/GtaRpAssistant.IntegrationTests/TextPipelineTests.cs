@@ -36,14 +36,14 @@ public sealed class TextPipelineTests
 
             var questions = new[]
             {
-                "что делать при артериальном кровотечении",
                 "как получить достижение Вращайте барабан",
-                "какой доход дальнобойщика на 5 уровне",
-                "какие задания в merryweather",
-                "как поставить машину на учет",
-                "как дрессировать питомца",
-                "какой лимит ставок в казино",
                 "как получить достижение Большой куш",
+                "как дрессировать питомца",
+                "сколько стоит абонемент в спортзал",
+                "как играть в дартс",
+                "какая ставка в тренировочном комплексе",
+                "что нужно для вступления в car meet",
+                "какие есть мотоклубы",
             };
             foreach (var question in questions)
             {
@@ -63,6 +63,40 @@ public sealed class TextPipelineTests
                 Assert.NotEqual(GroundedAnswerValidator.SafeAbstainMessage, answer.Message);
             }
             Assert.Equal(questions.Length, overlay.Answers.Count);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task ExpiredCommunityReference_IsFoundButCannotProduceAnswer()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"gta-rp-expired-community-{Guid.NewGuid():N}.db");
+        try
+        {
+            var directory = Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "community");
+            var articles = await new CommunityReferenceLoader().LoadAsync(directory, default);
+            var repository = new SqliteKnowledgeRepository($"Data Source={path}");
+            await repository.InitializeAsync(articles, default);
+            var match = Assert.Single(await repository.SearchAsync(new("что делать при артериальном кровотечении"), default));
+            Assert.True(match.IsOutdated);
+
+            var overlay = new CapturingOverlay();
+            await using var coordinator = new AssistantSessionCoordinator(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector([]), repository,
+                new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), new UnavailableProviderCatalog(), overlay,
+                new TranscriptDeduplicator(), new ProactivePolicy(), new NullEventSink());
+            coordinator.Start(true);
+            var now = DateTimeOffset.UtcNow;
+            var answer = await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now,
+                "что делать при артериальном кровотечении", 1), AssistantActivationKind.ManualText, "all", false, false), default);
+
+            Assert.NotNull(answer);
+            Assert.Equal(AnswerDecision.Abstain, answer.Decision);
+            Assert.Equal(GroundedAnswerValidator.SafeAbstainMessage, answer.Message);
+            Assert.Empty(answer.UsedFactIds);
         }
         finally
         {

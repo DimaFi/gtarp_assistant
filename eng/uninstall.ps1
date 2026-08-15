@@ -2,10 +2,16 @@
 param(
     [string]$InstallRoot = (Join-Path $env:LocalAppData 'Programs\GtaRpAssistant'),
     [switch]$KeepRollback,
-    [switch]$NoShortcuts
+    [switch]$NoShortcuts,
+    [switch]$NoRegistration
 )
 
 $ErrorActionPreference = 'Stop'
+
+if (-not $NoRegistration) {
+    Remove-Item -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\GtaRpAssistant' -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name GtaRpAssistant -Force -ErrorAction SilentlyContinue
+}
 $installPath = [System.IO.Path]::GetFullPath($InstallRoot).TrimEnd('\')
 $parent = [System.IO.Path]::GetDirectoryName($installPath)
 if ([string]::IsNullOrWhiteSpace($parent) -or $installPath -eq [System.IO.Path]::GetPathRoot($installPath).TrimEnd('\')) { throw "Unsafe install path: $InstallRoot" }

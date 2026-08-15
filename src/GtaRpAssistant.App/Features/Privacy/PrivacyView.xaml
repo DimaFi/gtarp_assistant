@@ -7,13 +7,13 @@
         <StackPanel MaxWidth="820" HorizontalAlignment="Stretch" Margin="0,0,14,20">
             <design:FeaturePageHeader Style="{StaticResource Feature.PageHeader}"
                                       Title="Приватность"
-                                      Description="Вы сами решаете, что хранится локально и какие данные могут покинуть компьютер." />
+                                      Description="По умолчанию всё остаётся на этом компьютере. Облачная передача включается только отдельными разрешениями ниже." />
 
             <design:FeatureSection Style="{StaticResource Feature.Section}"
                                    Title="История общения"
-                                   Description="По умолчанию каждый запуск работает как обычный вопрос–ответ.">
+                                   Description="Все чаты доступны в списке на странице «Ассистент» и хранятся только локально.">
                 <StackPanel>
-                    <CheckBox Content="Долгосрочное общение (хранить диалоги локально)"
+                    <CheckBox Content="Сохранять историю чатов на этом компьютере"
                               IsChecked="{Binding Settings.EnableLongTermConversation}"
                               AutomationProperties.AutomationId="Privacy.LongTermConversation" />
                     <TextBlock Margin="24,2,0,0" Style="{StaticResource Text.Secondary}"
@@ -23,14 +23,14 @@
             </design:FeatureSection>
 
             <design:FeatureSection Style="{StaticResource Feature.Section}"
-                                   Title="Временные данные"
-                                   Description="Аудио, transcript и снимки не записываются на диск приложением.">
+                                   Title="Что может уйти в интернет"
+                                   Description="Эти разрешения нужны только для выбранных вами облачных моделей. Локальные модели работают без них.">
                 <StackPanel>
-                    <CheckBox Content="Разрешить отправку game audio в облачный STT"
+                    <CheckBox Content="Разрешить облачной модели распознавать звук игры"
                               IsChecked="{Binding Settings.AllowGameAudioCloud}"
                               AutomationProperties.AutomationId="Privacy.AllowGameAudioCloud" />
-                    <CheckBox Content="Сохранять расшифровки — не поддерживается" IsChecked="False" IsEnabled="False" />
-                    <Button Style="{StaticResource Button.Danger}" Content="Очистить временный контекст"
+                    <TextBlock Margin="24,2,0,10" Style="{StaticResource Text.Secondary}" Text="Микрофон, звук игры и снимки экрана не сохраняются приложением как аудио- или графические файлы." TextWrapping="Wrap" />
+                    <Button Style="{StaticResource Button.Danger}" Content="Забыть временный контекст текущей сессии"
                             Command="{Binding ClearContextCommand}" HorizontalAlignment="Left"
                             AutomationProperties.AutomationId="Privacy.ClearContext" />
                 </StackPanel>
@@ -55,8 +55,8 @@
             </design:FeatureSection>
 
             <design:FeatureSection Style="{StaticResource Feature.Section}" Margin="0"
-                                   Title="Ручной vision"
-                                   Description="Снимок отправляется только после отдельного превью и подтверждения.">
+                                   Title="Распознавание экрана (дополнительно)"
+                                   Description="Оставьте выключенным, если подсказки по изображению не нужны. Снимок отправляется только после превью и подтверждения.">
                 <StackPanel>
                     <CheckBox Content="Разрешить ручной vision после превью" IsChecked="{Binding Settings.VisionEnabled}"
                               AutomationProperties.AutomationId="Privacy.VisionEnabled" />

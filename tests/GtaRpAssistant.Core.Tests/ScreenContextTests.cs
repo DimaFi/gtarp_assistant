@@ -52,5 +52,27 @@ public sealed class ScreenContextTests
     public void QuestionClassifier_LimitsScreenContextToRelevantQuestions(string question, bool expected) =>
         Assert.Equal(expected, ScreenQuestionClassifier.NeedsScreenContext(question));
 
+    [Fact]
+    public void FieldProfiler_AssignsRolesFromKnownScreenAndRoi()
+    {
+        var fields = ScreenFieldProfiler.Apply(KnownScreenKind.Dialog,
+        [
+            new("text", "Разговор", .9, new(.3, .1, .2, .05)),
+            new("text", "Принять", .9, new(.7, .8, .1, .05)),
+        ]);
+        Assert.Equal("title", fields[0].Role);
+        Assert.Equal("button", fields[1].Role);
+    }
+
+    [Fact]
+    public void AnswerFactory_LabelsResultAsUntrustedLocalObservation()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var answer = ScreenContextAnswerFactory.Create(new(now, KnownScreenKind.Shop, .86, [], [new("price", "2500$", .9, ScreenRegion.Full)], [], now.AddSeconds(20)));
+        Assert.Equal("local-screen-context", answer.ProviderId);
+        Assert.Empty(answer.UsedFactIds);
+        Assert.Contains("не источник игровых правил", answer.SourceTitle, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static ScreenFrame Frame(int width, int height, byte value) => new(width, height, Enumerable.Repeat(value, width * height).ToArray(), DateTimeOffset.UtcNow);
 }

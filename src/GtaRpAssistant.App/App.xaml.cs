@@ -34,6 +34,7 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        WindowsAppIdentity.Apply();
         // Hidden WPF windows can expose only their most recently invalidated regions to
         // PrintWindow when hardware composition is enabled.  UI automation needs a
         // complete, deterministic backing surface; production rendering stays untouched.
@@ -176,13 +177,18 @@ public partial class App : System.Windows.Application
             Path.Combine(AppPaths.DataDirectory, "model-packs", "stt"),
             Path.Combine(AppContext.BaseDirectory, "model-packs", "stt")));
         services.AddSingleton<WhisperCppSpeechToTextProvider>();
+        services.AddSingleton<WindowsSpeechRecognitionProvider>();
         services.AddSingleton<ISpeechToTextProviderCatalog>(sp => new SpeechToTextProviderCatalog(
             sp.GetRequiredService<ISecretStore>(),
-            sp.GetRequiredService<WhisperCppSpeechToTextProvider>()));
+            sp.GetRequiredService<WhisperCppSpeechToTextProvider>(),
+            sp.GetRequiredService<WindowsSpeechRecognitionProvider>()));
         services.AddSingleton<AudioSessionController>();
         services.AddSingleton<IAppDialogService, AppDialogService>();
         services.AddSingleton<ILocalModelFileDiscovery, LocalModelFileDiscovery>();
-        services.AddSingleton<KnowledgeCatalogService>();
+        services.AddSingleton(sp => new KnowledgeCatalogService(
+            sp.GetRequiredService<SqliteKnowledgeRepository>(),
+            sp.GetRequiredService<ILogger<KnowledgeCatalogService>>(),
+            AppPaths.DataDirectory));
         services.AddSingleton<SettingsApplicationService>();
         services.AddSingleton<UiAutomationScenarioService>();
         services.AddFeatureModules();
@@ -208,7 +214,10 @@ public partial class App : System.Windows.Application
 
     private void ConfigureTray()
     {
-        _tray = new Forms.NotifyIcon { Icon = SystemIcons.Information, Text = "GTA RP Assistant", Visible = true };
+        var executableIcon = Environment.ProcessPath is { } executablePath
+            ? Icon.ExtractAssociatedIcon(executablePath)
+            : null;
+        _tray = new Forms.NotifyIcon { Icon = executableIcon ?? SystemIcons.Application, Text = "GTA RP Assistant", Visible = true };
         var menu = new Forms.ContextMenuStrip();
         foreach (var definition in TrayCommandCatalog.Definitions)
         {

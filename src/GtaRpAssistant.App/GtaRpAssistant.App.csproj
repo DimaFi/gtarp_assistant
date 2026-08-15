@@ -9,6 +9,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
+    <AssemblyTitle>GTA RP Assistant</AssemblyTitle>
+    <Product>GTA RP Assistant</Product>
+    <Description>Локальный AI-компаньон для GTA 5 RP</Description>
+    <Company>LAB AI</Company>
+    <Authors>LAB AI</Authors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,5 +38,9 @@
       <Link>knowledge\reference\community\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\app-icon.ico" />
+    <Resource Include="Assets\app-icon.png" />
   </ItemGroup>
 </Project>

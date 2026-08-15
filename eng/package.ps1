@@ -5,17 +5,26 @@ param(
     [string]$Version = '0.2.0',
     [switch]$SelfContained,
     [switch]$FrameworkDependent,
-    [switch]$SkipSmoke
+    [switch]$SkipSmoke,
+    [string]$EmbeddedSttPack,
+    [string]$PublishDirectory
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $artifacts = Join-Path $root 'artifacts'
-$publishDirectory = Join-Path $artifacts "publish\$Runtime"
+if ([string]::IsNullOrWhiteSpace($PublishDirectory)) {
+    $publishDirectory = Join-Path $artifacts "publish\$Runtime"
+} else {
+    $publishDirectory = [IO.Path]::GetFullPath($PublishDirectory)
+}
 $releaseDirectory = Join-Path $artifacts 'release'
 $applicationProject = Join-Path $root 'src\GtaRpAssistant.App\GtaRpAssistant.App.csproj'
 $microModelHostProject = Join-Path $root 'src\GtaRpAssistant.MicroModelHost\GtaRpAssistant.MicroModelHost.csproj'
 $microModelHostPublishDirectory = Join-Path $publishDirectory 'micro-model-host'
+if ([string]::IsNullOrWhiteSpace($EmbeddedSttPack)) {
+    $EmbeddedSttPack = Join-Path $root 'artifacts\stt\pack-gigaam-v2'
+}
 $archiveName = "GtaRpAssistant-$Version-$Runtime"
 $archivePath = Join-Path $releaseDirectory "$archiveName.zip"
 $manifestPath = Join-Path $releaseDirectory "$archiveName.manifest.json"
@@ -57,6 +66,14 @@ if ($isSelfContained) {
         }
     }
 }
+
+$sttManifest = Join-Path $EmbeddedSttPack 'stt-pack.json'
+if (-not (Test-Path -LiteralPath $sttManifest -PathType Leaf)) {
+    throw "Required embedded Russian STT pack is missing: $sttManifest"
+}
+$portableSttDirectory = Join-Path $publishDirectory 'model-packs\stt'
+New-Item -ItemType Directory -Path $portableSttDirectory -Force | Out-Null
+Copy-Item -Path (Join-Path $EmbeddedSttPack '*') -Destination $portableSttDirectory -Recurse -Force
 
 $executable = Join-Path $publishDirectory 'GtaRpAssistant.App.exe'
 if (-not $SkipSmoke) {

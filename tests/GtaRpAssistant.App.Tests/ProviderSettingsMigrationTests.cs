@@ -8,6 +8,24 @@ namespace GtaRpAssistant.App.Tests;
 public sealed class ProviderSettingsMigrationTests
 {
     [Fact]
+    public void VersionTwoSettings_EnableConversationalVoiceDefaults()
+    {
+        var versionTwo = ProviderSettingsMigration.Migrate(new AppSettings()) with
+        {
+            ProviderSettingsVersion = 2,
+            WakeWord = "помощник",
+            VoiceAutoSubmit = false,
+            EnableLongTermConversation = false,
+        };
+
+        var migrated = ProviderSettingsMigration.Migrate(versionTwo);
+
+        Assert.Equal("Лаберти, слушай", migrated.WakeWord);
+        Assert.True(migrated.VoiceAutoSubmit);
+        Assert.True(migrated.EnableLongTermConversation);
+    }
+
+    [Fact]
     public void VoiceAutoSubmit_RoundTripsThroughEditor()
     {
         var original = ProviderSettingsMigration.Migrate(new AppSettings(VoiceAutoSubmit: true, VoiceHotkeyMode: 1));
@@ -148,23 +166,23 @@ public sealed class ProviderSettingsMigrationTests
     }
 
     [Fact]
-    public async Task SettingsService_LongTermConversationIsOptInAndRoundTrips()
+    public async Task SettingsService_LongTermConversationDefaultsOnAndCanBeDisabled()
     {
         var directory = Path.Combine(Path.GetTempPath(), "gta-rp-settings-test-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         try
         {
-            Assert.False(new AppSettings().EnableLongTermConversation);
+            Assert.True(new AppSettings().EnableLongTermConversation);
 
             var writer = new SettingsService(directory);
-            await writer.SaveAsync(new AppSettings(EnableLongTermConversation: true), default);
+            await writer.SaveAsync(new AppSettings(EnableLongTermConversation: false), default);
             var reader = new SettingsService(directory);
             await reader.LoadAsync(default);
 
-            Assert.True(reader.Current.EnableLongTermConversation);
+            Assert.False(reader.Current.EnableLongTermConversation);
             var editor = SettingsEditor.From(reader.Current);
-            Assert.True(editor.EnableLongTermConversation);
-            Assert.True(editor.ToSettings(null, null, reader.Current).EnableLongTermConversation);
+            Assert.False(editor.EnableLongTermConversation);
+            Assert.False(editor.ToSettings(null, null, reader.Current).EnableLongTermConversation);
         }
         finally
         {

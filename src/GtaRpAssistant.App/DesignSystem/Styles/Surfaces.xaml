@@ -4,7 +4,7 @@
                     xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls">
     <Style x:Key="Surface.Card" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSubtle}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource Radius.Card}" />
         <Setter Property="Padding" Value="{StaticResource Space.Card}" />
@@ -14,9 +14,9 @@
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
     </Style>
     <Style x:Key="Surface.Navigation" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceRaised}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSubtle}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource Radius.Card}" />
         <Setter Property="Padding" Value="8" />
     </Style>
@@ -83,9 +83,11 @@
         <Setter Property="Padding" Value="9,5" />
     </Style>
     <Style x:Key="Status.Pill" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.AccentMuted}" />
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="9,5" />
+        <Setter Property="Background" Value="{DynamicResource Brush.SuccessMuted}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderSubtle}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="12,7" />
     </Style>
     <Style x:Key="Status.OverlayPill" TargetType="design:OverlayStatusPill">
         <Setter Property="AccentBrush" Value="{DynamicResource Brush.AccentHover}" />

@@ -34,6 +34,25 @@ public sealed class CoordinatorTests
     }
 
     [Fact]
+    public async Task ScreenQuestion_UsesFreshLocalContextWithoutCallingProvider()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var screen = new ScreenContextStore();
+        screen.Publish(new(now, KnownScreenKind.Shop, .86, [], [new("price", "Цена 2500$", .92, ScreenRegion.Full)], [], now.AddSeconds(20)));
+        var overlay = new FakeOverlay();
+        var provider = new FakeProvider();
+        await using var coordinator = Create(overlay, new FakeCatalog(provider), prepared: false, screenContext: screen);
+        coordinator.Start(true);
+
+        var answer = await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now, "Что сейчас написано на экране?", 1), AssistantActivationKind.ManualText, "all", true, false), default);
+
+        Assert.Equal(AnswerDecision.Show, answer!.Decision);
+        Assert.Equal("local-screen-context", answer.ProviderId);
+        Assert.Contains("2500", answer.Message);
+        Assert.Equal(0, provider.Calls);
+    }
+
+    [Fact]
     public async Task Personalization_IsAttachedAfterKnowledgeSelectionWithoutChangingVerifiedFacts()
     {
         var overlay = new FakeOverlay(); var provider = new FakeProvider(); var personalization = new FakePersonalization();
@@ -138,11 +157,11 @@ public sealed class CoordinatorTests
     private static AssistantSessionCoordinator Create(FakeOverlay overlay, FakeProvider provider, bool prepared)
         => Create(overlay, new FakeCatalog(provider), prepared);
 
-    private static AssistantSessionCoordinator Create(FakeOverlay overlay, IChatProviderCatalog catalog, bool prepared, IUserPersonalizationContextProvider? personalization = null)
+    private static AssistantSessionCoordinator Create(FakeOverlay overlay, IChatProviderCatalog catalog, bool prepared, IUserPersonalizationContextProvider? personalization = null, IScreenContextStore? screenContext = null)
     {
         var fact = new KnowledgeFact("f", "a", "Проверьте актуальные требования", true, DateTimeOffset.UtcNow);
         var knowledge = new FakeKnowledge(new("a", "Контракт", 1, [fact], false, false, prepared ? "Проверьте актуальные требования" : null, prepared));
-        return new(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector(["контракт"]), knowledge, new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(), new ProactivePolicy(), new NullEvents(), personalization: personalization);
+        return new(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector(["контракт"]), knowledge, new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(), new ProactivePolicy(), new NullEvents(), personalization: personalization, screenContext: screenContext);
     }
 
     private sealed class FakeKnowledge(KnowledgeMatch match) : IKnowledgeRepository

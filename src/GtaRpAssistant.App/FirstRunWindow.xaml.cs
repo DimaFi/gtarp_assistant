@@ -18,7 +18,7 @@ public partial class FirstRunWindow : Window
     private int _index;
     public bool KnowledgeOnly { get; private set; }
     public FirstRunWindow() { InitializeComponent(); Render(); }
-    private void Render() { var s = _steps[_index]; ProgressText.Text = $"Шаг {_index + 1} из {_steps.Length}"; StepIcon.Text=s.Icon; StepTitle.Text=s.Title; StepDescription.Text=s.Description; StepHint.Text=s.Hint; BackButton.IsEnabled=_index>0; NextButton.Content=_index==_steps.Length-1?"Открыть настройку AI":"Далее"; }
+    private void Render() { var s = _steps[_index]; ProgressText.Text = $"Шаг {_index + 1} из {_steps.Length}"; SetupProgress.Maximum = _steps.Length; SetupProgress.Value = _index + 1; StepIcon.Text=s.Icon; StepTitle.Text=s.Title; StepDescription.Text=s.Description; StepHint.Text=s.Hint; BackButton.IsEnabled=_index>0; NextButton.Content=_index==_steps.Length-1?"Открыть настройку AI":"Далее"; }
     private void NextClick(object sender, RoutedEventArgs e) { if (_index < _steps.Length-1) { _index++; Render(); } else { DialogResult=true; Close(); } }
     private void BackClick(object sender, RoutedEventArgs e) { if (_index>0) { _index--; Render(); } }
     private void SkipClick(object sender, RoutedEventArgs e) { KnowledgeOnly=true; DialogResult=true; Close(); }

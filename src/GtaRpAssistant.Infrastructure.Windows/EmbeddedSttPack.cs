@@ -62,7 +62,10 @@ public sealed class EmbeddedSttPackLocator(Func<string?> configuredPath, string 
     {
         var configured = configuredPath();
         if (!string.IsNullOrWhiteSpace(configured))
-            return Path.GetFullPath(Environment.ExpandEnvironmentVariables(configured.Trim().Trim('"')));
+        {
+            var configuredDirectory = Path.GetFullPath(Environment.ExpandEnvironmentVariables(configured.Trim().Trim('"')));
+            if (File.Exists(Path.Combine(configuredDirectory, ManifestFileName))) return configuredDirectory;
+        }
         if (!string.IsNullOrWhiteSpace(portableDirectory)
             && File.Exists(Path.Combine(portableDirectory, ManifestFileName)))
             return Path.GetFullPath(portableDirectory);

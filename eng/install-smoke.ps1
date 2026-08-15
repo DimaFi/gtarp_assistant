@@ -18,7 +18,7 @@ if (-not $installPath.StartsWith($artifactsPath, [StringComparison]::OrdinalIgno
 }
 
 try {
-    & (Join-Path $PSScriptRoot 'install.ps1') -Package $packagePath -InstallRoot $installPath -NoShortcuts
+    & (Join-Path $PSScriptRoot 'install.ps1') -Package $packagePath -InstallRoot $installPath -NoShortcuts -NoRegistration
     $executable = Join-Path $installPath 'GtaRpAssistant.App.exe'
     if (-not (Test-Path -LiteralPath (Join-Path $installPath 'install-state.json'))) {
         throw 'Install smoke did not create install-state.json.'
@@ -27,5 +27,5 @@ try {
     Write-Host "Custom-path install smoke passed: $installPath"
 }
 finally {
-    & (Join-Path $PSScriptRoot 'uninstall.ps1') -InstallRoot $installPath -NoShortcuts
+    & (Join-Path $PSScriptRoot 'uninstall.ps1') -InstallRoot $installPath -NoShortcuts -NoRegistration
 }

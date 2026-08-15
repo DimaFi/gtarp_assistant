@@ -46,6 +46,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
     private string _setupProgress = "Можно работать без локальной модели: база знаний уже доступна.";
     private string _installationPaths = "Пути LM Studio определяются автоматически.";
     private string _pendingModelKey = "";
+    private string _cloudConnectionStatus = "Заполните три поля и проверьте настройки.";
 
     public ProvidersFeatureViewModel(
         ApplicationUiState ui,
@@ -68,6 +69,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         _dispatcher = dispatcher;
         SaveSettingsCommand = save.SaveCommand;
         CheckEndpointCommand = new AsyncRelayCommand(CheckEndpointAsync);
+        CheckCloudSettingsCommand = new RelayCommand(CheckCloudSettings);
         DiscoverModelsCommand = new AsyncRelayCommand(DiscoverModelsAsync);
         TestCapabilityCommand = new AsyncRelayCommand(TestCapabilityAsync);
         RefreshLocalAiCommand = new AsyncRelayCommand(() => RefreshLocalAiAsync());
@@ -115,10 +117,12 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
     public string ResourceForecast { get => _resourceForecast; private set => Set(ref _resourceForecast, value); }
     public string SetupProgress { get => _setupProgress; private set => Set(ref _setupProgress, value); }
     public string InstallationPaths { get => _installationPaths; private set => Set(ref _installationPaths, value); }
+    public string CloudConnectionStatus { get => _cloudConnectionStatus; private set => Set(ref _cloudConnectionStatus, value); }
     public string RagStatus => Ui.TotalArticleCount > 0 ? $"RAG: готово · {Ui.TotalArticleCount} статей" : "RAG: инициализация";
     public string WhisperStatus => Settings.SttProviderMode == (int)ProviderSelectionMode.Disabled ? "Whisper/STT: выключен" : "Whisper/STT: настроен маршрутом";
     public string VisionStatus => Settings.VisionEnabled ? "Vision: разрешён после preview" : "Vision: выключен";
     public ICommand CheckEndpointCommand { get; }
+    public ICommand CheckCloudSettingsCommand { get; }
     public ICommand DiscoverModelsCommand { get; }
     public ICommand TestCapabilityCommand { get; }
     public ICommand RefreshLocalAiCommand { get; }
@@ -196,6 +200,16 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         {
             Ui.PipelineStatus = $"Не удалось получить модели: {ex.Message}";
         }
+    }
+
+    private void CheckCloudSettings()
+    {
+        if (!Settings.AllowCloud) { CloudConnectionStatus = "Включите «Разрешить облачный AI»."; return; }
+        if (!Uri.TryCreate(Settings.CloudEndpoint, UriKind.Absolute, out var endpoint) || endpoint.Scheme != Uri.UriSchemeHttps)
+        { CloudConnectionStatus = "Нужен безопасный HTTPS endpoint, например https://api.openai.com/v1."; return; }
+        if (string.IsNullOrWhiteSpace(Settings.CloudModel)) { CloudConnectionStatus = "Укажите имя модели из кабинета провайдера."; return; }
+        if (string.IsNullOrWhiteSpace(CloudApiKey)) { CloudConnectionStatus = "Вставьте API-ключ. Он будет защищён Windows DPAPI."; return; }
+        CloudConnectionStatus = "Настройки заполнены корректно. Нажмите «Сохранить и применить».";
     }
 
     private async Task TestCapabilityAsync()
@@ -613,28 +627,23 @@ public sealed class BehaviorFeatureViewModel : FeatureViewModel
 public sealed class KnowledgeFeatureViewModel : FeatureViewModel
 {
     private readonly KnowledgeCatalogService _catalog;
+    private readonly IAppDialogService _dialogs;
     private string _searchText = "";
     private string _trustFilter = "Все источники";
     private KnowledgeDocumentItem? _selectedDocument;
     private string _operationStatus = "Индекс готов к поиску.";
-    private readonly HashSet<string> _disabledSources = new(StringComparer.Ordinal);
 
-    public KnowledgeFeatureViewModel(ApplicationUiState ui, SettingsWorkspace workspace, KnowledgeCatalogService catalog) : base(ui, workspace)
+    public KnowledgeFeatureViewModel(ApplicationUiState ui, SettingsWorkspace workspace, KnowledgeCatalogService catalog, IAppDialogService dialogs) : base(ui, workspace)
     {
         _catalog = catalog;
+        _dialogs = dialogs;
         _catalog.CatalogChanged += (_, _) => RefreshDocuments();
         ReindexCommand = new AsyncRelayCommand(ReindexAsync);
-        RollbackCommand = new RelayCommand(() => OperationStatus = "Откат не требуется: активна последняя стабильная версия индекса.");
-        ImportCommand = new RelayCommand(() => OperationStatus = "Выберите JSON или CSV. Перед записью приложение покажет preview и попросит подтверждение.");
-        ToggleSourceCommand = new RelayCommand(() =>
-        {
-            if (SelectedDocument is null) return;
-            if (SelectedDocument.IsEnabled) _disabledSources.Add(SelectedDocument.Id); else _disabledSources.Remove(SelectedDocument.Id);
-            SelectedDocument = SelectedDocument with { IsEnabled = !_disabledSources.Contains(SelectedDocument.Id) };
-            OperationStatus = SelectedDocument.IsEnabled ? "Источник включён." : "Источник отключён для ответов (файл сохранён).";
-            RefreshDocuments();
-        });
+        RollbackCommand = new AsyncRelayCommand(RollbackAsync);
+        ImportCommand = new AsyncRelayCommand(ImportAsync);
+        ToggleSourceCommand = new AsyncRelayCommand(ToggleSourceAsync);
     }
+
     public int OfficialArticleCount => Ui.OfficialArticleCount;
     public int CommunityArticleCount => Ui.CommunityArticleCount;
     public int TotalArticleCount => Ui.TotalArticleCount;
@@ -653,7 +662,7 @@ public sealed class KnowledgeFeatureViewModel : FeatureViewModel
     private void RefreshDocuments()
     {
         var selectedId = SelectedDocument?.Id;
-        var items = _catalog.Documents.Select(x => x with { IsEnabled = !_disabledSources.Contains(x.Id) }).Where(x =>
+        var items = _catalog.Documents.Where(x =>
             (TrustFilter == "Все источники" || x.Trust == TrustFilter) &&
             (string.IsNullOrWhiteSpace(SearchText) || $"{x.Title} {x.Source} {x.Server} {x.Preview}".Contains(SearchText, StringComparison.CurrentCultureIgnoreCase)))
             .OrderByDescending(x => x.UpdatedAt).ToArray();
@@ -668,5 +677,46 @@ public sealed class KnowledgeFeatureViewModel : FeatureViewModel
         OperationStatus = "Переиндексация…";
         await _catalog.ReindexAsync(CancellationToken.None);
         OperationStatus = $"Индекс обновлён · {DateTime.Now:HH:mm}.";
+    }
+
+    private async Task ToggleSourceAsync()
+    {
+        if (SelectedDocument is null) return;
+        var id = SelectedDocument.Id;
+        var enable = !SelectedDocument.IsEnabled;
+        await _catalog.ToggleAsync(id, CancellationToken.None);
+        RefreshDocuments();
+        SelectedDocument = Documents.FirstOrDefault(x => x.Id == id);
+        OperationStatus = enable ? "Источник включён и добавлен в индекс." : "Источник отключён и исключён из ответов.";
+    }
+
+    private async Task ImportAsync()
+    {
+        var path = _dialogs.PickKnowledgeFile("Импорт документа в базу знаний");
+        if (path is null) return;
+        try
+        {
+            OperationStatus = "Проверяю файл…";
+            var preview = await _catalog.PreviewImportAsync(path, CancellationToken.None);
+            var confirmed = _dialogs.Confirm("Preview перед импортом",
+                $"Файл: {Path.GetFileName(path)}\nДокументов: {preview.Articles.Count}\n\n{preview.Description}\n\nИмпортировать и обновить индекс?");
+            if (!confirmed) { OperationStatus = "Импорт отменён после preview."; return; }
+            await _catalog.ImportAsync(preview, CancellationToken.None);
+            RefreshDocuments();
+            OperationStatus = $"Импортировано документов: {preview.Articles.Count}. Индекс обновлён.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException or System.Text.Json.JsonException)
+        {
+            OperationStatus = "Файл не импортирован.";
+            _dialogs.ShowError("Ошибка импорта", ex.Message);
+        }
+    }
+
+    private async Task RollbackAsync()
+    {
+        if (!_catalog.CanRollback) { OperationStatus = "Нет предыдущей версии для отката."; return; }
+        if (!_dialogs.Confirm("Откат базы знаний", "Вернуть состояние до последнего импорта или переключения источника?", true)) return;
+        OperationStatus = await _catalog.RollbackAsync(CancellationToken.None) ? "Предыдущая версия восстановлена. Индекс обновлён." : "Нет версии для отката.";
+        RefreshDocuments();
     }
 }

@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="GTA RP Assistant"
-        Height="680" Width="920" MinHeight="580" MinWidth="820"
+        Icon="Assets/app-icon.ico"
+        Height="760" Width="1120" MinHeight="600" MinWidth="760"
         Background="{DynamicResource Brush.Background}"
         Foreground="{DynamicResource Brush.TextPrimary}"
         FontFamily="Segoe UI"
@@ -13,22 +14,26 @@
     <Grid x:Name="CaptureRoot" Background="{DynamicResource Brush.Background}">
     <Grid Margin="{StaticResource Space.Window}">
         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <Grid x:Name="HeaderRegion" Margin="0,0,0,12">
+        <Grid x:Name="HeaderRegion" Margin="4,0,4,18">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-            <TextBlock Style="{StaticResource Text.Display}" FontSize="24" Text="GTA RP Assistant" VerticalAlignment="Center" />
+            <StackPanel>
+                <TextBlock Style="{StaticResource Text.Display}" FontSize="25" Text="GTA RP Assistant" />
+                <TextBlock Margin="0,3,0,0" Style="{StaticResource Text.Caption}" Text="Локальный игровой AI-компаньон" />
+            </StackPanel>
             <Border Grid.Column="1" Style="{StaticResource Status.Pill}" VerticalAlignment="Center">
                 <TextBlock Text="{Binding AppStatus}" Foreground="{DynamicResource Brush.Success}" FontSize="12" FontWeight="SemiBold"
                            AutomationProperties.AutomationId="Status.Application" />
             </Border>
         </Grid>
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="156" /><ColumnDefinition Width="12" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="196" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
             <Border x:Name="NavigationRegion" Style="{StaticResource Surface.Navigation}">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Bottom" Margin="8,12,8,4">
-                        <TextBlock Style="{StaticResource Text.Caption}" Text="CTRL + ALT" />
+                    <StackPanel DockPanel.Dock="Bottom" Margin="12,16,12,8">
+                        <Separator />
+                        <TextBlock Style="{StaticResource Text.Label}" Text="Горячие клавиши" />
                         <TextBlock Margin="0,5,0,0" Style="{StaticResource Text.Caption}"
-                                   Text="Q  Оверлей  ·  A  Голос&#x0a;S  Vision     ·  P  Пауза" LineHeight="19" />
+                                   Text="Q  Оверлей  ·  A  Голос&#x0a;S  Экран     ·  P  Пауза" LineHeight="20" />
                     </StackPanel>
                     <ItemsControl ItemsSource="{Binding NavigationItems}">
                         <ItemsControl.ItemTemplate>

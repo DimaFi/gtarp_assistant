@@ -41,6 +41,13 @@
                                 AutomationProperties.AutomationId="Audio.BrowseEmbeddedSttPack" />
                     </Grid>
                     <TextBlock Style="{StaticResource Text.Caption}" Text="Стандартно: %LOCALAPPDATA%\GtaRpAssistant\model-packs\stt" />
+                    <Border Style="{StaticResource Surface.RaisedCard}" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding SttStatus}" TextWrapping="Wrap" Style="{StaticResource Text.Secondary}" AutomationProperties.AutomationId="Audio.SttStatus" />
+                            <Button Grid.Column="1" Margin="10,0,0,0" Content="Проверить" Command="{Binding CheckSttCommand}" AutomationProperties.AutomationId="Audio.CheckStt" />
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource Surface.Card}">

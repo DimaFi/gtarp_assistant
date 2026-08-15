@@ -4,7 +4,7 @@ namespace GtaRpAssistant.App;
 
 public static class ProviderSettingsMigration
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
     public const string LocalChatId = "legacy-local-chat";
     public const string CloudChatId = "legacy-cloud-chat";
     public const string LocalSttId = "legacy-local-stt";
@@ -20,6 +20,17 @@ public static class ProviderSettingsMigration
     {
         if (settings.ProviderSettingsVersion >= CurrentVersion && settings.ProviderConnections is not null && settings.ProviderRouting is not null)
             return settings;
+
+        if (settings.ProviderSettingsVersion == 2 && settings.ProviderConnections is not null && settings.ProviderRouting is not null)
+            return settings with
+            {
+                ProviderSettingsVersion = CurrentVersion,
+                WakeWord = string.Equals(settings.WakeWord, "помощник", StringComparison.OrdinalIgnoreCase)
+                    ? "Лаберти, слушай"
+                    : settings.WakeWord,
+                VoiceAutoSubmit = true,
+                EnableLongTermConversation = true,
+            };
 
         if (settings.ProviderConnections is not null && settings.ProviderRouting is not null)
             return UpgradeIndependentRoutes(settings);

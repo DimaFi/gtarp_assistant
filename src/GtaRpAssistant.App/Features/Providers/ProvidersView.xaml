@@ -72,7 +72,8 @@
                     </Grid>
                     <TextBlock Margin="0,8,0,2" Style="{StaticResource Text.Label}" Text="API-ключ" />
                     <PasswordBox components:PasswordBoxBinding.IsEnabled="True" components:PasswordBoxBinding.Password="{Binding CloudApiKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.QuickCloudApiKey" />
-                    <Button Margin="0,10,0,0" HorizontalAlignment="Left" Style="{StaticResource Button.Primary}" Content="Сохранить и применить" Command="{Binding SaveSettingsCommand}" AutomationProperties.AutomationId="Providers.QuickCloudSave" />
+                    <TextBlock Margin="0,8,0,0" Text="{Binding CloudConnectionStatus}" Style="{StaticResource Text.Secondary}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.CloudConnectionStatus" />
+                    <WrapPanel Margin="0,10,0,0"><Button Content="Проверить настройки" Command="{Binding CheckCloudSettingsCommand}" AutomationProperties.AutomationId="Providers.CheckCloudSettings" /><Button Style="{StaticResource Button.Primary}" Content="Сохранить и применить" Command="{Binding SaveSettingsCommand}" AutomationProperties.AutomationId="Providers.QuickCloudSave" /></WrapPanel>
                 </StackPanel>
             </Border>
             <StackPanel>

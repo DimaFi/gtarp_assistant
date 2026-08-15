@@ -19,11 +19,13 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
     private readonly IUiDispatcher _dispatcher;
     private readonly MicrophoneTestService _microphoneTest;
     private readonly IAppDialogService _dialogs;
+    private readonly EmbeddedSttPackLocator _sttPackLocator;
     private IReadOnlyList<MicrophoneDeviceInfo> _microphones = [];
     private IReadOnlyList<RenderDeviceInfo> _renderDevices = [];
     private readonly ICommand _saveSettingsCommand;
     private double _microphoneLevel;
     private bool _isTestingMicrophone;
+    private string _sttStatus = "Проверяю локальное распознавание…";
 
     public AudioFeatureViewModel(
         ApplicationUiState ui,
@@ -36,6 +38,7 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
         IUiDispatcher dispatcher,
         MicrophoneTestService microphoneTest,
         IAppDialogService dialogs,
+        EmbeddedSttPackLocator sttPackLocator,
         ILogger<AudioFeatureViewModel> logger) : base(ui, workspace)
     {
         _ui = ui;
@@ -48,11 +51,13 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
         _logger = logger;
         _microphoneTest = microphoneTest;
         _dialogs = dialogs;
+        _sttPackLocator = sttPackLocator;
         _saveSettingsCommand = save.SaveCommand;
         RefreshDevicesCommand = new RelayCommand(RefreshDevices);
         ToggleListeningCommand = new AsyncRelayCommand(ToggleListeningAsync);
         TestMicrophoneCommand = new AsyncRelayCommand(TestMicrophoneAsync, () => !IsTestingMicrophone && !_audioSession.IsListening);
         BrowseEmbeddedSttPackCommand = new RelayCommand(BrowseEmbeddedSttPack);
+        CheckSttCommand = new AsyncRelayCommand(CheckSttAsync);
         audioSession.StatusChanged += (_, status) => _dispatcher.Invoke(() => _ui.PipelineStatus = status);
         audioSession.MicrophoneLevelChanged += (_, level) => _dispatcher.Invoke(() => MicrophoneLevel = level);
         audioSession.StateChanged += (_, _) => _dispatcher.Invoke(() =>
@@ -77,18 +82,46 @@ public sealed class AudioFeatureViewModel : FeatureViewModel
     public double MicrophoneLevel { get => _microphoneLevel; private set { if (Set(ref _microphoneLevel, value)) Raise(nameof(MicrophoneLevelText)); } }
     public string MicrophoneLevelText => $"Уровень: {MicrophoneLevel:P0}";
     public bool IsTestingMicrophone { get => _isTestingMicrophone; private set => Set(ref _isTestingMicrophone, value); }
+    public string SttStatus { get => _sttStatus; private set => Set(ref _sttStatus, value); }
     public ICommand RefreshDevicesCommand { get; }
     public ICommand ToggleListeningCommand { get; }
     public ICommand TestMicrophoneCommand { get; }
     public ICommand BrowseEmbeddedSttPackCommand { get; }
+    public ICommand CheckSttCommand { get; }
     public ICommand SaveSettingsCommand => _saveSettingsCommand;
 
-    public void Initialize() => RefreshDevices();
+    public void Initialize()
+    {
+        RefreshDevices();
+        _ = CheckSttAsync();
+    }
+
+    public async Task StartWakePhraseListeningAsync()
+    {
+        if (_audioSession.IsListening || SettingValues.Proactive(Settings.ToSettings(
+                SelectedMicrophone?.Id, SelectedRenderDevice?.Id, _settingsService.Current)) == ProactiveMode.Off)
+            return;
+        await ToggleListeningAsync();
+        if (_audioSession.IsListening)
+            _ui.PipelineStatus = $"Слушаю фразу активации «{Settings.WakeWord}». Аудио обрабатывается локально.";
+    }
 
     private void BrowseEmbeddedSttPack()
     {
         var selected = _dialogs.PickFolder("Выберите папку локального STT-пака", Settings.EmbeddedSttPackPath);
-        if (!string.IsNullOrWhiteSpace(selected)) Settings.EmbeddedSttPackPath = selected;
+        if (!string.IsNullOrWhiteSpace(selected))
+        {
+            Settings.EmbeddedSttPackPath = selected;
+            _ = CheckSttAsync();
+        }
+    }
+
+    private async Task CheckSttAsync()
+    {
+        var inspection = await _sttPackLocator.InspectAsync(CancellationToken.None);
+        SttStatus = inspection.IsValid
+            ? $"Готово: {inspection.Manifest!.ModelId} · {inspection.Manifest.Runtime}."
+            : $"Локальный STT не готов. {inspection.Message} Выберите папку корректного STT-пака либо настройте STT в разделе «AI и модели».";
     }
 
     public async Task<bool> BeginManualVoiceRequestAsync(VoiceInteractionMode mode)
