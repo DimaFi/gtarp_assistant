@@ -10,6 +10,10 @@
                     <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Общие параметры запуска и игрового профиля." />
                     <CheckBox Content="Запускать вместе с Windows" IsChecked="{Binding Settings.StartWithWindows}" AutomationProperties.AutomationId="Behavior.StartWithWindows" />
                     <CheckBox Content="Наблюдать за запуском и перезапуском GTA" IsChecked="{Binding Settings.WatchGta}" AutomationProperties.AutomationId="Behavior.WatchGta" />
+                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Text.Label}" Text="Тема интерфейса" />
+                    <ComboBox SelectedIndex="{Binding Settings.AppearanceTheme}" AutomationProperties.AutomationId="Behavior.AppearanceTheme">
+                        <ComboBoxItem Content="Светлая" /><ComboBoxItem Content="Серая" />
+                    </ComboBox>
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                         <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="Сервер" /><TextBox Text="{Binding Settings.Server}" AutomationProperties.AutomationId="Behavior.Server" /></StackPanel>

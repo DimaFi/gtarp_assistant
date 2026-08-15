@@ -12,6 +12,7 @@ using GtaRpAssistant.Providers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using GtaRpAssistant.App.Services;
+using GtaRpAssistant.App.DesignSystem;
 using GtaRpAssistant.App.Shell;
 using Forms = System.Windows.Forms;
 
@@ -127,6 +128,7 @@ public partial class App : System.Windows.Application
     {
         var services = new ServiceCollection();
         services.AddSingleton(ApplicationExecutionMode.FromEnvironment());
+        services.AddSingleton<ThemeService>();
         services.AddLogging(builder =>
         {
             builder.ClearProviders();

@@ -4,7 +4,9 @@ param(
     [string]$Executable,
     [string]$OutputDirectory,
     [ValidateRange(5, 120)]
-    [int]$TimeoutSeconds = 30
+    [int]$TimeoutSeconds = 30,
+    [ValidateSet('light', 'gray')]
+    [string]$Theme = 'light'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,11 +21,13 @@ New-Item -ItemType Directory -Path $resolvedOutput -Force | Out-Null
 $previousOutput = $env:GTA_RP_UI_SNAPSHOT_DIR
 $previousDataDirectory = $env:GTA_RP_ASSISTANT_DATA_DIR
 $previousAutomationMode = $env:GTA_RP_AUTOMATION_MODE
+$previousTheme = $env:GTA_RP_UI_THEME
 $testDataDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("GtaRpAssistant-capture-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $testDataDirectory -Force | Out-Null
 $env:GTA_RP_UI_SNAPSHOT_DIR = $resolvedOutput
 $env:GTA_RP_ASSISTANT_DATA_DIR = $testDataDirectory
 $env:GTA_RP_AUTOMATION_MODE = '1'
+$env:GTA_RP_UI_THEME = $Theme
 try {
     $process = Start-Process -FilePath $resolvedExecutable -ArgumentList '--capture-ui' -PassThru -WindowStyle Hidden
     try {
@@ -67,6 +71,7 @@ finally {
     $env:GTA_RP_UI_SNAPSHOT_DIR = $previousOutput
     $env:GTA_RP_ASSISTANT_DATA_DIR = $previousDataDirectory
     $env:GTA_RP_AUTOMATION_MODE = $previousAutomationMode
+    $env:GTA_RP_UI_THEME = $previousTheme
     $tempRoot = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
     $resolvedTestData = [System.IO.Path]::GetFullPath($testDataDirectory)
     if ($resolvedTestData.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) {

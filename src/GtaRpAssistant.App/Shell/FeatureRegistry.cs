@@ -39,14 +39,14 @@ public static class FeatureRegistration
         services.AddSingleton<IUiDispatcher, UiDispatcher>();
         services.AddSingleton<SettingsSaveCoordinator>();
 
-        Add<AssistantFeatureViewModel, AssistantView>(services, "assistant", "Чат", "✦", 10);
-        Add<AudioFeatureViewModel, AudioView>(services, "audio", "Аудио", "◉", 20);
-        Add<ProvidersFeatureViewModel, ProvidersView>(services, "providers", "AI и модели", "AI", 30);
-        Add<BehaviorFeatureViewModel, BehaviorView>(services, "behavior", "Поведение", "⌁", 40);
-        Add<PrivacyFeatureViewModel, PrivacyView>(services, "privacy", "Приватность", "◇", 50);
-        Add<MemoryFeatureViewModel, MemoryView>(services, "memory", "Память", "◈", 55);
-        Add<KnowledgeFeatureViewModel, KnowledgeView>(services, "knowledge", "База знаний", "▤", 60);
-        Add<AboutFeatureViewModel, AboutView>(services, "about", "О приложении", "i", 70);
+        Add<AssistantFeatureViewModel, AssistantView>(services, "assistant", "Чат", "\uE8BD", 10);
+        Add<AudioFeatureViewModel, AudioView>(services, "audio", "Аудио", "\uE720", 20);
+        Add<ProvidersFeatureViewModel, ProvidersView>(services, "providers", "AI и модели", "\uE950", 30);
+        Add<BehaviorFeatureViewModel, BehaviorView>(services, "behavior", "Поведение", "\uE713", 40);
+        Add<PrivacyFeatureViewModel, PrivacyView>(services, "privacy", "Приватность", "\uEA18", 50);
+        Add<MemoryFeatureViewModel, MemoryView>(services, "memory", "Память", "\uE81C", 55);
+        Add<KnowledgeFeatureViewModel, KnowledgeView>(services, "knowledge", "База знаний", "\uE82D", 60);
+        Add<AboutFeatureViewModel, AboutView>(services, "about", "О приложении", "\uE946", 70);
         services.AddSingleton<FeatureRegistry>();
         return services;
     }

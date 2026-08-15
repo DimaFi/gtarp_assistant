@@ -4,11 +4,37 @@ using GtaRpAssistant.App.Features;
 using GtaRpAssistant.App.Services;
 using GtaRpAssistant.App.Shell;
 using GtaRpAssistant.Core;
+using System.IO;
+using System.Xml.Linq;
 
 namespace GtaRpAssistant.App.Tests;
 
 public sealed class UiArchitectureTests
 {
+    [Fact]
+    public void ColorThemes_ExposeTheSameSemanticTokens()
+    {
+        var appRoot = FindAppRoot();
+        var light = ReadResourceKeys(Path.Combine(appRoot, "DesignSystem", "Tokens", "Colors.xaml"));
+        var gray = ReadResourceKeys(Path.Combine(appRoot, "DesignSystem", "Tokens", "GrayColors.xaml"));
+
+        Assert.Equal(light, gray);
+    }
+
+    [Fact]
+    public void ActionButtons_HaveBehaviorAndAccessibleIdentity()
+    {
+        var appRoot = FindAppRoot();
+        var failures = Directory.EnumerateFiles(appRoot, "*.xaml", SearchOption.AllDirectories)
+            .SelectMany(file => XDocument.Load(file).Descendants().Where(x => x.Name.LocalName == "Button")
+                .Select(button => (file, button)))
+            .Where(x => !HasAttribute(x.button, "Command", "Click", "IsCancel", "IsDefault"))
+            .Select(x => $"{Path.GetRelativePath(appRoot, x.file)}: {x.button.Attribute("Content")?.Value ?? "<template>"}")
+            .ToArray();
+
+        Assert.True(failures.Length == 0, "Buttons without behavior: " + string.Join(", ", failures));
+    }
+
     [Fact]
     public void FeaturePageComponents_ExposeStableDependencyPropertyContracts()
     {
@@ -168,4 +194,27 @@ public sealed class UiArchitectureTests
         Assert.Contains("20", presentation.Message);
         Assert.Contains("не сохраняется", presentation.Updated, StringComparison.OrdinalIgnoreCase);
     }
+
+    private static string FindAppRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory.FullName, "src", "GtaRpAssistant.App");
+            if (Directory.Exists(candidate)) return candidate;
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate src/GtaRpAssistant.App.");
+    }
+
+    private static string[] ReadResourceKeys(string path) => XDocument.Load(path).Root!
+        .Elements()
+        .Select(x => x.Attributes().FirstOrDefault(a => a.Name.LocalName == "Key")?.Value)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Order(StringComparer.Ordinal)
+        .ToArray()!;
+
+    private static bool HasAttribute(XElement element, params string[] names) =>
+        element.Attributes().Any(a => names.Contains(a.Name.LocalName, StringComparer.Ordinal));
 }

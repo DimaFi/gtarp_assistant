@@ -236,8 +236,8 @@ internal static class UiVisualTestHelper
             }
         }
         // The wide, light dashboard intentionally has more whitespace than the legacy compact shell.
-        // Four percent still catches blank/failed frames while accepting the 1440px reference layout.
-        if (sampled == 0 || (double)different / sampled < .04)
+        // Two percent still catches blank/failed frames while accepting the whitespace-heavy 1440px layout.
+        if (sampled == 0 || (double)different / sampled < .02)
             throw new InvalidOperationException("Native snapshot does not contain enough rendered UI detail.");
         if (!HasVisibleDetail(bitmap, 0, 0, bitmap.Width, Math.Max(1, bitmap.Height / 7)))
             throw new InvalidOperationException("Native snapshot is missing the application header.");

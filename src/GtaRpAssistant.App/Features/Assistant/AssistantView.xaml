@@ -114,10 +114,10 @@
             <Border Grid.Column="1" Style="{StaticResource Surface.Card}" Margin="0,4,0,4" Padding="16">
                 <StackPanel>
                     <TextBlock FontSize="16" FontWeight="SemiBold" Text="Подсказки" />
-                    <Button Margin="0,12,0,0" HorizontalContentAlignment="Left" Content="Что нового в обновлении?" />
-                    <Button HorizontalContentAlignment="Left" Content="Лучшие работы для новичка" />
-                    <Button HorizontalContentAlignment="Left" Content="Объяснить статью УК" />
-                    <Button HorizontalContentAlignment="Left" Content="Где сейчас лучше фармить?" />
+                    <Button Margin="0,12,0,0" HorizontalContentAlignment="Left" Content="Что нового в обновлении?" Command="{Binding QuickPromptCommand}" CommandParameter="Что нового в последнем обновлении GTA5RP?" AutomationProperties.AutomationId="Assistant.PromptUpdates" />
+                    <Button HorizontalContentAlignment="Left" Content="Лучшие работы для новичка" Command="{Binding QuickPromptCommand}" CommandParameter="Какие работы лучше всего подходят новичку?" AutomationProperties.AutomationId="Assistant.PromptBeginnerJobs" />
+                    <Button HorizontalContentAlignment="Left" Content="Объяснить статью УК" Command="{Binding QuickPromptCommand}" CommandParameter="Что означает статья УК на Eclipse?" AutomationProperties.AutomationId="Assistant.PromptCriminalCode" />
+                    <Button HorizontalContentAlignment="Left" Content="Где сейчас лучше фармить?" Command="{Binding QuickPromptCommand}" CommandParameter="Где сейчас лучше фармить новичку?" AutomationProperties.AutomationId="Assistant.PromptFarming" />
                     <Separator Margin="0,14" />
                     <TextBlock FontSize="14" FontWeight="SemiBold" Text="Источники" />
                     <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Caption}" TextWrapping="Wrap"

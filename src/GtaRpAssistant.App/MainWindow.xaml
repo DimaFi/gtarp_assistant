@@ -55,7 +55,7 @@
                                         AutomationProperties.Name="{Binding Title}">
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" FontWeight="SemiBold" Text="{Binding Symbol}" />
+                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16" Text="{Binding Symbol}" />
                                         <TextBlock Grid.Column="1" VerticalAlignment="Center" Foreground="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}" FontWeight="SemiBold" Text="{Binding Title}" />
                                     </Grid>
                                 </Button>

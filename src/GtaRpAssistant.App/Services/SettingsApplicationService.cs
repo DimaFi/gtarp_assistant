@@ -1,5 +1,6 @@
 using GtaRpAssistant.Core;
 using GtaRpAssistant.Infrastructure.Windows;
+using GtaRpAssistant.App.DesignSystem;
 
 namespace GtaRpAssistant.App.Services;
 
@@ -14,7 +15,8 @@ public sealed class SettingsApplicationService(
     TranscriptBuffer transcripts,
     AudioSessionController audioSession,
     GameSessionMonitor gameMonitor,
-    AssistantSessionCoordinator coordinator)
+    AssistantSessionCoordinator coordinator,
+    ThemeService themes)
 {
     public async Task<LoadedSettings> LoadAsync(CancellationToken cancellationToken)
     {
@@ -65,5 +67,6 @@ public sealed class SettingsApplicationService(
         var ttl = SettingValues.TranscriptTtl(value);
         transcripts.SetTtl(ttl);
         audioSession.SetBufferDuration(ttl);
+        themes.Apply(value.AppearanceTheme);
     }
 }

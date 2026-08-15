@@ -62,6 +62,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _vision = vision;
         _voiceInteraction = voiceInteraction;
         AddContextCommand = new RelayCommand(AddContext);
+        QuickPromptCommand = new RelayCommand<string>(ApplyQuickPrompt);
         ProcessQuestionCommand = new AsyncRelayCommand(ProcessQuestionAsync);
         StartVoiceCommand = new AsyncRelayCommand(StartVoiceAsync);
         NewConversationCommand = new RelayCommand(NewConversation, () => !IsBusy);
@@ -175,6 +176,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     }
     public string LastRequestDurationText => _lastRequestDuration is null ? "—" : $"{_lastRequestDuration.Value.TotalSeconds:F1} с";
     public ICommand AddContextCommand { get; }
+    public ICommand QuickPromptCommand { get; }
     public ICommand ProcessQuestionCommand { get; }
     public ICommand StartVoiceCommand { get; }
     public ICommand NewConversationCommand { get; }
@@ -371,6 +373,13 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         {
             Ui.PipelineStatus = "Буфер обмена временно недоступен. Попробуйте ещё раз.";
         }
+    }
+
+    private void ApplyQuickPrompt(string? prompt)
+    {
+        if (string.IsNullOrWhiteSpace(prompt) || IsBusy) return;
+        TranscriptText = prompt.Trim();
+        Ui.PipelineStatus = "Быстрый запрос добавлен. Нажмите «Отправить» или отредактируйте текст.";
     }
 
     private async Task AnalyzeImageAsync()
