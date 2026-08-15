@@ -30,6 +30,12 @@
                             </StackPanel>
                         </Grid>
                     </Border>
+                    <Border Background="{StaticResource Brush.Input}" BorderBrush="{StaticResource Brush.BorderSubtle}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="{Binding ResourceStatus}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.ResourceStatus" />
+                            <TextBlock Margin="0,4,0,0" Style="{StaticResource Text.Secondary}" Text="{Binding HardwareGuidance}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.HardwareGuidance" />
+                        </StackPanel>
+                    </Border>
                     <WrapPanel>
                         <Button Style="{StaticResource Button.Primary}" Content="Настроить автоматически" Command="{Binding AutoConfigureCommand}" AutomationProperties.AutomationId="Providers.AutoConfigure" />
                         <Button Content="Обновить статус" Command="{Binding RefreshLocalAiCommand}" AutomationProperties.AutomationId="Providers.RefreshLocalAi" />

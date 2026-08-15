@@ -255,7 +255,8 @@ public sealed class UiAutomationScenarioService
         var assistant = owner.SelectFeatureForAutomation("assistant");
         UiVisualTestHelper.MoveFocusAndRequire(owner, "Navigation.assistant", "Navigation.audio");
         UiVisualTestHelper.MoveFocusAndRequire(assistant, "Assistant.Source", "Assistant.Question");
-        UiVisualTestHelper.MoveFocusAndRequire(assistant, "Assistant.Question", "Assistant.AddContext");
+        UiVisualTestHelper.MoveFocusAndRequire(assistant, "Assistant.Question", "Assistant.AnalyzeImage");
+        UiVisualTestHelper.MoveFocusAndRequire(assistant, "Assistant.AnalyzeImage", "Assistant.AddContext");
         UiVisualTestHelper.MoveFocusAndRequire(assistant, "Assistant.AddContext", "Assistant.Ask");
 
         owner.Width = originalWidth;

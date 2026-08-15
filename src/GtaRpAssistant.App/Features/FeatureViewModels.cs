@@ -121,6 +121,18 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
     public string RagStatus => Ui.TotalArticleCount > 0 ? $"RAG: готово · {Ui.TotalArticleCount} статей" : "RAG: инициализация";
     public string WhisperStatus => Settings.SttProviderMode == (int)ProviderSelectionMode.Disabled ? "Whisper/STT: выключен" : "Whisper/STT: настроен маршрутом";
     public string VisionStatus => Settings.VisionEnabled ? "Vision: разрешён после preview" : "Vision: выключен";
+    public string ResourceStatus => Ui.ResourceStatus;
+    public string HardwareGuidance
+    {
+        get
+        {
+            var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), Settings.LocalAiPerformanceProfile)
+                ? (LocalAiPerformanceProfile)Settings.LocalAiPerformanceProfile
+                : LocalAiPerformanceProfile.Balanced;
+            var tier = LocalAiHardwareTierCatalog.For(profile);
+            return $"{profile}: от {tier.MinimumSystemRamGb} ГБ RAM / рекомендуется {tier.RecommendedVramGb} ГБ VRAM; бюджет ассистента до {tier.MaximumAssistantRamGb} ГБ. {tier.Description}";
+        }
+    }
     public ICommand CheckEndpointCommand { get; }
     public ICommand CheckCloudSettingsCommand { get; }
     public ICommand DiscoverModelsCommand { get; }
@@ -282,7 +294,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
                 ?? chatModels.FirstOrDefault(x => x.IsLoaded)?.Key
                 ?? chatModels.FirstOrDefault()?.Key
                 ?? "";
-        Raise(nameof(RagStatus)); Raise(nameof(WhisperStatus)); Raise(nameof(VisionStatus));
+        Raise(nameof(RagStatus)); Raise(nameof(WhisperStatus)); Raise(nameof(VisionStatus)); Raise(nameof(HardwareGuidance));
     }
 
     private void BrowseLmStudioCli()

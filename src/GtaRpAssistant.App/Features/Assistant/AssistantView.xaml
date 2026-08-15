@@ -167,6 +167,9 @@
                         <ComboBoxItem Content="Микрофон" /><ComboBoxItem Content="Звук игры" />
                     </ComboBox>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource Button.Ghost}" Content="Фото" TabIndex="25"
+                                Command="{Binding AnalyzeImageCommand}" AutomationProperties.AutomationId="Assistant.AnalyzeImage"
+                                ToolTip="Выбрать PNG или JPEG для локального Vision-анализа после preview" />
                         <Button Style="{StaticResource Button.Ghost}" Content="Контекст" TabIndex="30"
                                 Command="{Binding AddContextCommand}" AutomationProperties.AutomationId="Assistant.AddContext" />
                         <Button Style="{StaticResource Button.Primary}" Content="Отправить" TabIndex="40"

@@ -20,8 +20,9 @@ public sealed class OpenAiCompatibleVisionProvider : IVisionProvider
     private readonly OpenAiCompatibleTransport _transport;
     private readonly string? _providerId;
     private readonly ProviderKind _kind;
+    private readonly TimeSpan? _idleTtl;
 
-    public OpenAiCompatibleVisionProvider(HttpClient httpClient, Uri baseUri, string model, string? apiKey, bool isLocal, string? providerId = null, ProviderKind kind = ProviderKind.OpenAiCompatible)
+    public OpenAiCompatibleVisionProvider(HttpClient httpClient, Uri baseUri, string model, string? apiKey, bool isLocal, string? providerId = null, ProviderKind kind = ProviderKind.OpenAiCompatible, TimeSpan? idleTtl = null)
     {
         _http = httpClient;
         _transport = new(httpClient, baseUri, apiKey, TimeSpan.FromSeconds(45), isLocal);
@@ -29,6 +30,7 @@ public sealed class OpenAiCompatibleVisionProvider : IVisionProvider
         _isLocal = isLocal;
         _providerId = providerId;
         _kind = kind;
+        _idleTtl = idleTtl;
     }
 
     public string Id => _providerId ?? (_isLocal ? "local-openai-compatible-vision" : "openai-compatible-vision");
@@ -49,12 +51,12 @@ public sealed class OpenAiCompatibleVisionProvider : IVisionProvider
     public async Task<VisionAnalysisResult> AnalyzeAsync(VisionAnalysisRequest request, CancellationToken cancellationToken)
     {
         var data = Convert.ToBase64String(request.PngImage.Span);
-        var body = new
+        var body = new Dictionary<string, object?>
         {
-            model = _model,
-            temperature = 0,
-            max_tokens = 250,
-            messages = new object[]
+            ["model"] = _model,
+            ["temperature"] = 0,
+            ["max_tokens"] = 250,
+            ["messages"] = new object[]
             {
                 new { role = "system", content = Prompt },
                 new
@@ -68,6 +70,8 @@ public sealed class OpenAiCompatibleVisionProvider : IVisionProvider
                 },
             },
         };
+        if (_isLocal && _idleTtl is { } ttl)
+            body["ttl"] = Math.Max(1, (int)Math.Ceiling(ttl.TotalSeconds));
         using var response = await _http.PostAsJsonAsync("chat/completions", body, cancellationToken);
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);

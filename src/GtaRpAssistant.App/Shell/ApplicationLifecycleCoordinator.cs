@@ -252,6 +252,19 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
     {
         try
         {
+            if (snapshot.Resources is { } resources)
+            {
+                var availableGb = resources.AvailableRamBytes.GetValueOrDefault() / 1024d / 1024d / 1024d;
+                var totalGb = resources.TotalRamBytes.GetValueOrDefault() / 1024d / 1024d / 1024d;
+                var pressure = snapshot.Pressure switch
+                {
+                    ResourcePressureLevel.Hard => "критическая",
+                    ResourcePressureLevel.Soft => "ограниченная",
+                    ResourcePressureLevel.Normal => "нормальная",
+                    _ => "неизвестно",
+                };
+                Ui(() => _ui.ResourceStatus = $"Ресурсы: RAM свободно {availableGb:F1} из {totalGb:F1} ГБ · нагрузка {pressure} · GTA {(resources.GtaRunning ? "запущена" : "не запущена")} · VRAM пока без telemetry");
+            }
             await _audioFeature.ApplyPerformanceAsync(snapshot);
             if (!snapshot.Actions.ExperimentalProactivity && _intent.Mode == ProactiveMode.Experimental)
                 _intent.Mode = ProactiveMode.Strict;

@@ -176,9 +176,10 @@ public sealed class ProviderTests
         {
             var body = await request.Content!.ReadAsStringAsync();
             Assert.Contains("data:image/png;base64", body);
+            Assert.Contains("\"ttl\":120", body);
             return Json("{\"choices\":[{\"message\":{\"content\":\"Видно игровое меню\"}}]}");
         });
-        var provider = new OpenAiCompatibleVisionProvider(new HttpClient(handler), new Uri("http://127.0.0.1:1234/v1"), "vision", null, true);
+        var provider = new OpenAiCompatibleVisionProvider(new HttpClient(handler), new Uri("http://127.0.0.1:1234/v1"), "vision", null, true, idleTtl: TimeSpan.FromMinutes(2));
         var result = await provider.AnalyzeAsync(new(new byte[] { 1, 2, 3 }, "Опиши экран"), default);
         Assert.Equal("Видно игровое меню", result.Text);
     }

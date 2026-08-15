@@ -56,7 +56,7 @@
 
 ## Phase 3 — Resource Budget Coordinator
 
-**Прогресс.** Срез 3A реализован: единый `ResourceBudgetCoordinator` выдаёт disposable leases для Chat, Vision, STT, TTS, Embeddings и BackgroundIndexing; Windows sampler раз в пять секунд передаёт системную RAM, working set, CPU и признак запущенной GTA. Введены soft/hard pressure, трёхзамерный hysteresis восстановления, RAM/VRAM reserve checks при наличии данных и взаимное исключение локальных Chat/Vision в Compact/Balanced. Chat, manual Vision, STT, TTS и загрузка локальной модели подключены к leases; exact/FTS остаются вне control plane. GPU telemetry пока честно обозначается как unavailable. Следующий срез Phase 3B — VRAM adapter, статус причин в UI и idle unload.
+**Прогресс.** Срез 3A реализован: единый `ResourceBudgetCoordinator` выдаёт disposable leases для Chat, Vision, STT, TTS, Embeddings и BackgroundIndexing; Windows sampler раз в пять секунд передаёт системную RAM, working set, CPU и признак запущенной GTA. Введены soft/hard pressure, трёхзамерный hysteresis, RAM/VRAM reserve checks при наличии данных и взаимное исключение локальных Chat/Vision в Compact/Balanced. Chat, manual Vision, STT, TTS и загрузка локальной модели подключены к leases; exact/FTS остаются вне control plane. В 3B начат видимый resource status и аппаратные Compact/Balanced/Quality envelopes. GPU telemetry пока честно обозначается как unavailable. Следующий срез — проверенный VRAM adapter и pressure-driven idle unload.
 
 **Цель.** Гарантировать приоритет GTA и предсказуемую деградацию AI.
 
@@ -157,6 +157,8 @@
 **Пользователь увидит.** Маркированный свежий ответ со ссылками либо честное сообщение, что сеть отключена.
 
 ## Phase 8 — Vision on Demand, OCR First
+
+**Уточнённый пользовательский сценарий.** Цель похожа на Gemini-style interaction, но без постоянного дорогого видеопотока: `Ctrl+Alt+A` для голоса, `Ctrl+Alt+S` для подтверждённого снимка GTA и кнопка **Фото** для локального анализа выбранного PNG/JPEG. Вложение уже использует общий Vision preview, сначала пробует локальный OCR и запрещает cloud fallback. Ручной screen/photo workflow также использует VLM только при недостаточном OCR. Постоянный event/video Vision допускается только отдельным opt-in профилем после hardware benchmark.
 
 **Цель.** Понимать текущий экран с минимальной GPU-нагрузкой.
 

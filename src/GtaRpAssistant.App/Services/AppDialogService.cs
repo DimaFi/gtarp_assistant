@@ -12,6 +12,7 @@ public interface IAppDialogService
     string? PickExecutable(string title, string? currentPath);
     string? PickGgufFile(string title, string? initialDirectory);
     string? PickKnowledgeFile(string title);
+    string? PickImageFile(string title);
     string? PickFolder(string title, string? initialDirectory);
 }
 
@@ -73,6 +74,18 @@ public sealed class AppDialogService : IAppDialogService
         {
             Title = title,
             Filter = "Документы базы знаний (*.json;*.csv)|*.json;*.csv|JSON (*.json)|*.json|CSV (*.csv)|*.csv",
+            CheckFileExists = true,
+            Multiselect = false,
+        };
+        return dialog.ShowDialog(System.Windows.Application.Current.MainWindow) == true ? dialog.FileName : null;
+    }
+
+    public string? PickImageFile(string title)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = title,
+            Filter = "Изображения (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg|PNG (*.png)|*.png|JPEG (*.jpg;*.jpeg)|*.jpg;*.jpeg",
             CheckFileExists = true,
             Multiselect = false,
         };

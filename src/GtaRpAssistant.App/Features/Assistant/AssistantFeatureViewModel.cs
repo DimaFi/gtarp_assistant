@@ -18,6 +18,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     private readonly AudioFeatureViewModel _audioFeature;
     private readonly OverlayService _overlay;
     private readonly VoiceInteractionCoordinator _voiceInteraction;
+    private readonly VisionWorkflowService _vision;
     private readonly RelayCommand _cancelRequestCommand;
     private readonly RelayCommand _renameConversationCommand;
     private readonly RelayCommand _deleteConversationCommand;
@@ -25,6 +26,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     private readonly AsyncRelayCommand _retryQuestionCommand;
     private readonly RelayCommand _confirmVoicePreviewCommand;
     private readonly RelayCommand _cancelVoicePreviewCommand;
+    private readonly AsyncRelayCommand _analyzeImageCommand;
     private int _selectedSourceIndex;
     private string _transcriptText = "";
     private AssistantAnswer? _lastAnswer;
@@ -44,6 +46,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         AudioSessionController audioSession,
         AudioFeatureViewModel audioFeature,
         OverlayService overlay,
+        VisionWorkflowService vision,
         VoiceInteractionCoordinator voiceInteraction,
         SettingsSaveCoordinator save,
         IAppDialogService dialogs,
@@ -56,6 +59,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _audioSession = audioSession;
         _audioFeature = audioFeature;
         _overlay = overlay;
+        _vision = vision;
         _voiceInteraction = voiceInteraction;
         AddContextCommand = new RelayCommand(AddContext);
         ProcessQuestionCommand = new AsyncRelayCommand(ProcessQuestionAsync);
@@ -69,6 +73,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _retryQuestionCommand = new AsyncRelayCommand(RetryQuestionAsync, () => !IsBusy && LastUserQuestion() is not null);
         _confirmVoicePreviewCommand = new RelayCommand(ConfirmVoicePreview, () => IsVoicePreview && !string.IsNullOrWhiteSpace(TranscriptText));
         _cancelVoicePreviewCommand = new RelayCommand(CancelVoicePreview, () => IsVoicePreview);
+        _analyzeImageCommand = new AsyncRelayCommand(AnalyzeImageAsync, () => !IsBusy);
         CancelRequestCommand = _cancelRequestCommand;
         RenameConversationCommand = _renameConversationCommand;
         DeleteConversationCommand = _deleteConversationCommand;
@@ -76,6 +81,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         RetryQuestionCommand = _retryQuestionCommand;
         ConfirmVoicePreviewCommand = _confirmVoicePreviewCommand;
         CancelVoicePreviewCommand = _cancelVoicePreviewCommand;
+        AnalyzeImageCommand = _analyzeImageCommand;
         coordinator.StatusChanged += (_, status) => _dispatcher.Invoke(() => Ui.PipelineStatus = status);
         coordinator.AnswerProduced += (_, answer) => _dispatcher.Invoke(() =>
         {
@@ -156,6 +162,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
             _cancelRequestCommand.RaiseCanExecuteChanged();
             _deleteConversationCommand.RaiseCanExecuteChanged();
             _retryQuestionCommand.RaiseCanExecuteChanged();
+            _analyzeImageCommand.RaiseCanExecuteChanged();
         }
     }
     public string LastRequestDurationText => _lastRequestDuration is null ? "—" : $"{_lastRequestDuration.Value.TotalSeconds:F1} с";
@@ -171,6 +178,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     public ICommand RetryQuestionCommand { get; }
     public ICommand ConfirmVoicePreviewCommand { get; }
     public ICommand CancelVoicePreviewCommand { get; }
+    public ICommand AnalyzeImageCommand { get; }
 
     private AudioSourceKind SelectedSource => SelectedSourceIndex == 1 ? AudioSourceKind.GameAudio : AudioSourceKind.UserMicrophone;
 
@@ -353,6 +361,24 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         catch (Exception ex) when (ex is System.Runtime.InteropServices.ExternalException or ThreadStateException)
         {
             Ui.PipelineStatus = "Буфер обмена временно недоступен. Попробуйте ещё раз.";
+        }
+    }
+
+    private async Task AnalyzeImageAsync()
+    {
+        var path = _dialogs.PickImageFile("Выберите скриншот для локального Vision-анализа");
+        if (path is null) return;
+        try
+        {
+            Ui.PipelineStatus = "Проверяю изображение и доступные ресурсы…";
+            var owner = System.Windows.Application.Current.MainWindow
+                ?? throw new InvalidOperationException("Главное окно ещё не готово.");
+            await _vision.RunLocalImageAsync(owner, path, CancellationToken.None);
+            Ui.PipelineStatus = "Локальный анализ изображения завершён.";
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            Ui.PipelineStatus = $"Изображение не обработано: {ex.Message}";
         }
     }
 

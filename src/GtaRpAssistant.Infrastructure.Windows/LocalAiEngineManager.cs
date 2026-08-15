@@ -193,6 +193,7 @@ public sealed partial class LmStudioEngineAdapter : ILocalAiEngineAdapter, IDisp
             context_length = request.ContextLength,
             flash_attention = request.FlashAttention,
             echo_load_config = true,
+            ttl = Math.Max(1, (int)Math.Ceiling(request.IdleTtl.TotalSeconds)),
         };
         using var response = await _http.PostAsJsonAsync(new Uri(Origin(endpoint), "/api/v1/models/load"), payload, cancellationToken);
         response.EnsureSuccessStatusCode();

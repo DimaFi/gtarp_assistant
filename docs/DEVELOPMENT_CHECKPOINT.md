@@ -18,6 +18,9 @@
 - Windows sampler передаёт системную RAM, process CPU/working set и состояние GTA; VRAM остаётся явно неизвестной до проверенного adapter.
 - Soft/hard policies, трёхзамерный hysteresis и mutual exclusion локальных Chat/Vision в Compact/Balanced защищают память от конкурентных пиков.
 - Chat, manual Vision, STT, TTS и загрузка локальной модели используют leases; точная локальная база и кэш не зависят от resource budget.
+- Страница Local AI показывает фактически свободную системную RAM, состояние GTA, pressure и честный статус отсутствующей VRAM telemetry; профили получили понятные RAM/VRAM envelopes.
+- В composer добавлена кнопка **Фото**: PNG/JPEG до 12 МБ и 33 Мп проходит preview, локальный OCR-first и только локальный Vision fallback без cloud; buffers очищаются после обработки.
+- Ручной screen/photo Vision получает профильный idle TTL, поэтому JIT-загруженная VLM не остаётся в памяти бесконечно.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
 Следующая задача: Phase 3B — проверенная VRAM telemetry, видимые причины деградации и idle unload. После неё — Phase 4 Knowledge Intelligence. Отдельно требуется governance-проверка просроченных knowledge sources.

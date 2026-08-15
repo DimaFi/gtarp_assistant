@@ -5,6 +5,15 @@ namespace GtaRpAssistant.Core.Tests;
 public sealed class LocalAiManagementTests
 {
     [Fact]
+    public void BalancedHardwareTier_IsBoundedAndVisionIsOnDemand()
+    {
+        var tier = LocalAiHardwareTierCatalog.For(LocalAiPerformanceProfile.Balanced);
+        Assert.Equal(32, tier.MinimumSystemRamGb);
+        Assert.Equal(6, tier.MaximumAssistantRamGb);
+        Assert.True(tier.VisionOnDemand);
+    }
+
+    [Fact]
     public void Recommendation_PrefersPrimaryBalancedModelWhenMemoryFits()
     {
         var model = LocalAiRecommendedModelCatalog.Recommend(12L * 1024 * 1024 * 1024);

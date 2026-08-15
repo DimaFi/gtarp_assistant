@@ -3,7 +3,12 @@ using GtaRpAssistant.Core;
 
 namespace GtaRpAssistant.Infrastructure.Windows;
 
-public sealed record ProcessPerformanceSnapshot(double CpuPercent, long WorkingSetBytes, PerformanceActions Actions, ResourceSnapshot? Resources = null);
+public sealed record ProcessPerformanceSnapshot(
+    double CpuPercent,
+    long WorkingSetBytes,
+    PerformanceActions Actions,
+    ResourceSnapshot? Resources = null,
+    ResourcePressureLevel? Pressure = null);
 
 public sealed class ProcessPerformanceMonitor(
     PerformanceController controller,
@@ -47,7 +52,7 @@ public sealed class ProcessPerformanceMonitor(
             var actions = resources is not null && resourceBudget is not null
                 ? controller.Evaluate(profile(), resourceBudget.Pressure)
                 : controller.Evaluate(profile(), cpu, process.WorkingSet64);
-            SnapshotAvailable?.Invoke(this, new(cpu, process.WorkingSet64, actions, resources));
+            SnapshotAvailable?.Invoke(this, new(cpu, process.WorkingSet64, actions, resources, resourceBudget?.Pressure));
         }
     }
 

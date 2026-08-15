@@ -114,6 +114,30 @@ public sealed record LocalAiRecommendedModel(
     string RecommendedUse,
     LocalAiPerformanceProfile Profile);
 
+public sealed record LocalAiHardwareTier(
+    LocalAiPerformanceProfile Profile,
+    int MinimumSystemRamGb,
+    int RecommendedVramGb,
+    int MaximumAssistantRamGb,
+    bool VisionOnDemand,
+    string Description);
+
+public static class LocalAiHardwareTierCatalog
+{
+    public static IReadOnlyList<LocalAiHardwareTier> Tiers { get; } =
+    [
+        new(LocalAiPerformanceProfile.Compact, 16, 4, 3, false,
+            "Только короткие текстовые ответы, локальная база и STT; Vision выключен."),
+        new(LocalAiPerformanceProfile.Balanced, 32, 8, 6, true,
+            "Рекомендуемый игровой режим: 4B Q4, короткий контекст, Vision только по кнопке и без параллельного Chat."),
+        new(LocalAiPerformanceProfile.Quality, 32, 12, 10, true,
+            "Более качественный on-demand Vision; запуск разрешается только при фактическом запасе RAM/VRAM."),
+    ];
+
+    public static LocalAiHardwareTier For(LocalAiPerformanceProfile profile) =>
+        Tiers.FirstOrDefault(x => x.Profile == profile) ?? Tiers[1];
+}
+
 public sealed record LocalAiLoadRequest(
     string ModelKey,
     int ContextLength,

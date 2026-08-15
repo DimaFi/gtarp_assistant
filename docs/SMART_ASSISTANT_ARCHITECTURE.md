@@ -281,6 +281,11 @@ GPT‑5VP по умолчанию используется как text generator
 
 Vision ladder:
 
+- voice-only: hotkey → STT → knowledge-first answer без изображения;
+- screen-on-demand: hotkey → снимок окна GTA → preview → OCR/Vision;
+- attached image: пользователь выбирает PNG/JPEG → безопасная нормализация → preview → только local Vision;
+- continuous/event video: не baseline; только будущий explicit high-end режим после performance/privacy gates.
+
 1. window presence / known region;
 2. уменьшенный frame diff;
 3. known-screen/event classifier;
@@ -350,6 +355,8 @@ Web используется лишь когда вопрос явно треб�
 | Balanced | lazy, short TTL | 1.6k | manual on-demand | lazy fallback | рекомендуемый игровой |
 | Quality | resident if lease allows | 2.5k | on-demand ROI | enabled | richer composition |
 | Companion | only high-end and explicit | 4k cap | event-triggered, not continuous | enabled | session memory/proactivity |
+
+В UI аппаратные envelopes задаются консервативно: Compact — от 16 ГБ RAM/4 ГБ VRAM и без VLM; Balanced — 32 ГБ RAM/рекомендуется 8 ГБ VRAM, до 6 ГБ бюджета ассистента и Vision строго on-demand; Quality — 32 ГБ RAM/рекомендуется 12 ГБ VRAM, до 10 ГБ только при фактическом свободном резерве. Это не обещание совместимости: перед load используется runtime estimate. Qwen3‑VL 4B выбран как текущий эталон компактного multimodal-класса, а не как навечно закреплённая модель.
 
 Название профиля не выбирает cloud/local. Эти настройки независимы.
 
