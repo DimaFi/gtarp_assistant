@@ -20,9 +20,60 @@ public sealed class CommunityReferenceLoader
         await LoadEconomyAsync(Path.Combine(directory, "economy-tables.json"), articles, cancellationToken);
         await LoadGaragesAsync(Path.Combine(directory, "garage-upgrades.json"), articles, cancellationToken);
         await LoadSkillsAsync(Path.Combine(directory, "skill-progression.json"), articles, cancellationToken);
+        await LoadMoodAsync(Path.Combine(directory, "mood-effects.json"), articles, cancellationToken);
         await LoadPlayerGuidesAsync(Path.Combine(directory, "player-guides.json"), articles, cancellationToken);
         await LoadPlayerGuidesAsync(Path.Combine(directory, "club-guides.json"), articles, cancellationToken);
+        await LoadServerRulesAsync(Path.GetFullPath(Path.Combine(directory, "..", "official", "server-rules-full.json")), articles, cancellationToken);
+        await LoadEclipseLegalBaseAsync(Path.GetFullPath(Path.Combine(directory, "..", "official", "eclipse-legal-base.json")), articles, cancellationToken);
         return articles;
+    }
+
+    private static async Task LoadEclipseLegalBaseAsync(string path, List<KnowledgePackArticle> output, CancellationToken ct)
+    {
+        using var json = await ReadJsonAsync(path, ct); if (json is null) return;
+        var index = 0;
+        foreach (var item in json.RootElement.GetProperty("rules").EnumerateArray())
+        {
+            var id = Text(item, "id"); var title = Text(item, "title"); var url = Text(item, "url"); var body = Text(item, "text");
+            var fact = $"Правила сервера Eclipse, тема «{title}». {body}";
+            output.Add(EclipseArticle($"official.eclipse.legal.{id}.{index++:D3}", title, [title, id, "Eclipse", "закон", "кодекс", "статья", "наказание"], fact, url,
+                [new($"что говорит {title}", fact), new($"правила Eclipse {title}", fact)]));
+        }
+    }
+
+    private static async Task LoadServerRulesAsync(string path, List<KnowledgePackArticle> output, CancellationToken ct)
+    {
+        using var json = await ReadJsonAsync(path, ct); if (json is null) return;
+        var index = 0;
+        foreach (var item in json.RootElement.GetProperty("rules").EnumerateArray())
+        {
+            var id = Text(item, "id"); var title = Text(item, "title"); var url = Text(item, "url"); var body = Text(item, "text");
+            var fact = $"Официальные правила форума GTA5RP, тема «{title}». {body}";
+            output.Add(OfficialArticle($"official.server-rule.{id}.{index++:D3}", title, "server-rules", [title, id, "правила сервера", "санкция", "наказание"], fact, url,
+                [new($"правила {title}", fact), new($"что запрещено {title}", fact)]));
+        }
+    }
+
+    private static async Task LoadMoodAsync(string path, List<KnowledgePackArticle> output, CancellationToken ct)
+    {
+        using var json = await ReadJsonAsync(path, ct); if (json is null) return;
+        var root = json.RootElement; var index = 0;
+        foreach (var item in root.GetProperty("moodGain").EnumerateArray())
+        {
+            var action = Text(item, "action"); var mood = item.GetProperty("mood");
+            var extra = item.TryGetProperty("cooldownMinutes", out var minutes) ? $" КД {minutes} минут." : item.TryGetProperty("cooldown", out _) ? " Есть КД." : "";
+            output.Add(Article($"community.mood.gain.{index++:D3}", $"Настроение: {action}", "mood", [action, $"настроение {action}"], $"По данным игроков: {action} изменяет настроение на +{mood}% .{extra}"));
+        }
+        foreach (var item in root.GetProperty("moodLoss").EnumerateArray())
+        {
+            var action = Text(item, "action"); var body = item.TryGetProperty("mood", out var mood) ? $"изменяет настроение на {mood}%" : Text(item, "note");
+            output.Add(Article($"community.mood.loss.{index++:D3}", $"Настроение: {action}", "mood", [action, $"настроение {action}"], $"По данным игроков: {action} — {body}."));
+        }
+        foreach (var effect in root.GetProperty("lowMoodEffects").EnumerateArray())
+        {
+            var body = effect.GetString() ?? "";
+            output.Add(Article($"community.mood.effect.{index++:D3}", "Последствия низкого настроения", "mood", ["плохое настроение", "низкое настроение", body], $"По данным игроков: {body}."));
+        }
     }
 
     private static async Task LoadAchievementsAsync(string path, List<KnowledgePackArticle> output, CancellationToken ct)
@@ -185,6 +236,20 @@ public sealed class CommunityReferenceLoader
         new(id, "gta5rp", ["all"], title, "community", mechanic, aliases.Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
             "Community-confirmed player reference. Ответ должен сохранять пометку «По данным игроков».", [new($"{id}.fact.1", fact, true)], answers ?? [],
             new("Community-confirmed player data", null), 1, updatedAt ?? UpdatedAt, true, false, validUntil ?? ValidUntil, "Product owner confirmation");
+
+    private static KnowledgePackArticle EclipseArticle(string id, string title, string[] aliases, string fact, string url, IReadOnlyList<PreparedAnswer>? answers = null) =>
+        new(id, "gta5rp", ["Eclipse"], title, "official", "legal-base", aliases.Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+            "Официальная база законодательства сервера Eclipse. При ответе указывайте название акта и редакцию, если она есть в источнике.",
+            [new($"{id}.fact.1", fact, true)], answers ?? [], new("Eclipse forum legal base", url), 1,
+            new(2026, 8, 15, 0, 0, 0, TimeSpan.Zero), true, false,
+            new(2026, 9, 15, 0, 0, 0, TimeSpan.Zero), "Official forum source review");
+
+    private static KnowledgePackArticle OfficialArticle(string id, string title, string mechanic, string[] aliases, string fact, string url, IReadOnlyList<PreparedAnswer>? answers = null) =>
+        new(id, "gta5rp", ["all"], title, "official", mechanic, aliases.Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+            "Официальные правила GTA5RP. При ответе сохраняйте название темы и проверяйте дату актуальности.",
+            [new($"{id}.fact.1", fact, true)], answers ?? [], new("GTA5RP official forum", url), 1,
+            new(2026, 8, 15, 0, 0, 0, TimeSpan.Zero), true, false,
+            new(2026, 9, 15, 0, 0, 0, TimeSpan.Zero), "Official forum source review");
 
     private static async Task<JsonDocument?> ReadJsonAsync(string path, CancellationToken ct)
     {

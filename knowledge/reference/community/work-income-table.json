@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "trust": "community-confirmed",
+  "source": "player-provided work and salary table",
+  "capturedAt": "2026-08-15",
+  "note": "Выплата указана за действие; значения зависят от уровня и Rednecks +5 на 5 уровне.",
+  "works": [
+    {"work":"Стройка","levels":[7,20,41,60,80,99],"hourLevel5":30000,"hourRednecks5":35000,"actions":"1500-2250-3000-3750-4500","time":"54/27 часов"},
+    {"work":"Порт","levels":[11,26,53,79,106,132],"hourLevel5":30000,"hourRednecks5":35000,"actions":"1500-2250-3000-3750-4500","time":"60/30 часов"},
+    {"work":"Шахта","levels":[21,40,80,120,160,201],"hourLevel5":30000,"hourRednecks5":35000,"actions":"1000-1500-2000-2500-3000","time":"68/34 часов"},
+    {"work":"Автобус","levels":[110,190,270,350,440,500],"unit":"$/мин","hourLevel5":30000,"hourRednecks5":35000,"actions":"35-70-105-140-175","time":"63/32 часа"},
+    {"work":"Дайвинг (Дамба)","levels":[310,350,701,1051,1401,1752],"hourLevel5":35000,"hourRednecks5":40000},
+    {"work":"Дайвинг (Сэнди-Шорс)","levels":[null,null,null,1051,1401,1752],"hourLevel5":45000,"hourRednecks5":52000,"actions":"85-170-255-340-425","time":"60/30 часов"},
+    {"work":"Дайвинг батискаф","levels":[null,null,null,null,null,2000],"hourLevel5":27000,"hourRednecks5":31500},
+    {"work":"Механик (заправка НРС)","levels":[750,1100,1450,1800,2150,2500],"hourLevel5":30000,"hourRednecks5":35000,"actions":"40-80-120-160-200","time":"64/32 часа"},
+    {"work":"Инкассатор","levels":[120,200,270,350,420,500],"unit":"$/мин","hourLevel5":30000,"hourRednecks5":35000,"actions":"40-80-120-160-200","time":"80/40 часов"},
+    {"work":"Пожарный","levels":[1000,1200,1350,1500,1700,1900],"hourLevel5":32000,"hourRednecks5":37000,"actions":"250-500-750-1000-1250","time":"56/28 часов"},
+    {"work":"Почтальон","levels":[80,105,210,310,415,520],"unit":"$/мин","hourLevel5":31000,"hourRednecks5":36000,"actions":"140-280-420-560-700","time":"70/35 часов"},
+    {"work":"Курьер","levels":[null,null,null,null,null,null],"hourLevel5":52000,"hourRednecks5":60000,"actions":"100-200-300-400-500","time":"160/80 часов"},
+    {"work":"Сокровища (% надбавки)","levels":[0,10,20,30,40,50],"actions":"100-200-300-400-500","time":"350/170 часов"}
+  ]
+}

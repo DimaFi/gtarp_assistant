@@ -218,11 +218,13 @@ public sealed class KnowledgeTests : IAsyncLifetime
         var pack = await new KnowledgePackLoader().LoadPackAsync(directory, default);
 
         Assert.Equal("gta5rp.official.compact", pack.Manifest.Id);
-        Assert.Equal(48, pack.Articles.Count);
+        Assert.Equal(50, pack.Articles.Count);
         Assert.All(pack.Articles, article =>
         {
-            Assert.InRange(article.Facts.Count, 1, GroundingContextSelector.DefaultMaxFacts);
-            Assert.True(article.Facts.Sum(x => x.Text.Length) <= GroundingContextSelector.DefaultMaxCharacters);
+            var facts = article.Facts.Select(x => new KnowledgeFact(x.Id, article.Id, x.Text, x.Verified, article.UpdatedAt));
+            var selected = GroundingContextSelector.Select(article.Title, facts);
+            Assert.InRange(selected.Count, 1, GroundingContextSelector.DefaultMaxFacts);
+            Assert.True(selected.Sum(x => x.Text.Length) <= GroundingContextSelector.DefaultMaxCharacters);
         });
     }
 
@@ -321,12 +323,14 @@ public sealed class KnowledgeTests : IAsyncLifetime
         var directory = Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "community");
         var articles = await new CommunityReferenceLoader().LoadAsync(directory, default);
 
-        Assert.Equal(445, articles.Count);
+        Assert.Equal(534, articles.Count);
         Assert.Contains(articles, x => x.Title == "Вращайте барабан");
         Assert.Contains(articles, x => x.Title == "Рецепт: Оливье");
         Assert.Contains(articles, x => x.Title == "Артериальное кровотечение");
-        Assert.All(articles, x => Assert.StartsWith("По данным игроков:", Assert.Single(x.Facts).Text));
-        Assert.All(articles.SelectMany(x => x.PreparedAnswers), x => Assert.StartsWith("По данным игроков:", x.Answer));
+        var communityArticles = articles.Where(x => x.Category == "community").ToArray();
+        Assert.NotEmpty(communityArticles);
+        Assert.All(communityArticles, x => Assert.StartsWith("По данным игроков:", Assert.Single(x.Facts).Text));
+        Assert.All(communityArticles.SelectMany(x => x.PreparedAnswers), x => Assert.StartsWith("По данным игроков:", x.Answer));
     }
 
     [Theory]

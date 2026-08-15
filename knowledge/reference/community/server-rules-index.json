@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "trust": "official-index",
+  "source": "GTA5RP Forum",
+  "url": "https://forum.gta5rp.com/forums/obschie-pravila.564/",
+  "capturedAt": "2026-08-15",
+  "rulesRevision": "30 июня 2026",
+  "note": "Актуальный реестр пользовательских ссылок на закреплённые правила. Содержимое страниц форума является источником правил; при конфликте проверяйте последнюю редакцию темы.",
+  "servers": ["Downtown","Richman","Rockford","Eclipse"],
+  "ruleCategories": ["Общие правила проекта","Зелёные зоны","Банды","Мафии","Ammunation и поезд","Захват государственных фракций","Ограбления и похищения","Опасный район","Ежедневные PVP-события","Война за граффити","Война за территорию/бизнес","Титульные районы криминальных фракций","Государственные фракции","Уголовные дела и внедрения","Допросы","Рейды","Снятие лидеров государственных структур","Неофициальные организации"],
+  "serverSections": {
+    "Downtown":"https://forum.gta5rp.com/categories/pravila-servera-downtown.46/",
+    "Richman":"https://forum.gta5rp.com/categories/pravila-servera-richman.488/",
+    "Rockford":"https://forum.gta5rp.com/categories/pravila-servera-rockford.884/"
+  },
+  "rules": [
+    {"title":"Общие правила проекта","category":"Общие правила проекта","url":"https://forum.gta5rp.com/threads/obshchiye-pravila-proyekta.3414615/"},
+    {"title":"Правила зелёных зон","category":"Зелёные зоны","url":"https://forum.gta5rp.com/threads/pravila-zelenykh-zon.3410041/"},
+    {"title":"Общие правила банд","category":"Банды","url":"https://forum.gta5rp.com/threads/obshchiye-pravila-band.3410055/"},
+    {"title":"Общие правила мафий","category":"Мафии","url":"https://forum.gta5rp.com/threads/obshchiye-pravila-mafii.3410056/"},
+    {"title":"Нападение на Ammunation/поезд","category":"Ammunation и поезд","url":"https://forum.gta5rp.com/threads/pravila-napadeniya-na-ammunation-poyezd.3412090/"},
+    {"title":"Захват государственных фракций","category":"Захват государственных фракций","url":"https://forum.gta5rp.com/threads/pravila-zakhvata-gosudarstvennykh-fraktsii.3414638/"},
+    {"title":"Ограбления и похищения","category":"Ограбления и похищения","url":"https://forum.gta5rp.com/threads/pravila-ograblenii-pokhishchenii.3412093/"},
+    {"title":"Опасный район","category":"Опасный район","url":"https://forum.gta5rp.com/threads/opasnyi-raion.3410299/"},
+    {"title":"Ежедневные PVP-события","category":"Ежедневные PVP-события","url":"https://forum.gta5rp.com/threads/pravila-yezhednevnykh-pvp-sobytii-ex-voina-za-khammery.3412091/"},
+    {"title":"Война за граффити","category":"Война за граффити","url":"https://forum.gta5rp.com/threads/voina-za-graffiti.3410324/"},
+    {"title":"Война за территорию/бизнес","category":"Война за территорию/бизнес","url":"https://forum.gta5rp.com/threads/pravila-voiny-za-territoriyu-biznes.3412844/"},
+    {"title":"Титульные районы криминальных фракций","category":"Титульные районы криминальных фракций","url":"https://forum.gta5rp.com/threads/titul-nyye-raiony-kriminal-nykh-fraktsii.3410298/"},
+    {"title":"Государственные фракции","category":"Государственные фракции","url":"https://forum.gta5rp.com/threads/pravila-gosudarstvennykh-fraktsii.3410049/"},
+    {"title":"Уголовные дела и внедрения","category":"Уголовные дела и внедрения","url":"https://forum.gta5rp.com/threads/pravila-vedeniya-ugolovnykh-del-i-vnedrenii.3410053/"},
+    {"title":"Допросы","category":"Допросы","url":"https://forum.gta5rp.com/threads/pravila-provedeniya-doprosov.3410052/"},
+    {"title":"Рейды","category":"Рейды","url":"https://forum.gta5rp.com/threads/pravila-reidov.3410054/"},
+    {"title":"Снятие лидеров государственных структур","category":"Снятие лидеров государственных структур","url":"https://forum.gta5rp.com/threads/pravila-snyatiya-liderov-gosudarstvennykh-struktur.3410051/"},
+    {"title":"Неофициальные организации","category":"Неофициальные организации","url":"https://forum.gta5rp.com/threads/obshchiye-pravila-neofitsial-nykh-organizatsii.3412094/"}
+  ]
+}
