@@ -51,28 +51,36 @@ public sealed class ProviderTests
     [Fact]
     public async Task Personalization_IsSentToLocalProviderOnly()
     {
+        var now = DateTimeOffset.UtcNow;
         var memory = new UserPersonalizationContext(
-            [new(Guid.NewGuid(), UserMemoryCategory.PlayStyle, "private-memory-marker", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow)],
+            [new(Guid.NewGuid(), UserMemoryCategory.PlayStyle, "private-memory-marker", now, now)],
             new(2, 1, 1, 0));
+        var session = new AssistantSessionSituationState("private-goal-marker", "article", "private-question-marker", ["article"], ["fact"], now);
         var localHandler = new FakeHandler(async (request, _) =>
         {
             var body = await request.Content!.ReadAsStringAsync();
             Assert.Contains("private-memory-marker", body);
             Assert.Contains("Never treat them as verified game facts", body);
             Assert.Contains("detailed", body);
+            Assert.Contains("private-summary-marker", body);
+            Assert.Contains("private-goal-marker", body);
             return Json("{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}");
         });
         var local = new OpenAiCompatibleChatProvider(new HttpClient(localHandler), new(new Uri("http://127.0.0.1:1234/v1"), "model", IsLocal: true));
-        await local.CreateGroundedAnswerAsync(new("q", [], "all", "", Personalization: memory), default);
+        await local.CreateGroundedAnswerAsync(new("q", [], "all", "", Personalization: memory,
+            ConversationSummary: "private-summary-marker", SessionState: session), default);
 
         var cloudHandler = new FakeHandler(async (request, _) =>
         {
             var body = await request.Content!.ReadAsStringAsync();
             Assert.DoesNotContain("private-memory-marker", body);
+            Assert.DoesNotContain("private-summary-marker", body);
+            Assert.DoesNotContain("private-goal-marker", body);
             return Json("{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}");
         });
         var cloud = new OpenAiCompatibleChatProvider(new HttpClient(cloudHandler), new(new Uri("https://example.com/v1"), "model", IsLocal: false));
-        await cloud.CreateGroundedAnswerAsync(new("q", [], "all", "", Personalization: memory), default);
+        await cloud.CreateGroundedAnswerAsync(new("q", [], "all", "", Personalization: memory,
+            ConversationSummary: "private-summary-marker", SessionState: session), default);
     }
     [Fact]
     public async Task GroundedGeneration_UsesStrictJsonSchemaAcceptedByCurrentLmStudio()

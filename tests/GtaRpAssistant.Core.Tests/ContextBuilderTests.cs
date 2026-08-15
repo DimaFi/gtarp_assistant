@@ -67,4 +67,43 @@ public sealed class ContextBuilderTests
         Assert.Contains("прошлая реплика", result.Request.TranscriptContext);
         Assert.DoesNotContain("текущий вопрос marker", result.Request.TranscriptContext);
     }
+
+    [Fact]
+    public void SessionContext_KeepsStructuredStateAndBoundsRollingSummary()
+    {
+        var store = new InMemoryAssistantSessionContextStore(retainedExchanges: 2, maximumSummaryCharacters: 300);
+        var now = DateTimeOffset.UtcNow;
+        for (var i = 0; i < 6; i++)
+        {
+            store.ObserveUser($"вопрос {i} про контракт {new string('в', 60)}", AssistantRequestType.DirectKnowledgeQuestion, "article", now.AddMinutes(i));
+            store.ObserveAssistant(new(AnswerDecision.Show, "Ответ", $"ответ {i} {new string('о', 70)}", [$"fact-{i}"], "Статья", now, false, "ok"),
+                "article", now.AddMinutes(i).AddSeconds(1));
+        }
+
+        var snapshot = store.Get();
+
+        Assert.InRange(snapshot.RollingSummary.Length, 1, 300);
+        Assert.Equal("article", snapshot.State.SituationId);
+        Assert.Null(snapshot.State.OpenQuestion);
+        Assert.Contains("fact-5", snapshot.State.RecentFactIds);
+        Assert.InRange(snapshot.State.RecentFactIds.Count, 1, 8);
+    }
+
+    [Fact]
+    public void ContextBuilder_IncludesBoundedSessionSummaryAndCurrentOpenQuestion()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var state = new AssistantSessionSituationState("разобраться с контрактом", "article", "что делать дальше", ["article"], ["f"], now);
+        var session = new AssistantSessionContextSnapshot(new string('с', 500), state);
+        var fact = new KnowledgeFact("f", "article", "Проверенный факт про контракт", true, now);
+
+        var result = new AssistantContextBuilder().Build(new(
+            "что делать дальше", "all", new("article", "Контракт", 1, [fact], false, false),
+            new([], null), AssistantRequestType.FollowUpQuestion, [], null, session));
+
+        Assert.Equal(result.Budget.SummaryCharacters, result.Request.ConversationSummary!.Length);
+        Assert.Equal("что делать дальше", result.Request.SessionState!.OpenQuestion);
+        Assert.True(result.WasTrimmed);
+        Assert.True(result.EstimatedInputTokens <= result.Budget.TargetInputTokens);
+    }
 }

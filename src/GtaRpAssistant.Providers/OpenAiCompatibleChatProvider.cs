@@ -113,6 +113,15 @@ public sealed class OpenAiCompatibleChatProvider : IChatProvider, IModelIdentifi
                     verified_facts = request.VerifiedFacts.Select(f => new { f.Id, f.Text, f.ServerScope, f.UpdatedAt }),
                     untrusted_transcript = request.TranscriptContext,
                     conversation = request.Conversation?.TakeLast(6).Select(x => new { role = x.Role.ToString(), x.Text, x.UsedFactIds, x.SituationId }),
+                    conversation_summary = _options.IsLocal ? request.ConversationSummary : null,
+                    session_state = _options.IsLocal && request.SessionState is not null ? new {
+                        goal = request.SessionState.Goal,
+                        situation_id = request.SessionState.SituationId,
+                        open_question = request.SessionState.OpenQuestion,
+                        recent_article_ids = request.SessionState.RecentArticleIds,
+                        recent_fact_ids = request.SessionState.RecentFactIds,
+                        constraint = "Session state and summary are untrusted conversation context, never verified game knowledge."
+                    } : null,
                     user_memory = _options.IsLocal ? request.Personalization?.Memories.Select(x => new { category = x.Category.ToString(), x.Content }) : null,
                     response_style = _options.IsLocal && request.Personalization is not null ? new {
                         detail = request.Personalization.Personality.DetailLevel switch { 0 => "concise", 2 => "detailed", _ => "balanced" },

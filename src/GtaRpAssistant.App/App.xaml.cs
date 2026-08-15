@@ -130,6 +130,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IIntentDetector>(sp => sp.GetRequiredService<RuleBasedIntentDetector>());
         services.AddSingleton<IContextSelector, ContextSelector>();
         services.AddSingleton<IAssistantContextBuilder, AssistantContextBuilder>();
+        services.AddSingleton<IAssistantSessionContextStore, InMemoryAssistantSessionContextStore>();
         services.AddSingleton<IAiRouter, AiRouter>();
         services.AddSingleton<GroundedAnswerValidator>();
         services.AddSingleton<ILocalAiCapabilityTester, LocalAiCapabilityTester>();

@@ -7,7 +7,8 @@ public sealed record AssistantContextBudget(
     int MaximumFacts = 6,
     int FactsCharacters = 1200,
     int TranscriptCharacters = 450,
-    int ConversationCharacters = 600,
+    int ConversationCharacters = 480,
+    int SummaryCharacters = 360,
     int MemoryCharacters = 240,
     int DefaultOutputTokens = 300,
     int ProblemSolvingOutputTokens = 450)
@@ -18,6 +19,7 @@ public sealed record AssistantContextBudget(
         Math.Clamp(FactsCharacters, 240, 2400),
         Math.Clamp(TranscriptCharacters, 0, 1200),
         Math.Clamp(ConversationCharacters, 0, 1800),
+        Math.Clamp(SummaryCharacters, 0, 900),
         Math.Clamp(MemoryCharacters, 0, 600),
         Math.Clamp(DefaultOutputTokens, 80, 500),
         Math.Clamp(ProblemSolvingOutputTokens, 120, 700));
@@ -30,7 +32,8 @@ public sealed record AssistantContextBuildRequest(
     TranscriptContext Transcript,
     AssistantRequestType RequestType,
     IReadOnlyList<AssistantConversationTurn> Conversation,
-    UserPersonalizationContext? Personalization);
+    UserPersonalizationContext? Personalization,
+    AssistantSessionContextSnapshot? SessionContext = null);
 
 public sealed record AssistantContextBuildResult(
     GroundedAnswerRequest Request,
@@ -53,6 +56,7 @@ public sealed class AssistantContextBuilder(AssistantContextBudget? budget = nul
         var transcript = BuildTranscript(input.Transcript, _budget.TranscriptCharacters, out var transcriptTrimmed);
         var conversation = TakeRecent(input.Conversation, _budget.ConversationCharacters, out var conversationTrimmed);
         var personalization = LimitPersonalization(input.Personalization, _budget.MemoryCharacters, out var memoryTrimmed);
+        var summary = LimitText(input.SessionContext?.RollingSummary, _budget.SummaryCharacters, out var summaryTrimmed);
         var outputTokens = input.RequestType == AssistantRequestType.ProblemSolving
             ? _budget.ProblemSolvingOutputTokens
             : _budget.DefaultOutputTokens;
@@ -65,9 +69,11 @@ public sealed class AssistantContextBuilder(AssistantContextBudget? budget = nul
             input.RequestType,
             conversation,
             personalization,
-            MaxOutputTokens: outputTokens);
+            MaxOutputTokens: outputTokens,
+            ConversationSummary: summary,
+            SessionState: input.SessionContext?.State);
         var estimated = AssistantTokenEstimator.EstimateInput(request);
-        return new(request, _budget, transcriptTrimmed || conversationTrimmed || memoryTrimmed
+        return new(request, _budget, transcriptTrimmed || conversationTrimmed || memoryTrimmed || summaryTrimmed
             || facts.Count < input.Match.Facts.Count(x => x.Verified), estimated);
     }
 
@@ -130,5 +136,14 @@ public sealed class AssistantContextBuilder(AssistantContextBudget? budget = nul
         var builder = new StringBuilder(Math.Min(maxCharacters, used));
         foreach (var line in selected) builder.AppendLine(line);
         return builder.ToString().TrimEnd();
+    }
+
+    private static string? LimitText(string? value, int maxCharacters, out bool trimmed)
+    {
+        if (string.IsNullOrWhiteSpace(value)) { trimmed = false; return null; }
+        var clean = value.ReplaceLineEndings(" ").Trim();
+        if (maxCharacters <= 0) { trimmed = true; return null; }
+        trimmed = clean.Length > maxCharacters;
+        return trimmed ? clean[^maxCharacters..].TrimStart() : clean;
     }
 }

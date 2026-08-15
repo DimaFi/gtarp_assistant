@@ -41,7 +41,9 @@ public sealed record GroundedAnswerRequest(
     UserPersonalizationContext? Personalization = null,
     bool IsRepair = false,
     string? InvalidResponse = null,
-    int? MaxOutputTokens = null);
+    int? MaxOutputTokens = null,
+    string? ConversationSummary = null,
+    AssistantSessionSituationState? SessionState = null);
 public sealed record GroundedAnswerResponse(string Json);
 public sealed record KnowledgeQuery(string Text, string Server = "all", int Limit = 5);
 public sealed record KnowledgeArticle(string Id, string Title, IReadOnlyList<KnowledgeFact> Facts, DateTimeOffset UpdatedAt, bool Verified, bool Demo);

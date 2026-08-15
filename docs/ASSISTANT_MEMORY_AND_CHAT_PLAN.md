@@ -130,11 +130,12 @@ UI и coordinator не обращаются к SQLite напрямую. Пере
 - [x] единый `AssistantContextBuilder` с Balanced input target 1600 tokens и раздельными hard budgets для facts/transcript/turns/memory;
 - [x] request-level output cap 300 tokens, для problem solving 450; профиль модели может дополнительно понизить лимит;
 - [x] текущий вопрос не дублируется внутри untrusted transcript context;
-- [ ] rolling summary старой части диалога и structured session situation state;
+- [x] bounded deterministic rolling summary старой части диалога и structured session situation state в RAM;
+- [x] session summary/state передаются только локальному provider и не считаются verified knowledge;
 
 - [x] recent turns + до 8 релевантных подтверждённых memories + verified knowledge;
 - [x] память передаётся только локальному AI provider; cloud routes её не получают;
-- [ ] summary старой части диалога и расширенное ранжирование;
+- [x] bounded deterministic summary старой части диалога; расширенное memory ranking остаётся будущим этапом;
 - FTS relevance × confidence × importance × recency;
 - provenance: память никогда не считается официальным правилом;
 - debug view выбранных memories/facts;

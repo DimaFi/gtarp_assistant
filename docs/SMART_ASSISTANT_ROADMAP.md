@@ -34,7 +34,7 @@
 
 ## Phase 2 — Bounded Context Builder & Conversation State
 
-**Прогресс.** Срез 2A завершён: `AssistantContextBuilder` централизует budgets verified facts/transcript/conversation/user memory, исключает дублирование текущего вопроса и отдаёт request-level output cap 300/450 tokens. Provider применяет минимум между этим cap и ограничением активного Local AI profile. Метрики фиксируют trimming и target input budget. Следующий срез 2B — structured session situation state и rolling summary старой части разговора.
+**Прогресс.** Срезы 2A–2B завершены: `AssistantContextBuilder` централизует budgets verified facts/transcript/conversation/user memory, исключает дублирование текущего вопроса и отдаёт request-level output cap 300/450 tokens. `InMemoryAssistantSessionContextStore` детерминированно поддерживает goal/situation/open question/recent article+fact IDs и rolling summary старых обменов. Summary ограничен отдельным бюджетом и передаётся только локальному provider; cloud route его не получает. Следующий этап — Phase 3 Resource Budget Coordinator.
 
 **Цель.** Естественные follow-up без передачи длинной истории.
 

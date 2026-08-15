@@ -86,6 +86,29 @@ public sealed class CoordinatorTests
     }
 
     [Fact]
+    public async Task LongConversation_SendsBoundedRollingSummaryAndStructuredStateToLocalProvider()
+    {
+        var overlay = new FakeOverlay();
+        var provider = new FakeProvider();
+        await using var coordinator = Create(overlay, provider, prepared: false);
+        coordinator.Start(true);
+
+        for (var i = 0; i < 5; i++)
+        {
+            var now = DateTimeOffset.UtcNow.AddSeconds(i);
+            await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now,
+                $"контракт вопрос номер {i}?", 1), AssistantActivationKind.ManualText, "all", false, false), default);
+        }
+
+        var request = provider.Requests[^1];
+        Assert.NotNull(request.ConversationSummary);
+        Assert.Contains("вопрос номер 0", request.ConversationSummary);
+        Assert.Equal("контракт вопрос номер 0?", request.SessionState!.Goal);
+        Assert.Equal("контракт вопрос номер 4?", request.SessionState.OpenQuestion);
+        Assert.True(request.ConversationSummary.Length <= 360);
+    }
+
+    [Fact]
     public async Task ScreenQuestion_UsesFreshLocalContextWithoutCallingProvider()
     {
         var now = DateTimeOffset.UtcNow;

@@ -22,6 +22,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IScreenContextStore? _screenContext;
     private readonly IAnswerCache? _answerCache;
     private readonly IAssistantContextBuilder _contextBuilder;
+    private readonly IAssistantSessionContextStore _sessionContext;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -43,7 +44,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         IUserPersonalizationContextProvider? personalization = null,
         IScreenContextStore? screenContext = null,
         IAnswerCache? answerCache = null,
-        IAssistantContextBuilder? contextBuilder = null)
+        IAssistantContextBuilder? contextBuilder = null,
+        IAssistantSessionContextStore? sessionContext = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -61,6 +63,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _screenContext = screenContext;
         _answerCache = answerCache;
         _contextBuilder = contextBuilder ?? new AssistantContextBuilder();
+        _sessionContext = sessionContext ?? new InMemoryAssistantSessionContextStore();
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -165,6 +168,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             var requestType = AssistantRequestClassifier.Classify(entry.Text, currentConversation);
             var situationId = currentConversation.SituationId ?? intent.IntentId;
             var relevantConversation = _conversation.GetRelevant(new(situationId, 6));
+            _sessionContext.ObserveUser(entry.Text, requestType, situationId, DateTimeOffset.UtcNow);
             Transition(AssistantSessionState.SearchingKnowledge);
             var searchText = requestType == AssistantRequestType.FollowUpQuestion && relevantConversation.Turns.Count > 0
                 ? $"{entry.Text} {relevantConversation.Turns.LastOrDefault(x => x.Role == ConversationRole.User)?.Text}"
@@ -260,7 +264,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                         context,
                         requestType,
                         relevantConversation.Turns,
-                        personalization));
+                        personalization,
+                        _sessionContext.Get()));
                     metrics.ContextTrimmed = builtContext.WasTrimmed;
                     metrics.ContextTargetInputTokens = builtContext.Budget.TargetInputTokens;
                     foreach (var provider in providers)
@@ -348,13 +353,14 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     public bool OpenConversation(Guid conversationId) => _conversation.TryOpenConversation(conversationId);
     public void RenameConversation(Guid conversationId, string title) => _conversation.RenameConversation(conversationId, title);
     public void DeleteConversation(Guid conversationId) => _conversation.DeleteConversation(conversationId);
-    public void ClearContext() { _transcripts.Clear(); _conversation.Clear(); _screenContext?.Clear(); }
-    public void StartNewConversation() => _conversation.StartNewConversation();
+    public void ClearContext() { _transcripts.Clear(); _conversation.Clear(); _screenContext?.Clear(); _sessionContext.Clear(); }
+    public void StartNewConversation() { _conversation.StartNewConversation(); _sessionContext.Clear(); }
 
     private async Task<AssistantAnswer> PresentAsync(AssistantAnswer answer, AssistantProcessingRequest request, string topic, CancellationToken ct)
     {
         Transition(AssistantSessionState.ShowingOverlay);
         _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.Assistant, answer.Message, answer.ProviderId, answer.ModelId, answer.UsedFactIds, topic));
+        _sessionContext.ObserveAssistant(answer, topic, DateTimeOffset.UtcNow);
         AnswerProduced?.Invoke(this, answer);
         await _overlay.ShowAsync(answer, ct);
         _events.Write(new(DateTimeOffset.UtcNow, "Overlay displayed", State, answer.Decision.ToString()));

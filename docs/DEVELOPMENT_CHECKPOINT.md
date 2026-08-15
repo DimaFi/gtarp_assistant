@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — Smart Assistant Phase 1A–1B и Phase 2A завершены
+## ACTIVE CHECKPOINT — Smart Assistant Phase 1A–1B и Phase 2A–2B завершены
 
 Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
 
@@ -12,10 +12,12 @@
 - Product benchmark теперь выводит route, cache-hit, LLM-avoidance, provider/model calls и token estimates.
 - `AssistantContextBuilder` централизует Balanced budgets: input target 1600 tokens, facts 6/1200 символов, transcript 450, conversation 600, user memory 240.
 - Обычный provider output ограничен 300 токенами, problem solving — 450; более строгий model profile сохраняет приоритет.
-- Все 369 тестов решения после Phase 2A прошли: Core 113, Providers 23, Knowledge 68, Integration 92, App 56, ModelBenchmark 13, ProductBenchmark 4.
+- Добавлен RAM-only structured session state: goal, situation, open question, recent article/fact IDs и bounded deterministic rolling summary.
+- Summary/session state передаются только локальному provider; cloud route не получает их и User Memory.
+- Все 372 теста решения после Phase 2B прошли: Core 116, Providers 23, Knowledge 68, Integration 92, App 56, ModelBenchmark 13, ProductBenchmark 4.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
-Следующая задача: Phase 2B — structured session situation state и rolling conversation summary. Отдельно требуется governance-проверка просроченных knowledge sources.
+Следующая задача: Phase 3 — Resource Budget Coordinator. Отдельно требуется governance-проверка просроченных knowledge sources.
 
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 

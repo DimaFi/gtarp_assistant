@@ -217,7 +217,7 @@ Embeddings полезны при низком FTS score или малом margin
 
 Новый `IContextBuilder` получает `ContextPlan`, а не «всё доступное». Бюджет задаётся одновременно в токенах и символах; перед отправкой используется tokenizer конкретной модели, при его отсутствии — консервативная оценка.
 
-Статус: первый production-вариант реализован как `IAssistantContextBuilder`/`AssistantContextBuilder`. Balanced target — 1600 input tokens; facts до 6/1200 символов, transcript 450, conversation 600, user memory 240; output 300 либо 450 для problem solving. Текущая оценка консервативна (три UTF-16 символа на токен плюс 700 tokens policy/schema reserve); model-specific tokenizer остаётся будущим улучшением.
+Статус: production-вариант реализован как `IAssistantContextBuilder`/`AssistantContextBuilder`. Balanced target — 1600 input tokens; facts до 6/1200 символов, transcript 450, recent conversation 480, rolling summary 360, user memory 240; output 300 либо 450 для problem solving. `InMemoryAssistantSessionContextStore` отдельно ведёт goal/situation/open question/recent IDs и детерминированный rolling summary. Summary/session state являются private untrusted context и сериализуются только для локального provider. Текущая оценка токенов консервативна; model-specific tokenizer остаётся будущим улучшением.
 
 Рекомендуемый warm profile для GPT‑5VP text:
 
