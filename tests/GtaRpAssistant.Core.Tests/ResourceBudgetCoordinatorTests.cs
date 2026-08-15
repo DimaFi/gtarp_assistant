@@ -76,6 +76,21 @@ public sealed class ResourceBudgetCoordinatorTests
         Assert.Equal("insufficient_ram_reserve", result.Reason);
     }
 
+    [Theory]
+    [InlineData(5, 3, false)]
+    [InlineData(8, 3, true)]
+    public async Task BalancedModelLoad_PreservesGamingVramHeadroom(int availableVramGb, int modelVramGb, bool expected)
+    {
+        var coordinator = new ResourceBudgetCoordinator();
+        coordinator.Update(new(32 * Gib, 12 * Gib, 12 * Gib, availableVramGb * Gib, 2, 150 * 1024 * 1024, true, DateTimeOffset.UtcNow));
+
+        var result = await coordinator.TryAcquireAsync(new(
+            AssistantWorkloadKind.Chat, LocalAiPerformanceProfile.Balanced, true, 4 * Gib, modelVramGb * Gib), default);
+
+        Assert.Equal(expected, result.Granted);
+        result.Lease?.Dispose();
+    }
+
     [Fact]
     public async Task SoftPressure_DefersEmbeddingsButAllowsLocalChat()
     {

@@ -44,6 +44,20 @@ public sealed class UserMemoryTests : IDisposable
     }
 
     [Fact]
+    public void ContextProvider_DoesNotSpendPromptBudgetOnUnrelatedMemory()
+    {
+        Directory.CreateDirectory(_directory);
+        var store = new SqliteUserMemoryStore($"Data Source={Path.Combine(_directory, "user-memory.db")};Pooling=False");
+        store.Upsert(null, UserMemoryCategory.FavoriteActivity, "Любит рыбалку");
+        store.Upsert(null, UserMemoryCategory.CommunicationPreference, "Предпочитает краткие ответы");
+
+        var context = new UserPersonalizationContextProvider(store).Build("Помоги выбрать фильм", 8);
+
+        var memory = Assert.Single(context.Memories);
+        Assert.Equal(UserMemoryCategory.CommunicationPreference, memory.Category);
+    }
+
+    [Fact]
     public void Clear_RemovesMemoriesButKeepsIndependentPersonality()
     {
         Directory.CreateDirectory(_directory);
@@ -74,6 +88,43 @@ public sealed class UserMemoryTests : IDisposable
         store.ResetPersonality();
         Assert.Equal(new PersonalityProfile(), store.GetPersonality());
         Assert.Empty(store.ListPersonalityChanges());
+    }
+
+    [Fact]
+    public void CandidateFlow_RequiresApproval_AndStoresOnlyCanonicalPreference()
+    {
+        Directory.CreateDirectory(_directory);
+        var store = new SqliteUserMemoryStore($"Data Source={Path.Combine(_directory, "user-memory.db")};Pooling=False");
+        var candidates = new UserMemoryCandidateService(store);
+        var now = DateTimeOffset.UtcNow;
+
+        var candidate = candidates.Observe("Я хочу заработать, но дальнобой мне надоел.", now);
+
+        Assert.NotNull(candidate);
+        Assert.Equal(UserMemoryCategory.PlayStyle, candidate!.Category);
+        Assert.Equal("Надоел дальнобой", candidate.Content);
+        Assert.Empty(store.List());
+        Assert.Single(candidates.List(now));
+
+        var saved = candidates.Approve(candidate.Id, now);
+        Assert.NotNull(saved);
+        Assert.Equal("Надоел дальнобой", Assert.Single(store.List()).Content);
+        Assert.Empty(candidates.List(now));
+    }
+
+    [Fact]
+    public void CandidateFlow_IgnoresSensitiveOrImplicitText_AndExpiresInRam()
+    {
+        Directory.CreateDirectory(_directory);
+        var store = new SqliteUserMemoryStore($"Data Source={Path.Combine(_directory, "user-memory.db")};Pooling=False");
+        var candidates = new UserMemoryCandidateService(store);
+        var now = DateTimeOffset.UtcNow;
+
+        Assert.Null(candidates.Observe("Наверное, рыбалка нормальная.", now));
+        Assert.Null(candidates.Observe("Запомни, что мой пароль secret123", now));
+        Assert.NotNull(candidates.Observe("Мне нравится рыбалка", now));
+        Assert.Empty(candidates.List(now.AddHours(25)));
+        Assert.Empty(store.List());
     }
 
     public void Dispose() { if (Directory.Exists(_directory)) Directory.Delete(_directory, true); }

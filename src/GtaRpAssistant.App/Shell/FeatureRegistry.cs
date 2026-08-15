@@ -11,10 +11,31 @@ public interface IShellFeature
     string Title { get; }
     string Symbol { get; }
     int Order { get; }
-    object Content { get; }
+    object GetContent();
 }
 
-public sealed record ShellFeature(string Id, string Title, string Symbol, int Order, object Content) : IShellFeature;
+public sealed class ShellFeature : IShellFeature
+{
+    private readonly Lazy<object> _content;
+
+    public ShellFeature(string id, string title, string symbol, int order, object content)
+        : this(id, title, symbol, order, () => content) { }
+
+    public ShellFeature(string id, string title, string symbol, int order, Func<object> contentFactory)
+    {
+        Id = id;
+        Title = title;
+        Symbol = symbol;
+        Order = order;
+        _content = new(contentFactory, LazyThreadSafetyMode.ExecutionAndPublication);
+    }
+
+    public string Id { get; }
+    public string Title { get; }
+    public string Symbol { get; }
+    public int Order { get; }
+    public object GetContent() => _content.Value;
+}
 
 public sealed class FeatureRegistry
 {
@@ -58,11 +79,11 @@ public static class FeatureRegistration
     {
         services.AddSingleton<TViewModel>();
         services.AddSingleton<TView>();
-        services.AddSingleton<IShellFeature>(sp =>
+        services.AddSingleton<IShellFeature>(sp => new ShellFeature(id, title, symbol, order, () =>
         {
             var view = sp.GetRequiredService<TView>();
             view.DataContext = sp.GetRequiredService<TViewModel>();
-            return new ShellFeature(id, title, symbol, order, view);
-        });
+            return view;
+        }));
     }
 }

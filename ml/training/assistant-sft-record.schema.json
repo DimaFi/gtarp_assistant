@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.gta-rp-assistant/schemas/assistant-sft-record.schema.json",
+  "title": "GTA RP Assistant reviewed SFT record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["system", "context", "user", "assistant", "metadata"],
+  "properties": {
+    "system": { "type": "string", "minLength": 1, "maxLength": 6000 },
+    "context": { "type": "string", "maxLength": 12000 },
+    "user": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "assistant": { "type": "string", "minLength": 1, "maxLength": 8000 },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "skill", "requiresRag", "quality", "reviewStatus"],
+      "properties": {
+        "category": {
+          "enum": ["conversation", "gta", "gta_rp", "game_advice", "reasoning", "intent_understanding", "memory_usage", "clarification", "tool_usage", "casual_chat", "troubleshooting"]
+        },
+        "skill": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "requiresRag": { "type": "boolean" },
+        "quality": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "reviewStatus": { "enum": ["draft", "human_reviewed", "rejected"] },
+        "source": { "type": "string", "maxLength": 300 },
+        "license": { "type": "string", "maxLength": 120 },
+        "containsChangingFacts": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

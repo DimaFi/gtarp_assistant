@@ -129,7 +129,7 @@ public static class LocalAiHardwareTierCatalog
         new(LocalAiPerformanceProfile.Compact, 16, 4, 3, false,
             "Только короткие текстовые ответы, локальная база и STT; Vision выключен."),
         new(LocalAiPerformanceProfile.Balanced, 32, 8, 6, true,
-            "Рекомендуемый игровой режим: 4B Q4, короткий контекст, Vision только по кнопке и без параллельного Chat."),
+            "Рекомендуемый режим для RTX 3060/4060-класса: 4B Q4, короткий контекст, запас игре не менее 2,5 ГБ VRAM, Vision только по кнопке и без параллельного Chat."),
         new(LocalAiPerformanceProfile.Quality, 32, 12, 10, true,
             "Более качественный on-demand Vision; запуск разрешается только при фактическом запасе RAM/VRAM."),
     ];
@@ -210,7 +210,8 @@ public static class LocalAiRecommendedModelCatalog
     public static LocalAiRecommendedModel Recommend(long availableRamBytes, bool needsVision = false)
     {
         var ramGb = availableRamBytes / 1024d / 1024d / 1024d;
-        var candidates = Models.Where(x => !needsVision || x.SupportsVision).ToArray();
+        var candidates = Models.Where(x => needsVision ? x.SupportsVision : !x.SupportsVision).ToArray();
+        if (candidates.Length == 0) candidates = Models.ToArray();
         return candidates.Where(x => x.RecommendedRamGb <= ramGb)
             .OrderByDescending(x => x.RecommendedRamGb)
             .FirstOrDefault() ?? candidates.OrderBy(x => x.MinimumRamGb).First();

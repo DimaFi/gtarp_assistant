@@ -8,6 +8,27 @@ namespace GtaRpAssistant.App.Tests;
 public sealed class ProviderSettingsMigrationTests
 {
     [Fact]
+    public void Defaults_PreferGrayThemeAndResourceSavingLocalAi()
+    {
+        var settings = new AppSettings();
+
+        Assert.Equal(1, settings.AppearanceTheme);
+        Assert.Equal((int)LocalAiPerformanceProfile.Compact, settings.LocalAiPerformanceProfile);
+        Assert.Equal(160, SettingValues.LocalAi(settings).MaxOutputTokens);
+    }
+
+    [Theory]
+    [InlineData(0, 160)]
+    [InlineData(1, 260)]
+    [InlineData(2, 420)]
+    public void AnswerLengthSlider_BoundsGeneratedTokens(int level, int expected)
+    {
+        var settings = new AppSettings(LocalAiPerformanceProfile: (int)LocalAiPerformanceProfile.Quality, LocalAiAnswerLength: level);
+
+        Assert.Equal(expected, SettingValues.LocalAi(settings).MaxOutputTokens);
+    }
+
+    [Fact]
     public void VersionTwoSettings_EnableConversationalVoiceDefaults()
     {
         var versionTwo = ProviderSettingsMigration.Migrate(new AppSettings()) with

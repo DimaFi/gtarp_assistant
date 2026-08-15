@@ -18,6 +18,7 @@ $tool = Join-Path $root 'tools\GtaRpAssistant.KnowledgePackTool\GtaRpAssistant.K
 $modelBenchmarkTool = Join-Path $root 'tools\GtaRpAssistant.ModelBenchmark\GtaRpAssistant.ModelBenchmark.csproj'
 $modelCandidates = Join-Path $root 'ml\configs\micro-model-candidates.json'
 $modelEvaluation = Join-Path $root 'ml\evaluation\micro-model-eval.json'
+$conversationModelEvaluation = Join-Path $root 'ml\evaluation\conversation-model-eval.json'
 $productBenchmarkTool = Join-Path $root 'tools\GtaRpAssistant.ProductBenchmark\GtaRpAssistant.ProductBenchmark.csproj'
 $productEvaluation = Join-Path $root 'ml\evaluation\product-pipeline-eval.json'
 $productBenchmarkOutput = Join-Path $root 'artifacts\product-benchmark'
@@ -35,6 +36,7 @@ try {
     Invoke-DotNet @('test', $solution, '-c', $Configuration, '--no-build', '--no-restore')
     Invoke-DotNet @('run', '--project', $tool, '-c', $Configuration, '--no-build', '--', 'validate', $pack, '--strict')
     Invoke-DotNet @('run', '--project', $modelBenchmarkTool, '-c', $Configuration, '--no-build', '--', 'validate', $modelCandidates, $modelEvaluation)
+    Invoke-DotNet @('run', '--project', $modelBenchmarkTool, '-c', $Configuration, '--no-build', '--', 'validate', $modelCandidates, $conversationModelEvaluation)
     Invoke-DotNet @('run', '--project', $productBenchmarkTool, '-c', $Configuration, '--no-build', '--', 'evaluate', $productEvaluation, $pack, $community, $productBenchmarkOutput)
     if (-not $SkipPackage) {
         & (Join-Path $PSScriptRoot 'package.ps1') -Configuration $Configuration -Runtime $Runtime -SelfContained:$SelfContained -FrameworkDependent:$FrameworkDependent -SkipSmoke:$SkipSmoke

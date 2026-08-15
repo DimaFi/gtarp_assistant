@@ -17,6 +17,15 @@ public sealed class KnowledgeTests : IAsyncLifetime
     [Fact] public async Task PreparedAnswer_IsFound() { var m = (await Repository.SearchAsync(new("почему не запускается контракт"), default)).Single(); Assert.Equal("Проверьте требования", m.PreparedAnswer); Assert.True(m.HasVerifiedPreparedAnswer); }
     [Fact] public async Task Fts_FindsArticle() => Assert.NotEmpty(await Repository.SearchAsync(new("Контракты"), default));
     [Fact] public async Task FactFts_FindsArticleByFactText() => Assert.Equal("a1", (await Repository.SearchAsync(new("проверить требования"), default)).Single().ArticleId);
+    [Fact]
+    public async Task FingerprintedRebuild_SkipsUnchangedCatalog_AndRebuildsChangedCatalog()
+    {
+        var article = Article();
+
+        Assert.True(await Repository.RebuildIfChangedAsync([article], "catalog-v1", default));
+        Assert.False(await Repository.RebuildIfChangedAsync([article], "catalog-v1", default));
+        Assert.True(await Repository.RebuildIfChangedAsync([article with { Version = 2 }], "catalog-v2", default));
+    }
     [Fact] public async Task Fts_IgnoresQuestionStopWordsInsteadOfReturningUnrelatedArticle() => Assert.Empty(await Repository.SearchAsync(new("какая погода завтра в Саратове"), default));
     [Fact]
     public async Task Fts_UsesLightRussianStemmingForInflectedQuestion()

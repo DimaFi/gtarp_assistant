@@ -10,26 +10,33 @@ public sealed record MemoryCategoryOption(UserMemoryCategory Value, string Label
 
 public sealed class MemoryFeatureViewModel : FeatureViewModel
 {
-    private readonly IUserMemoryStore _store; private readonly IAppDialogService _dialogs;
+    private readonly IUserMemoryStore _store; private readonly IUserMemoryCandidateService _candidates; private readonly IAppDialogService _dialogs;
     private UserMemoryItem? _selected; private string _draft = ""; private MemoryCategoryOption _category;
+    private UserMemoryCandidate? _selectedCandidate;
     private int _detailLevel; private int _humorLevel; private int _initiativeLevel; private int _tone;
     private bool _adaptiveEnabled;
 
-    public MemoryFeatureViewModel(ApplicationUiState ui, SettingsWorkspace workspace, IUserMemoryStore store, IAppDialogService dialogs) : base(ui, workspace)
+    public MemoryFeatureViewModel(ApplicationUiState ui, SettingsWorkspace workspace, IUserMemoryStore store, IUserMemoryCandidateService candidates, IAppDialogService dialogs) : base(ui, workspace)
     {
-        _store = store; _dialogs = dialogs;
+        _store = store; _candidates = candidates; _dialogs = dialogs;
         Categories = [new(UserMemoryCategory.PlayStyle, "Стиль игры"), new(UserMemoryCategory.ExplainedTopic, "Уже объяснено"), new(UserMemoryCategory.FavoriteActivity, "Любимое занятие"), new(UserMemoryCategory.CommunicationPreference, "Общение"), new(UserMemoryCategory.ConfirmedFact, "Подтверждённый факт")];
         _category = Categories[0];
         SaveMemoryCommand = new RelayCommand(SaveMemory, () => Draft.Trim().Length >= 2); NewMemoryCommand = new RelayCommand(NewMemory);
         DeleteMemoryCommand = new RelayCommand(DeleteMemory, () => Selected is not null); ClearAllCommand = new RelayCommand(ClearAll, () => Memories.Count > 0);
         SavePersonalityCommand = new RelayCommand(SavePersonality); ResetPersonalityCommand = new RelayCommand(ResetPersonality);
-        ClearChangesCommand = new RelayCommand(ClearChanges, () => PersonalityChanges.Count > 0); RefreshCommand = new RelayCommand(Reload); Reload();
+        ClearChangesCommand = new RelayCommand(ClearChanges, () => PersonalityChanges.Count > 0); RefreshCommand = new RelayCommand(Reload);
+        ApproveCandidateCommand = new RelayCommand(ApproveCandidate, () => SelectedCandidate is not null);
+        RejectCandidateCommand = new RelayCommand(RejectCandidate, () => SelectedCandidate is not null);
+        ClearCandidatesCommand = new RelayCommand(ClearCandidates, () => Candidates.Count > 0);
+        Reload();
     }
 
     public ObservableCollection<UserMemoryItem> Memories { get; } = [];
     public ObservableCollection<PersonalityChange> PersonalityChanges { get; } = [];
+    public ObservableCollection<UserMemoryCandidate> Candidates { get; } = [];
     public IReadOnlyList<MemoryCategoryOption> Categories { get; }
     public UserMemoryItem? Selected { get => _selected; set { if (!Set(ref _selected, value)) return; if (value is not null) { Draft = value.Content; Category = Categories.First(x => x.Value == value.Category); } RaiseCommands(); } }
+    public UserMemoryCandidate? SelectedCandidate { get => _selectedCandidate; set { if (Set(ref _selectedCandidate, value)) RaiseCommands(); } }
     public string Draft { get => _draft; set { if (Set(ref _draft, value)) RaiseCommands(); } }
     public MemoryCategoryOption Category { get => _category; set => Set(ref _category, value); }
     public int DetailLevel { get => _detailLevel; set { if (Set(ref _detailLevel, Math.Clamp(value, 0, 2))) Raise(nameof(DetailLabel)); } }
@@ -42,8 +49,9 @@ public sealed class MemoryFeatureViewModel : FeatureViewModel
     public string ToneLabel => new[] { "Нейтральный", "Мягкий", "Деловой" }[Tone];
     public bool AdaptiveEnabled { get => _adaptiveEnabled; set => Set(ref _adaptiveEnabled, value); }
     public ICommand SaveMemoryCommand { get; } public ICommand NewMemoryCommand { get; } public ICommand DeleteMemoryCommand { get; } public ICommand ClearAllCommand { get; } public ICommand SavePersonalityCommand { get; } public ICommand ResetPersonalityCommand { get; } public ICommand ClearChangesCommand { get; } public ICommand RefreshCommand { get; }
+    public ICommand ApproveCandidateCommand { get; } public ICommand RejectCandidateCommand { get; } public ICommand ClearCandidatesCommand { get; }
 
-    private void Reload() { Memories.Clear(); foreach (var item in _store.List()) Memories.Add(item); PersonalityChanges.Clear(); foreach (var item in _store.ListPersonalityChanges()) PersonalityChanges.Add(item); var p = _store.GetPersonality(); DetailLevel = p.DetailLevel; HumorLevel = p.HumorLevel; InitiativeLevel = p.InitiativeLevel; Tone = p.Tone; AdaptiveEnabled = p.AdaptiveEnabled; RaiseCommands(); }
+    private void Reload() { Memories.Clear(); foreach (var item in _store.List()) Memories.Add(item); Candidates.Clear(); foreach (var item in _candidates.List(DateTimeOffset.UtcNow)) Candidates.Add(item); PersonalityChanges.Clear(); foreach (var item in _store.ListPersonalityChanges()) PersonalityChanges.Add(item); var p = _store.GetPersonality(); DetailLevel = p.DetailLevel; HumorLevel = p.HumorLevel; InitiativeLevel = p.InitiativeLevel; Tone = p.Tone; AdaptiveEnabled = p.AdaptiveEnabled; RaiseCommands(); }
     private void SaveMemory() { Selected = _store.Upsert(Selected?.Id, Category.Value, Draft); Reload(); Ui.PipelineStatus = "User Memory сохранена локально."; }
     private void NewMemory() { Selected = null; Draft = ""; Category = Categories[0]; }
     private void DeleteMemory() { if (Selected is null || !_dialogs.Confirm("Удалить воспоминание", "Удалить выбранное воспоминание?", true)) return; _store.Delete(Selected.Id); NewMemory(); Reload(); }
@@ -51,5 +59,8 @@ public sealed class MemoryFeatureViewModel : FeatureViewModel
     private void SavePersonality() { _store.SavePersonality(new(DetailLevel, HumorLevel, InitiativeLevel, Tone, AdaptiveEnabled)); Ui.PipelineStatus = "Стиль сохранён. Игровые факты и grounding не изменены."; }
     private void ResetPersonality() { if (!_dialogs.Confirm("Сбросить персонализацию", "Вернуть нейтральный стиль и удалить журнал адаптации?", true)) return; _store.ResetPersonality(); Reload(); Ui.PipelineStatus = "Персонализация сброшена."; }
     private void ClearChanges() { if (!_dialogs.Confirm("Очистить журнал", "Удалить объяснения изменений стиля?")) return; _store.ClearPersonalityChanges(); Reload(); }
-    private void RaiseCommands() { ((RelayCommand)SaveMemoryCommand).RaiseCanExecuteChanged(); ((RelayCommand)DeleteMemoryCommand).RaiseCanExecuteChanged(); ((RelayCommand)ClearAllCommand).RaiseCanExecuteChanged(); ((RelayCommand)ClearChangesCommand).RaiseCanExecuteChanged(); }
+    private void ApproveCandidate() { if (SelectedCandidate is null) return; var saved = _candidates.Approve(SelectedCandidate.Id, DateTimeOffset.UtcNow); SelectedCandidate = null; Reload(); Ui.PipelineStatus = saved is null ? "Кандидат памяти уже истёк." : "Воспоминание подтверждено и сохранено локально."; }
+    private void RejectCandidate() { if (SelectedCandidate is null) return; _candidates.Reject(SelectedCandidate.Id); SelectedCandidate = null; Reload(); Ui.PipelineStatus = "Кандидат памяти отклонён и не сохранён."; }
+    private void ClearCandidates() { _candidates.Clear(); SelectedCandidate = null; Reload(); Ui.PipelineStatus = "Неподтверждённые кандидаты памяти удалены."; }
+    private void RaiseCommands() { ((RelayCommand)SaveMemoryCommand).RaiseCanExecuteChanged(); ((RelayCommand)DeleteMemoryCommand).RaiseCanExecuteChanged(); ((RelayCommand)ClearAllCommand).RaiseCanExecuteChanged(); ((RelayCommand)ClearChangesCommand).RaiseCanExecuteChanged(); (ApproveCandidateCommand as RelayCommand)?.RaiseCanExecuteChanged(); (RejectCandidateCommand as RelayCommand)?.RaiseCanExecuteChanged(); (ClearCandidatesCommand as RelayCommand)?.RaiseCanExecuteChanged(); }
 }

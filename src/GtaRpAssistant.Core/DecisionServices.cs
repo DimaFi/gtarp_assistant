@@ -274,7 +274,7 @@ public sealed partial class GroundedAnswerValidator
     public const string SafeAbstainMessage = "Недостаточно данных для точной подсказки.";
     private const string CommunityPrefix = "По данным игроков:";
 
-    public AssistantAnswer Validate(string json, KnowledgeMatch knowledge, string server, bool voiceEnabled)
+    public AssistantAnswer Validate(string json, KnowledgeMatch knowledge, string server, bool voiceEnabled, AssistantResponseMode responseMode = AssistantResponseMode.GroundedKnowledge)
     {
         try
         {
@@ -294,6 +294,8 @@ public sealed partial class GroundedAnswerValidator
                 if (!IsCanonicalAbstain(payload)) return Abstain("Воздержание должно использовать безопасный локальный текст");
                 return new(AnswerDecision.Abstain, SafeAbstainTitle, SafeAbstainMessage, [], null, null, false, PassedReason);
             }
+            if (responseMode == AssistantResponseMode.OpenConversation)
+                return ValidateOpenConversation(payload, decision.Value, voiceEnabled);
             if (!knowledge.Facts.Any(x => x.Verified))
             {
                 return Abstain("Без проверенных фактов разрешено только безопасное воздержание");
@@ -332,6 +334,32 @@ public sealed partial class GroundedAnswerValidator
         }
         catch (JsonException) { return Abstain("Невалидный JSON"); }
         catch (Exception ex) when (ex is not OperationCanceledException) { return Abstain("Ошибка валидации"); }
+    }
+
+    private static AssistantAnswer ValidateOpenConversation(GroundedAnswerPayload payload, AnswerDecision decision, bool voiceEnabled)
+    {
+        if (decision == AnswerDecision.Abstain)
+            return IsCanonicalAbstain(payload)
+                ? new(AnswerDecision.Abstain, SafeAbstainTitle, SafeAbstainMessage, [], null, null, false, PassedReason)
+                : Abstain("Воздержание должно использовать безопасный локальный текст");
+        if (payload.UsedFactIds is { Count: > 0 }) return Abstain("Обычный разговор не может ссылаться на игровые fact ID");
+        if (string.IsNullOrWhiteSpace(payload.Title) || string.IsNullOrWhiteSpace(payload.Message)) return Abstain("Обязательные поля ответа не заполнены");
+        var message = payload.Message.Trim();
+        if (message.Length > 600 || payload.Title.Trim().Length > 120) return Abstain("Некорректная длина ответа");
+        var steps = NormalizeList(payload.Steps, 5, 240);
+        var causes = NormalizeList(payload.PossibleCauses, 4, 240);
+        var followUps = NormalizeList(payload.FollowUpSuggestions, 4, 180);
+        if (steps is null || causes is null || followUps is null) return Abstain("Некорректная структура ответа");
+        var summary = payload.Summary?.Trim() ?? "";
+        if (summary.Length > 300) return Abstain("Некорректная длина summary");
+        var userStrings = new[] { payload.Title, message, summary }.Concat(steps).Concat(causes).Concat(followUps).Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+        if (userStrings.SelectMany(x => UrlRegex().Matches(x)).Any()) return Abstain("Неподтверждённый URL");
+        if (userStrings.Any(x => ForbiddenAutomationRegex().IsMatch(x))) return Abstain("Ответ предлагает запрещённую автоматизацию");
+        if (causes.Any(x => CategoricalBlameRegex().IsMatch(x))) return Abstain("Неподтверждённое категоричное обвинение");
+        var problem = steps.Count > 0 || causes.Count > 0 || !string.IsNullOrWhiteSpace(summary)
+            ? new ProblemSolutionDetails(summary, steps, causes, payload.NeedsMoreInformation || decision == AnswerDecision.AskForMoreInformation, payload.NeedsVisualContext || payload.NeedsScreen, followUps)
+            : null;
+        return new(decision, payload.Title.Trim(), message, [], null, null, voiceEnabled && payload.CanSpeak, PassedReason, problem);
     }
 
     private static IReadOnlyList<string>? NormalizeList(IReadOnlyList<string>? source, int maxCount, int maxLength)

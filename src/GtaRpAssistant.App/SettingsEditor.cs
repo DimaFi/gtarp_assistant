@@ -32,7 +32,8 @@ public sealed class SettingsEditor : ObservableObject
     private int _visionProviderMode;
     private int _ttsProviderMode;
     private int _embeddingsProviderMode;
-    private int _localAiPerformanceProfile = 1;
+    private int _localAiPerformanceProfile;
+    private int _localAiAnswerLength;
     private int _localAiEngine;
     private bool _localAiAdvancedMode;
     private bool _autoManageLocalAi = true;
@@ -43,7 +44,7 @@ public sealed class SettingsEditor : ObservableObject
     private int _voiceHotkeyMode;
     private bool _embeddedSttEnabled = true;
     private bool _startMicrophoneOnLaunch;
-    private int _appearanceTheme;
+    private int _appearanceTheme = 1;
     private string _embeddedSttPackPath = "";
     private bool _overlayEnabled = true;
     private bool _overlayPinned;
@@ -80,6 +81,7 @@ public sealed class SettingsEditor : ObservableObject
     public int TtsProviderMode { get => _ttsProviderMode; set => Set(ref _ttsProviderMode, value); }
     public int EmbeddingsProviderMode { get => _embeddingsProviderMode; set => Set(ref _embeddingsProviderMode, value); }
     public int LocalAiPerformanceProfile { get => _localAiPerformanceProfile; set => Set(ref _localAiPerformanceProfile, value); }
+    public int LocalAiAnswerLength { get => _localAiAnswerLength; set => Set(ref _localAiAnswerLength, value); }
     public int LocalAiEngine { get => _localAiEngine; set => Set(ref _localAiEngine, value); }
     public bool LocalAiAdvancedMode { get => _localAiAdvancedMode; set => Set(ref _localAiAdvancedMode, value); }
     public bool AutoManageLocalAi { get => _autoManageLocalAi; set => Set(ref _autoManageLocalAi, value); }
@@ -111,6 +113,7 @@ public sealed class SettingsEditor : ObservableObject
         SttProviderMode = (int)routes.SpeechToText.Mode, ChatProviderMode = (int)routes.Chat.Mode, VisionProviderMode = (int)routes.Vision.Mode,
         TtsProviderMode = (int)routes.TextToSpeech.Mode, EmbeddingsProviderMode = (int)routes.Embeddings.Mode,
         LocalAiPerformanceProfile = value.LocalAiPerformanceProfile,
+        LocalAiAnswerLength = value.LocalAiAnswerLength,
         LocalAiEngine = value.LocalAiEngine, LocalAiAdvancedMode = value.LocalAiAdvancedMode, AutoManageLocalAi = value.AutoManageLocalAi,
         LmStudioCliPath = value.LmStudioCliPath, LmStudioApplicationPath = value.LmStudioApplicationPath,
         EnableLongTermConversation = value.EnableLongTermConversation,
@@ -140,6 +143,7 @@ public sealed class SettingsEditor : ObservableObject
         AllowGameAudioCloud = AllowGameAudioCloud, VoiceMode = VoiceMode, VoiceName = VoiceName, VoiceOutputDevice = VoiceOutputDevice, VisionEnabled = VisionEnabled, VisionModel = VisionModel.Trim(),
         MicrophoneDeviceId = microphoneId, RenderDeviceId = renderDeviceId,
         LocalAiPerformanceProfile = LocalAiPerformanceProfile,
+        LocalAiAnswerLength = Math.Clamp(LocalAiAnswerLength, 0, 2),
         LocalAiEngine = LocalAiEngine, LocalAiAdvancedMode = LocalAiAdvancedMode, AutoManageLocalAi = AutoManageLocalAi,
         LmStudioCliPath = LmStudioCliPath.Trim(), LmStudioApplicationPath = LmStudioApplicationPath.Trim(),
         EnableLongTermConversation = EnableLongTermConversation,
@@ -147,7 +151,7 @@ public sealed class SettingsEditor : ObservableObject
         VoiceHotkeyMode = Enum.IsDefined(typeof(GtaRpAssistant.Core.VoiceInteractionMode), VoiceHotkeyMode) ? VoiceHotkeyMode : 0,
         EmbeddedSttEnabled = EmbeddedSttEnabled,
         StartMicrophoneOnLaunch = StartMicrophoneOnLaunch,
-        AppearanceTheme = Enum.IsDefined(typeof(GtaRpAssistant.App.DesignSystem.ApplicationTheme), AppearanceTheme) ? AppearanceTheme : 0,
+        AppearanceTheme = Enum.IsDefined(typeof(GtaRpAssistant.App.DesignSystem.ApplicationTheme), AppearanceTheme) ? AppearanceTheme : 1,
         EmbeddedSttPackPath = EmbeddedSttPackPath.Trim(),
         OverlayEnabled = OverlayEnabled,
         OverlayPinned = OverlayPinned,

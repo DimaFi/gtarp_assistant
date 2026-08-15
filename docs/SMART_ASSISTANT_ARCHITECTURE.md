@@ -45,7 +45,7 @@ GPT‑5VP считается изначально выбранной тяжёл�
 | Providers | OpenAI-compatible Chat/Vision/STT, LM Studio, `/v1/models`, capability test | Сохранить через adapters/providers |
 | Local AI lifecycle | `LocalAiEngineManager`, LM Studio discovery/load/unload/estimate | Расширить resource leases и telemetry |
 | История | in-memory или opt-in `SqliteAssistantConversationStore` | Разделить журнал UI и model-context projection |
-| User memory | отдельный `SqliteUserMemoryStore`, ручное управление, local-only injection | Добавить candidates, provenance и retrieval |
+| User memory | `SqliteUserMemoryStore`, RAM-candidates с подтверждением, relevance-first local-only injection | Добавить persistent provenance/revisions |
 | Screen | capture, grid diff, Tesseract OCR, TTL store, explicit screen answers | Использовать как дешёвый event/OCR слой |
 | Vision | ручной preview/consent, отдельный provider route | Оставить on-demand; не делать постоянным |
 | Voice | WASAPI, bounded buffers, STT routes, hotkeys, preview/cancel | Переиспользовать |
@@ -84,7 +84,7 @@ GPT‑5VP считается изначально выбранной тяжёл�
 
 6. UI history и model context концептуально близки; нет summary старой части разговора.
 7. Follow-up опирается на последние turns и `SituationId`, но не на компактное состояние задачи: цель, ограничения, уже выполненные шаги, открытый вопрос.
-8. User memory в основном ручная; нет безопасного candidate workflow, deduplication и relevance scoring.
+8. User memory имеет безопасный explicit candidate workflow и lexical/category relevance; persistent provenance и более широкий reviewed extraction ещё отсутствуют.
 9. Lexical RAG силён на известных формулировках, но не имеет опционального semantic fallback/reranker.
 10. Общий coordinator становится местом всех решений и будет труден для тестирования при добавлении tools/web/vision.
 

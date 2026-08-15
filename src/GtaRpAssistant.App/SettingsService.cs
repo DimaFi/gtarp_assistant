@@ -35,7 +35,8 @@ public sealed record AppSettings(
     int ProviderSettingsVersion = 0,
     IReadOnlyList<ProviderConnectionSettings>? ProviderConnections = null,
     ProviderRoutingSettings? ProviderRouting = null,
-    int LocalAiPerformanceProfile = 1,
+    int LocalAiPerformanceProfile = 0,
+    int LocalAiAnswerLength = 0,
     LocalAiGenerationSettings? LocalAiCustomSettings = null,
     int LocalAiEngine = 0,
     bool LocalAiAdvancedMode = false,
@@ -47,7 +48,7 @@ public sealed record AppSettings(
     int VoiceHotkeyMode = 0,
     bool EmbeddedSttEnabled = true,
     bool StartMicrophoneOnLaunch = false,
-    int AppearanceTheme = 0,
+    int AppearanceTheme = 1,
     string EmbeddedSttPackPath = "",
     bool OverlayEnabled = true,
     bool OverlayPinned = false,
@@ -137,8 +138,15 @@ public static class SettingValues
         var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), settings.LocalAiPerformanceProfile)
             ? (LocalAiPerformanceProfile)settings.LocalAiPerformanceProfile
             : LocalAiPerformanceProfile.Balanced;
-        return profile == LocalAiPerformanceProfile.Custom && settings.LocalAiCustomSettings is not null
+        var generation = profile == LocalAiPerformanceProfile.Custom && settings.LocalAiCustomSettings is not null
             ? settings.LocalAiCustomSettings
             : LocalAiGenerationSettings.For(profile);
+        var maxOutputTokens = settings.LocalAiAnswerLength switch
+        {
+            >= 2 => Math.Min(generation.MaxOutputTokens, 420),
+            1 => Math.Min(generation.MaxOutputTokens, 260),
+            _ => Math.Min(generation.MaxOutputTokens, 160),
+        };
+        return generation with { MaxOutputTokens = maxOutputTokens };
     }
 }

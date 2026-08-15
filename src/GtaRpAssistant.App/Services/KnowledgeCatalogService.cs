@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using GtaRpAssistant.Knowledge;
 using Microsoft.Extensions.Logging;
@@ -65,8 +67,29 @@ public sealed class KnowledgeCatalogService
 
     public async Task ReindexAsync(CancellationToken cancellationToken)
     {
-        await _repository.RebuildAsync(AllArticles.Where(x => !_disabled.Contains(x.Id)), cancellationToken);
+        var enabled = AllArticles.Where(x => !_disabled.Contains(x.Id)).ToArray();
+        await _repository.RebuildIfChangedAsync(enabled, Fingerprint(enabled), cancellationToken);
         CatalogChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static string Fingerprint(IEnumerable<KnowledgePackArticle> articles)
+    {
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        foreach (var article in articles.OrderBy(x => x.Id, StringComparer.Ordinal))
+        {
+            Append(article.Id);
+            Append(article.Version.ToString(CultureInfo.InvariantCulture));
+            Append(article.UpdatedAt.UtcTicks.ToString(CultureInfo.InvariantCulture));
+            Append(article.Facts.Count.ToString(CultureInfo.InvariantCulture));
+            Append(article.PreparedAnswers.Count.ToString(CultureInfo.InvariantCulture));
+        }
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
+
+        void Append(string value)
+        {
+            hash.AppendData(Encoding.UTF8.GetBytes(value));
+            hash.AppendData([0]);
+        }
     }
 
     public async Task ToggleAsync(string articleId, CancellationToken cancellationToken)

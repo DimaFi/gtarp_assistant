@@ -6,7 +6,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="DesignSystem/Tokens/Colors.xaml" />
+                <ResourceDictionary Source="DesignSystem/Tokens/GrayColors.xaml" />
                 <ResourceDictionary Source="DesignSystem/Tokens/Metrics.xaml" />
                 <ResourceDictionary Source="DesignSystem/Styles/Typography.xaml" />
                 <ResourceDictionary Source="DesignSystem/Styles/Buttons.xaml" />

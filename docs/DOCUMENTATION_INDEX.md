@@ -46,6 +46,7 @@
 ## AI и локальные модели
 
 - [LOCAL_AI_QUALITY_AND_CONVERSATION_PLAN](LOCAL_AI_QUALITY_AND_CONVERSATION_PLAN.md) — качество и подключение внешних моделей.
+- [LOCAL_AI_INTELLIGENCE_STAGE1](LOCAL_AI_INTELLIGENCE_STAGE1.md) — фактический аудит модели/pipeline, первый open-conversation срез и новый benchmark.
 - [PRODUCT_QUALITY_BENCHMARK](PRODUCT_QUALITY_BENCHMARK.md) — gold-набор, метрики и блокирующий benchmark полного production pipeline.
 - [MICRO_MODEL_BENCHMARK](MICRO_MODEL_BENCHMARK.md) — воспроизводимый benchmark.
 - [ADR-0001](adr/ADR-0001-micro-model-candidate-benchmark.md) — почему встроенные Qwen/SmolLM2 не включены в продукт.

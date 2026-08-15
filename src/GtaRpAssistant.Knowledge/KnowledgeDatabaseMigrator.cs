@@ -4,7 +4,7 @@ namespace GtaRpAssistant.Knowledge;
 
 public static class KnowledgeDatabaseMigrator
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public static async Task MigrateAsync(SqliteConnection connection, CancellationToken cancellationToken)
     {
@@ -32,6 +32,7 @@ public static class KnowledgeDatabaseMigrator
             CREATE TABLE IF NOT EXISTS aliases(article_id TEXT NOT NULL, alias TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS article_scopes(article_id TEXT NOT NULL, server TEXT NOT NULL, PRIMARY KEY(article_id, server));
             CREATE TABLE IF NOT EXISTS prepared_answers(article_id TEXT NOT NULL, pattern TEXT NOT NULL, answer TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS catalog_metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL);
             CREATE VIRTUAL TABLE IF NOT EXISTS article_fts USING fts5(article_id UNINDEXED, title, aliases, summary, tokenize='unicode61');
             CREATE VIRTUAL TABLE IF NOT EXISTS fact_fts USING fts5(article_id UNINDEXED, fact_id UNINDEXED, text, tokenize='unicode61');
             """, cancellationToken);

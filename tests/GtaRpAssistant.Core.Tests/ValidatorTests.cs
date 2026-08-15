@@ -20,6 +20,29 @@ public sealed class ValidatorTests
     [Fact] public void ForbiddenAutomation_Abstains() => Assert.Equal(AnswerDecision.Abstain, new GroundedAnswerValidator().Validate(Json("Используйте автокликер"), Match(), "all", false).Decision);
 
     [Fact]
+    public void OpenConversation_AllowsNaturalAnswerWithoutFacts()
+    {
+        var answer = new GroundedAnswerValidator().Validate(
+            Json("Если вы устали, фильм потребует меньше вовлечения.", []),
+            AssistantOpenConversationPolicy.EmptyMatch(), "all", false, AssistantResponseMode.OpenConversation);
+
+        Assert.Equal(AnswerDecision.Show, answer.Decision);
+        Assert.Equal(GroundedAnswerValidator.PassedReason, answer.DiagnosticReason);
+        Assert.Empty(answer.UsedFactIds);
+    }
+
+    [Fact]
+    public void OpenConversation_RejectsInventedFactId()
+    {
+        var answer = new GroundedAnswerValidator().Validate(
+            Json("Попробуйте другой вариант.", ["invented.fact"]),
+            AssistantOpenConversationPolicy.EmptyMatch(), "all", false, AssistantResponseMode.OpenConversation);
+
+        Assert.Equal(AnswerDecision.Abstain, answer.Decision);
+        Assert.NotEqual(GroundedAnswerValidator.PassedReason, answer.DiagnosticReason);
+    }
+
+    [Fact]
     public void NoVerifiedFacts_ReplacesGameRumorWithSafeLocalAbstain()
     {
         var json = JsonSerializer.Serialize(new

@@ -29,7 +29,7 @@
             <Border Style="{StaticResource Surface.Card}" Margin="0,0,0,14">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Text.Heading}" Text="Оверлей" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Небольшая светлая карточка с ответом поверх игры. Нажмите «Подробнее», чтобы развернуть её." />
+                    <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Компактная карточка в выбранной теме поверх игры. Нажмите «Подробнее», чтобы развернуть её." />
                     <CheckBox Content="Показывать ответы поверх игры" IsChecked="{Binding Settings.OverlayEnabled}"
                               AutomationProperties.AutomationId="Behavior.OverlayEnabled" />
                     <CheckBox Content="Оставлять последний ответ на экране" IsChecked="{Binding Settings.OverlayPinned}"

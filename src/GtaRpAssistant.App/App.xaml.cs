@@ -153,6 +153,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<InMemoryAssistantConversationStore>();
         services.AddSingleton<IUserMemoryStore>(_ => new SqliteUserMemoryStore(
             $"Data Source={Path.Combine(AppPaths.DataDirectory, "user-memory.db")}"));
+        services.AddSingleton<IUserMemoryCandidateService, UserMemoryCandidateService>();
         services.AddSingleton<IUserPersonalizationContextProvider, UserPersonalizationContextProvider>();
         services.AddSingleton<InMemoryAnswerCache>();
         services.AddSingleton<IAnswerCache>(sp => new ConfigurableAnswerCache(

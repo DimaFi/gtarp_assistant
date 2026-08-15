@@ -6,17 +6,38 @@ namespace GtaRpAssistant.Knowledge;
 public sealed class SqliteKnowledgeRepository(string connectionString) : IKnowledgeRepository
 {
     public async Task RebuildAsync(IEnumerable<KnowledgePackArticle> articles, CancellationToken cancellationToken)
+        => _ = await RebuildIfChangedAsync(articles, null, cancellationToken);
+
+    public async Task<bool> RebuildIfChangedAsync(IEnumerable<KnowledgePackArticle> articles, string? fingerprint, CancellationToken cancellationToken)
     {
         await using var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
         await KnowledgeDatabaseMigrator.MigrateAsync(connection, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(fingerprint))
+        {
+            await using var current = connection.CreateCommand();
+            current.CommandText = "SELECT value FROM catalog_metadata WHERE key='fingerprint' AND EXISTS(SELECT 1 FROM articles LIMIT 1)";
+            if (string.Equals(await current.ExecuteScalarAsync(cancellationToken) as string, fingerprint, StringComparison.Ordinal)) return false;
+        }
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
         foreach (var table in new[] { "facts", "aliases", "article_scopes", "prepared_answers", "article_fts", "fact_fts", "articles" })
         {
             await using var clear = connection.CreateCommand();
+            clear.Transaction = transaction;
             clear.CommandText = $"DELETE FROM {table}";
             await clear.ExecuteNonQueryAsync(cancellationToken);
         }
-        foreach (var article in articles) await UpsertAsync(connection, article, cancellationToken);
+        foreach (var article in articles) await UpsertAsync(connection, transaction, article, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(fingerprint))
+        {
+            await using var metadata = connection.CreateCommand();
+            metadata.Transaction = transaction;
+            metadata.CommandText = "INSERT INTO catalog_metadata(key,value) VALUES('fingerprint',$value) ON CONFLICT(key) DO UPDATE SET value=excluded.value";
+            metadata.Parameters.AddWithValue("$value", fingerprint);
+            await metadata.ExecuteNonQueryAsync(cancellationToken);
+        }
+        await transaction.CommitAsync(cancellationToken);
+        return true;
     }
 
     public async Task InitializeAsync(IEnumerable<KnowledgePackArticle> articles, CancellationToken cancellationToken)
@@ -24,29 +45,30 @@ public sealed class SqliteKnowledgeRepository(string connectionString) : IKnowle
         await using var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
         await KnowledgeDatabaseMigrator.MigrateAsync(connection, cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-        foreach (var article in articles) await UpsertAsync(connection, article, cancellationToken);
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
+        foreach (var article in articles) await UpsertAsync(connection, transaction, article, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
     }
 
-    private static async Task UpsertAsync(SqliteConnection connection, KnowledgePackArticle a, CancellationToken ct)
+    private static async Task UpsertAsync(SqliteConnection connection, SqliteTransaction transaction, KnowledgePackArticle a, CancellationToken ct)
     {
         foreach (var sql in new[] { "DELETE FROM facts WHERE article_id=$id", "DELETE FROM aliases WHERE article_id=$id", "DELETE FROM article_scopes WHERE article_id=$id", "DELETE FROM prepared_answers WHERE article_id=$id", "DELETE FROM article_fts WHERE article_id=$id", "DELETE FROM fact_fts WHERE article_id=$id", "DELETE FROM articles WHERE id=$id" })
-        { await using var delete = connection.CreateCommand(); delete.CommandText = sql; delete.Parameters.AddWithValue("$id", a.Id); await delete.ExecuteNonQueryAsync(ct); }
+        { await using var delete = connection.CreateCommand(); delete.Transaction = (SqliteTransaction)transaction; delete.CommandText = sql; delete.Parameters.AddWithValue("$id", a.Id); await delete.ExecuteNonQueryAsync(ct); }
         await using (var cmd = connection.CreateCommand())
         {
+            cmd.Transaction = (SqliteTransaction)transaction;
             cmd.CommandText = "INSERT INTO articles(id,title,project,server_scope,summary,updated_at,verified,demo,valid_until,source_title,source_url,article_version,verified_by) VALUES($id,$title,$project,$scope,$summary,$updated,$verified,$demo,$valid,$source,$sourceUrl,$version,$verifiedBy)";
             cmd.Parameters.AddWithValue("$id", a.Id); cmd.Parameters.AddWithValue("$title", a.Title); cmd.Parameters.AddWithValue("$project", a.Project); cmd.Parameters.AddWithValue("$scope", string.Join(',', a.ServerScope)); cmd.Parameters.AddWithValue("$summary", a.Summary); cmd.Parameters.AddWithValue("$updated", a.UpdatedAt.ToString("O")); cmd.Parameters.AddWithValue("$verified", a.Verified); cmd.Parameters.AddWithValue("$demo", a.Demo); cmd.Parameters.AddWithValue("$valid", a.ValidUntil?.ToString("O") ?? (object)DBNull.Value); cmd.Parameters.AddWithValue("$source", a.Source.Title); cmd.Parameters.AddWithValue("$sourceUrl", a.Source.Url ?? (object)DBNull.Value); cmd.Parameters.AddWithValue("$version", a.Version); cmd.Parameters.AddWithValue("$verifiedBy", a.VerifiedBy ?? (object)DBNull.Value); await cmd.ExecuteNonQueryAsync(ct);
         }
         foreach (var fact in a.Facts)
         {
-            await using (var cmd = connection.CreateCommand()) { cmd.CommandText = "INSERT INTO facts VALUES($id,$article,$text,$verified)"; cmd.Parameters.AddWithValue("$id", fact.Id); cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$text", fact.Text); cmd.Parameters.AddWithValue("$verified", fact.Verified); await cmd.ExecuteNonQueryAsync(ct); }
-            await using (var factIndex = connection.CreateCommand()) { factIndex.CommandText = "INSERT INTO fact_fts(article_id,fact_id,text) VALUES($article,$id,$text)"; factIndex.Parameters.AddWithValue("$article", a.Id); factIndex.Parameters.AddWithValue("$id", fact.Id); factIndex.Parameters.AddWithValue("$text", fact.Text); await factIndex.ExecuteNonQueryAsync(ct); }
+            await using (var cmd = connection.CreateCommand()) { cmd.Transaction = (SqliteTransaction)transaction; cmd.CommandText = "INSERT INTO facts VALUES($id,$article,$text,$verified)"; cmd.Parameters.AddWithValue("$id", fact.Id); cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$text", fact.Text); cmd.Parameters.AddWithValue("$verified", fact.Verified); await cmd.ExecuteNonQueryAsync(ct); }
+            await using (var factIndex = connection.CreateCommand()) { factIndex.Transaction = (SqliteTransaction)transaction; factIndex.CommandText = "INSERT INTO fact_fts(article_id,fact_id,text) VALUES($article,$id,$text)"; factIndex.Parameters.AddWithValue("$article", a.Id); factIndex.Parameters.AddWithValue("$id", fact.Id); factIndex.Parameters.AddWithValue("$text", fact.Text); await factIndex.ExecuteNonQueryAsync(ct); }
         }
-        foreach (var alias in a.Aliases) { await using var cmd = connection.CreateCommand(); cmd.CommandText = "INSERT INTO aliases VALUES($article,$alias)"; cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$alias", Normalize(alias)); await cmd.ExecuteNonQueryAsync(ct); }
-        foreach (var scope in a.ServerScope) { await using var cmd = connection.CreateCommand(); cmd.CommandText = "INSERT INTO article_scopes VALUES($article,$server)"; cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$server", scope); await cmd.ExecuteNonQueryAsync(ct); }
-        foreach (var p in a.PreparedAnswers) { await using var cmd = connection.CreateCommand(); cmd.CommandText = "INSERT INTO prepared_answers VALUES($article,$pattern,$answer)"; cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$pattern", Normalize(p.QuestionPattern)); cmd.Parameters.AddWithValue("$answer", p.Answer); await cmd.ExecuteNonQueryAsync(ct); }
-        await using var fts = connection.CreateCommand(); fts.CommandText = "INSERT INTO article_fts VALUES($id,$title,$aliases,$summary)"; fts.Parameters.AddWithValue("$id", a.Id); fts.Parameters.AddWithValue("$title", a.Title); fts.Parameters.AddWithValue("$aliases", string.Join(' ', a.Aliases)); fts.Parameters.AddWithValue("$summary", a.Summary); await fts.ExecuteNonQueryAsync(ct);
+        foreach (var alias in a.Aliases) { await using var cmd = connection.CreateCommand(); cmd.Transaction = (SqliteTransaction)transaction; cmd.CommandText = "INSERT INTO aliases VALUES($article,$alias)"; cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$alias", Normalize(alias)); await cmd.ExecuteNonQueryAsync(ct); }
+        foreach (var scope in a.ServerScope) { await using var cmd = connection.CreateCommand(); cmd.Transaction = (SqliteTransaction)transaction; cmd.CommandText = "INSERT INTO article_scopes VALUES($article,$server)"; cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$server", scope); await cmd.ExecuteNonQueryAsync(ct); }
+        foreach (var p in a.PreparedAnswers) { await using var cmd = connection.CreateCommand(); cmd.Transaction = (SqliteTransaction)transaction; cmd.CommandText = "INSERT INTO prepared_answers VALUES($article,$pattern,$answer)"; cmd.Parameters.AddWithValue("$article", a.Id); cmd.Parameters.AddWithValue("$pattern", Normalize(p.QuestionPattern)); cmd.Parameters.AddWithValue("$answer", p.Answer); await cmd.ExecuteNonQueryAsync(ct); }
+        await using var fts = connection.CreateCommand(); fts.Transaction = (SqliteTransaction)transaction; fts.CommandText = "INSERT INTO article_fts VALUES($id,$title,$aliases,$summary)"; fts.Parameters.AddWithValue("$id", a.Id); fts.Parameters.AddWithValue("$title", a.Title); fts.Parameters.AddWithValue("$aliases", string.Join(' ', a.Aliases)); fts.Parameters.AddWithValue("$summary", a.Summary); await fts.ExecuteNonQueryAsync(ct);
     }
 
     public async Task<IReadOnlyList<KnowledgeMatch>> SearchAsync(KnowledgeQuery query, CancellationToken cancellationToken)

@@ -33,7 +33,8 @@ public sealed record AssistantContextBuildRequest(
     AssistantRequestType RequestType,
     IReadOnlyList<AssistantConversationTurn> Conversation,
     UserPersonalizationContext? Personalization,
-    AssistantSessionContextSnapshot? SessionContext = null);
+    AssistantSessionContextSnapshot? SessionContext = null,
+    AssistantResponseMode ResponseMode = AssistantResponseMode.GroundedKnowledge);
 
 public sealed record AssistantContextBuildResult(
     GroundedAnswerRequest Request,
@@ -71,7 +72,8 @@ public sealed class AssistantContextBuilder(AssistantContextBudget? budget = nul
             personalization,
             MaxOutputTokens: outputTokens,
             ConversationSummary: summary,
-            SessionState: input.SessionContext?.State);
+            SessionState: input.SessionContext?.State,
+            ResponseMode: input.ResponseMode);
         var estimated = AssistantTokenEstimator.EstimateInput(request);
         return new(request, _budget, transcriptTrimmed || conversationTrimmed || memoryTrimmed || summaryTrimmed
             || facts.Count < input.Match.Facts.Count(x => x.Verified), estimated);
@@ -109,7 +111,7 @@ public sealed class AssistantContextBuilder(AssistantContextBudget? budget = nul
         if (context is null) { trimmed = false; return null; }
         var selected = new List<UserMemoryItem>();
         var used = 0;
-        foreach (var memory in context.Memories.OrderByDescending(x => x.UpdatedAt))
+        foreach (var memory in context.Memories)
         {
             if (selected.Count >= 3 || memory.Content.Length + used > maxCharacters) break;
             selected.Add(memory);

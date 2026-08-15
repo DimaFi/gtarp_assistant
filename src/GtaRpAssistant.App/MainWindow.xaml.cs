@@ -49,6 +49,7 @@ public partial class MainWindow : Window
     {
         var next = _themes.Current == ApplicationTheme.Gray ? ApplicationTheme.Light : ApplicationTheme.Gray;
         _themes.Apply((int)next);
+        ApplyNativeTitleBarTheme();
         _workspace.Settings.AppearanceTheme = (int)next;
         await _settings.SaveAsync(_settings.Current with { AppearanceTheme = (int)next }, CancellationToken.None);
     }
@@ -82,6 +83,16 @@ public partial class MainWindow : Window
         var handle = new WindowInteropHelper(this).Handle;
         _source = HwndSource.FromHwnd(handle);
         _source.AddHook(WndProc);
+        ApplyNativeTitleBarTheme();
+    }
+
+    private void ApplyNativeTitleBarTheme()
+    {
+        if (_executionMode.IsAutomation) return;
+        var handle = new WindowInteropHelper(this).Handle;
+        if (handle == 0) return;
+        var dark = _themes.Current == ApplicationTheme.Gray ? 1 : 0;
+        _ = DwmSetWindowAttribute(handle, 20, ref dark, sizeof(int));
     }
 
     private void ConfigureGlobalInput()
@@ -257,4 +268,5 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll")] private static extern bool RegisterHotKey(nint hWnd, int id, uint modifiers, uint key);
     [DllImport("user32.dll")] private static extern bool UnregisterHotKey(nint hWnd, int id);
+    [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(nint hwnd, int attribute, ref int value, int size);
 }

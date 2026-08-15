@@ -251,9 +251,32 @@ public static class AssistantRequestClassifier
         if (new[] { "не работает", "не запускается", "что проверить", "следующий шаг", "не получается", "как выполнить" }.Any(value.Contains)) return AssistantRequestType.ProblemSolving;
         if (new[] { "наруш", "можно ли", "правило", "накаж" }.Any(value.Contains)) return AssistantRequestType.RuleRiskQuestion;
         if (new[] { "сейчас", "они", "меня", "ситуац" }.Any(value.Contains)) return AssistantRequestType.CurrentSituationQuestion;
+        if (new[] { "мне скучно", "поговори со мной", "как думаешь", "идею для ролика", "идея для ролика", "посмотреть фильм", "объясни нормально" }.Any(value.Contains))
+            return AssistantRequestType.GeneralConversation;
         if (question.TrimEnd().EndsWith('?')) return AssistantRequestType.DirectKnowledgeQuestion;
         return AssistantRequestType.GeneralConversation;
     }
+}
+
+public static class AssistantOpenConversationPolicy
+{
+    public const string SituationId = "assistant.conversation.open";
+
+    public static bool CanUseModel(AssistantRequestType requestType, AssistantConversationSnapshot conversation) =>
+        requestType is AssistantRequestType.GeneralConversation
+            or AssistantRequestType.CurrentSituationQuestion
+            or AssistantRequestType.ProblemSolving
+        || requestType == AssistantRequestType.FollowUpQuestion
+        && string.Equals(conversation.SituationId, SituationId, StringComparison.Ordinal);
+
+    public static KnowledgeMatch EmptyMatch() => new(
+        SituationId,
+        "Обычный разговор",
+        1,
+        [],
+        false,
+        false,
+        Relevance: new(KnowledgeRetrievalMethod.Conversation, [], 0, 1, false, "open_conversation"));
 }
 
 public sealed record LocalAiCapabilityReport(

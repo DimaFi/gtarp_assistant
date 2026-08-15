@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace GtaRpAssistant.Core;
 
 public enum UserMemoryCategory { PlayStyle, ExplainedTopic, FavoriteActivity, CommunicationPreference, ConfirmedFact }
@@ -29,6 +31,23 @@ public sealed record PersonalityChange(Guid Id, DateTimeOffset CreatedAt, string
 public sealed record UserPersonalizationContext(
     IReadOnlyList<UserMemoryItem> Memories,
     PersonalityProfile Personality);
+
+public sealed record UserMemoryCandidate(
+    Guid Id,
+    UserMemoryCategory Category,
+    string Content,
+    string Reason,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset ExpiresAt);
+
+public interface IUserMemoryCandidateService
+{
+    UserMemoryCandidate? Observe(string userText, DateTimeOffset at);
+    IReadOnlyList<UserMemoryCandidate> List(DateTimeOffset at);
+    UserMemoryItem? Approve(Guid id, DateTimeOffset at);
+    bool Reject(Guid id);
+    void Clear();
+}
 
 public interface IUserMemoryStore
 {
@@ -88,8 +107,16 @@ public sealed class UserPersonalizationContextProvider(IUserMemoryStore store) :
     {
         var terms = question.Split(new[] { ' ', '\t', '\r', '\n', ',', '.', '?', '!', ':', ';' }, StringSplitOptions.RemoveEmptyEntries)
             .Where(x => x.Length >= 3).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var gameContext = ContainsAny(question.ToLowerInvariant(), "gta", "гта", "rp", "рп", "игр", "фарм", "заработ", "работ", "рыбал", "дальноб", "контракт", "сервер");
         var selected = store.List()
-            .Select(x => new { Item = x, Score = terms.Count(t => x.Content.Contains(t, StringComparison.OrdinalIgnoreCase)) })
+            .Select(x => new
+            {
+                Item = x,
+                Score = terms.Count(t => x.Content.Contains(t, StringComparison.OrdinalIgnoreCase)) * 10
+                    + (x.Category == UserMemoryCategory.CommunicationPreference ? 2 : 0)
+                    + (gameContext && x.Category is UserMemoryCategory.PlayStyle or UserMemoryCategory.FavoriteActivity ? 1 : 0),
+            })
+            .Where(x => x.Score > 0)
             .OrderByDescending(x => x.Score)
             .ThenByDescending(x => x.Item.UpdatedAt)
             .Take(Math.Clamp(maxMemories, 1, 12))
@@ -100,4 +127,122 @@ public sealed class UserPersonalizationContextProvider(IUserMemoryStore store) :
     private static bool ContainsAny(string text, params string[] phrases) => phrases.Any(text.Contains);
     private static PersonalityProfile Change(PersonalityProfile current, PersonalityProfile updated, string trait, int oldValue, int newValue, string reason, List<(string, int, int, string)> changes) { AddChange(trait, oldValue, newValue, reason, changes); return updated; }
     private static void AddChange(string trait, int oldValue, int newValue, string reason, List<(string Trait, int OldValue, int NewValue, string Reason)> changes) { if (oldValue != newValue) changes.Add((trait, oldValue, newValue, reason)); }
+}
+
+public sealed partial class UserMemoryCandidateService(IUserMemoryStore store, int maximumCandidates = 12) : IUserMemoryCandidateService
+{
+    private static readonly TimeSpan Lifetime = TimeSpan.FromHours(24);
+    private readonly object _gate = new();
+    private readonly List<UserMemoryCandidate> _candidates = [];
+    private readonly int _maximumCandidates = Math.Clamp(maximumCandidates, 1, 30);
+
+    public UserMemoryCandidate? Observe(string userText, DateTimeOffset at)
+    {
+        if (string.IsNullOrWhiteSpace(userText) || SensitiveRegex().IsMatch(userText)) return null;
+        var extracted = Extract(userText);
+        if (extracted is null) return null;
+        var (category, content, reason) = extracted.Value;
+        if (content.Length is < 3 or > 180) return null;
+
+        lock (_gate)
+        {
+            RemoveExpired(at);
+            if (store.List().Any(x => string.Equals(x.Content, content, StringComparison.OrdinalIgnoreCase))) return null;
+            var existing = _candidates.FirstOrDefault(x => string.Equals(x.Content, content, StringComparison.OrdinalIgnoreCase));
+            if (existing is not null) return existing;
+            var candidate = new UserMemoryCandidate(Guid.NewGuid(), category, content, reason, at, at.Add(Lifetime));
+            _candidates.Add(candidate);
+            if (_candidates.Count > _maximumCandidates) _candidates.RemoveRange(0, _candidates.Count - _maximumCandidates);
+            return candidate;
+        }
+    }
+
+    public IReadOnlyList<UserMemoryCandidate> List(DateTimeOffset at)
+    {
+        lock (_gate)
+        {
+            RemoveExpired(at);
+            return _candidates.OrderByDescending(x => x.CreatedAt).ToArray();
+        }
+    }
+
+    public UserMemoryItem? Approve(Guid id, DateTimeOffset at)
+    {
+        lock (_gate)
+        {
+            RemoveExpired(at);
+            var candidate = _candidates.FirstOrDefault(x => x.Id == id);
+            if (candidate is null) return null;
+            _candidates.Remove(candidate);
+            return store.Upsert(null, candidate.Category, candidate.Content);
+        }
+    }
+
+    public bool Reject(Guid id)
+    {
+        lock (_gate)
+        {
+            var candidate = _candidates.FirstOrDefault(x => x.Id == id);
+            return candidate is not null && _candidates.Remove(candidate);
+        }
+    }
+
+    public void Clear() { lock (_gate) _candidates.Clear(); }
+
+    private void RemoveExpired(DateTimeOffset at) => _candidates.RemoveAll(x => x.ExpiresAt <= at);
+
+    private static (UserMemoryCategory Category, string Content, string Reason)? Extract(string text)
+    {
+        var compact = Regex.Replace(text.ReplaceLineEndings(" ").Trim(), @"\s+", " ");
+        var direct = DirectPreferenceRegex().Match(compact);
+        if (direct.Success)
+        {
+            var value = Clean(direct.Groups["value"].Value);
+            var verb = direct.Groups["verb"].Value.ToLowerInvariant();
+            return verb switch
+            {
+                "люблю" or "обожаю" => (UserMemoryCategory.FavoriteActivity, $"Любит {value}", "Явно названо любимое занятие"),
+                "предпочитаю" => (UserMemoryCategory.PlayStyle, $"Предпочитает {value}", "Явно названо предпочтение"),
+                _ => (UserMemoryCategory.PlayStyle, $"Не любит {value}", "Явно названо нежелательное занятие"),
+            };
+        }
+        var personal = PersonalPreferenceRegex().Match(compact);
+        if (personal.Success)
+        {
+            var value = Clean(personal.Groups["value"].Value);
+            var verb = personal.Groups["verb"].Value.ToLowerInvariant();
+            return verb == "нравится"
+                ? (UserMemoryCategory.FavoriteActivity, $"Нравится {value}", "Явно названо любимое занятие")
+                : (UserMemoryCategory.PlayStyle, $"Надоел {value}", "Явно названо нежелательное занятие");
+        }
+        var reverse = ReversePersonalPreferenceRegex().Match(compact);
+        if (reverse.Success)
+        {
+            var value = Clean(reverse.Groups["value"].Value);
+            var verb = reverse.Groups["verb"].Value.ToLowerInvariant();
+            return verb == "нравится"
+                ? (UserMemoryCategory.FavoriteActivity, $"Нравится {value}", "Явно названо любимое занятие")
+                : (UserMemoryCategory.PlayStyle, $"Надоел {value}", "Явно названо нежелательное занятие");
+        }
+        var remember = RememberRegex().Match(compact);
+        if (!remember.Success) return null;
+        var remembered = Clean(remember.Groups["value"].Value);
+        if (!FirstPersonRegex().IsMatch(remembered)) return null;
+        return (UserMemoryCategory.ConfirmedFact, remembered, "Пользователь явно попросил запомнить это о себе");
+    }
+
+    private static string Clean(string value) => value.Trim(' ', '.', ',', '!', '?', ';', ':', '-', '—');
+
+    [GeneratedRegex(@"\bя\s+(?<verb>люблю|обожаю|предпочитаю|не\s+люблю)\s+(?<value>[^,.!?;]{2,180})", RegexOptions.IgnoreCase)]
+    private static partial Regex DirectPreferenceRegex();
+    [GeneratedRegex(@"\bмне\s+(?<verb>нравится|надоел|надоела|надоело)\s+(?<value>[^,.!?;]{2,180})", RegexOptions.IgnoreCase)]
+    private static partial Regex PersonalPreferenceRegex();
+    [GeneratedRegex(@"\b(?<value>[\p{L}\d_-]+)\s+мне\s+(?<verb>нравится|надоел|надоела|надоело)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex ReversePersonalPreferenceRegex();
+    [GeneratedRegex(@"\bзапомни(?:те)?(?:,?\s+пожалуйста)?(?:,?\s+что)?\s+(?<value>[^.!?]{3,180})", RegexOptions.IgnoreCase)]
+    private static partial Regex RememberRegex();
+    [GeneratedRegex(@"\b(?:я|мне|мой|моя|моё|мои)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex FirstPersonRegex();
+    [GeneratedRegex(@"\b(?:парол[ьяеи]*|api[\s_-]*key|токен\p{L}*|секрет\p{L}*|телефон\p{L}*|адрес\p{L}*|почт\p{L}*|email|e-mail|паспорт\p{L}*|банковск\p{L}*|карт[аы]\p{L}*|cvv)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex SensitiveRegex();
 }

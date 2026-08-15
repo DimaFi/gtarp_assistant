@@ -53,6 +53,67 @@ public sealed class CoordinatorTests
     }
 
     [Fact]
+    public async Task GeneralConversation_UsesLocalModelWithoutKnowledge_AndKeepsFollowUpContext()
+    {
+        var overlay = new FakeOverlay();
+        var provider = new FakeProvider((_, request) => new GroundedAnswerResponse(JsonSerializer.Serialize(new
+        {
+            decision = "show",
+            title = "Давай выберем",
+            message = request.Question.Contains("наоборот", StringComparison.OrdinalIgnoreCase)
+                ? "Если сделать наоборот, сначала решим, чего вы хотите избежать."
+                : "Можно спокойно поговорить или придумать небольшую цель на вечер.",
+            usedFactIds = Array.Empty<string>(),
+            needsScreen = false,
+            canSpeak = false,
+        })));
+        var catalog = new FakeCatalog(provider);
+        await using var coordinator = new AssistantSessionCoordinator(
+            new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector([]), new EmptyKnowledge(), new ContextSelector(),
+            new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(),
+            new ProactivePolicy(), new NullEvents());
+        coordinator.Start(true);
+
+        async Task<AssistantAnswer?> Ask(string text)
+        {
+            var now = DateTimeOffset.UtcNow;
+            return await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now, text, 1),
+                AssistantActivationKind.ManualText, "all", false, false), default);
+        }
+
+        var first = await Ask("Мне скучно, поговори со мной.");
+        var second = await Ask("А если сделать наоборот?");
+
+        Assert.Equal(AnswerDecision.Show, first!.Decision);
+        Assert.Equal(AnswerDecision.Show, second!.Decision);
+        Assert.Equal(2, provider.Calls);
+        Assert.All(provider.Requests, request =>
+        {
+            Assert.Equal(AssistantResponseMode.OpenConversation, request.ResponseMode);
+            Assert.Empty(request.VerifiedFacts);
+        });
+        Assert.NotEmpty(provider.Requests[1].Conversation!);
+    }
+
+    [Fact]
+    public async Task ManualRequest_OffersMemoryCandidateWithoutPersistingIt()
+    {
+        var observer = new CapturingMemoryCandidates();
+        var overlay = new FakeOverlay();
+        await using var coordinator = new AssistantSessionCoordinator(
+            new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector([]), new EmptyKnowledge(), new ContextSelector(),
+            new AiRouter(), new GroundedAnswerValidator(), new RouteCatalog([]), overlay, new TranscriptDeduplicator(),
+            new ProactivePolicy(), new NullEvents(), memoryCandidates: observer);
+        coordinator.Start(true);
+        var now = DateTimeOffset.UtcNow;
+
+        await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now,
+            "Мне нравится рыбалка", 1), AssistantActivationKind.ManualText, "all", false, false), default);
+
+        Assert.Equal("Мне нравится рыбалка", Assert.Single(observer.Observed));
+    }
+
+    [Fact]
     public async Task BroadEarningQuestion_AndClarifyingFollowUp_UseExplicitAssumptionsWithoutProvider()
     {
         var overlay = new FakeOverlay();
@@ -341,6 +402,12 @@ public sealed class CoordinatorTests
         public IReadOnlyList<AssistantRequestMetrics> Metrics() => Items.Where(x => x.Name == "Assistant request metrics")
             .Select(x => JsonSerializer.Deserialize<AssistantRequestMetrics>(x.Detail!)!).ToArray();
     }
+    private sealed class EmptyKnowledge : IKnowledgeRepository
+    {
+        public Task<IReadOnlyList<KnowledgeMatch>> SearchAsync(KnowledgeQuery query, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<KnowledgeMatch>>([]);
+        public Task<KnowledgeArticle?> GetArticleAsync(string articleId, CancellationToken cancellationToken) => Task.FromResult<KnowledgeArticle?>(null);
+    }
     private sealed class FakeAnswerCache : IAnswerCache
     {
         private readonly Dictionary<string, AnswerCacheEntry> _entries = [];
@@ -358,5 +425,14 @@ public sealed class CoordinatorTests
     {
         public bool ApplyExplicitFeedback(string userText) => false;
         public UserPersonalizationContext Build(string question, int maxMemories = 8) => new([new(Guid.NewGuid(), UserMemoryCategory.CommunicationPreference, "Личный стиль", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow)], new());
+    }
+    private sealed class CapturingMemoryCandidates : IUserMemoryCandidateService
+    {
+        public List<string> Observed { get; } = [];
+        public UserMemoryCandidate? Observe(string userText, DateTimeOffset at) { Observed.Add(userText); return null; }
+        public IReadOnlyList<UserMemoryCandidate> List(DateTimeOffset at) => [];
+        public UserMemoryItem? Approve(Guid id, DateTimeOffset at) => null;
+        public bool Reject(Guid id) => false;
+        public void Clear() { }
     }
 }

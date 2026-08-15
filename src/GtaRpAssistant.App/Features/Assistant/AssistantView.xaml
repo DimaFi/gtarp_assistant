@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls"
              AutomationProperties.AutomationId="Page.Assistant">
-    <Grid MaxWidth="1120" HorizontalAlignment="Center">
+    <Grid HorizontalAlignment="Stretch">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

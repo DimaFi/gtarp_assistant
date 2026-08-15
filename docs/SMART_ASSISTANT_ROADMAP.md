@@ -100,6 +100,8 @@
 
 ## Phase 5 — Controlled Memory
 
+**Прогресс.** Базовый vertical slice завершён: deterministic explicit-preference extractor, PII/secret filter, bounded 24-hour RAM queue, deduplication с подтверждённой памятью, approve/reject/clear UI и relevance-first local-only injection. Кандидаты не пишутся на диск и не вызывают LLM. Persistent provenance/revisions остаются будущим расширением.
+
 **Цель.** Ассистент запоминает полезные предпочтения, но пользователь видит и контролирует каждую долгосрочную запись.
 
 **Затрагивает.** `UserMemory`, `SqliteUserMemoryStore`, personalization provider, Memory UI, privacy docs.

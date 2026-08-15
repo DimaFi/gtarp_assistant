@@ -25,6 +25,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IAssistantSessionContextStore _sessionContext;
     private readonly IResourceBudgetCoordinator _resourceBudget;
     private readonly ISemanticReranker? _semanticReranker;
+    private readonly IUserMemoryCandidateService? _memoryCandidates;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -49,7 +50,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         IAssistantContextBuilder? contextBuilder = null,
         IAssistantSessionContextStore? sessionContext = null,
         IResourceBudgetCoordinator? resourceBudget = null,
-        ISemanticReranker? semanticReranker = null)
+        ISemanticReranker? semanticReranker = null,
+        IUserMemoryCandidateService? memoryCandidates = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -70,6 +72,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _sessionContext = sessionContext ?? new InMemoryAssistantSessionContextStore();
         _resourceBudget = resourceBudget ?? new ResourceBudgetCoordinator();
         _semanticReranker = semanticReranker;
+        _memoryCandidates = memoryCandidates;
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -172,6 +175,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
 
             var currentConversation = _conversation.GetCurrent();
             var requestType = AssistantRequestClassifier.Classify(entry.Text, currentConversation);
+            if (request.Activation != AssistantActivationKind.AutomaticVoice)
+                _memoryCandidates?.Observe(entry.Text, DateTimeOffset.UtcNow);
             var situationId = currentConversation.SituationId ?? intent.IntentId;
             var relevantConversation = _conversation.GetRelevant(new(situationId, 6));
             _sessionContext.ObserveUser(entry.Text, requestType, situationId, DateTimeOffset.UtcNow);
@@ -188,6 +193,13 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 : inferenceGrounding is not null
                     ? [inferenceGrounding]
                     : await SearchKnowledgeAsync(searchText, request.Server, ct);
+            var responseMode = AssistantResponseMode.GroundedKnowledge;
+            if (matches.Count == 0 && request.Activation != AssistantActivationKind.AutomaticVoice
+                && AssistantOpenConversationPolicy.CanUseModel(requestType, relevantConversation))
+            {
+                matches = [AssistantOpenConversationPolicy.EmptyMatch()];
+                responseMode = AssistantResponseMode.OpenConversation;
+            }
             if (matches.Count == 0 && requestType == AssistantRequestType.FollowUpQuestion && !string.IsNullOrWhiteSpace(relevantConversation.SituationId))
             {
                 var previous = await _knowledge.GetArticleAsync(relevantConversation.SituationId, ct);
@@ -233,7 +245,9 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             var match = matches[0];
             metrics.RecordKnowledge(match);
             _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], match.ArticleId));
-            var preflight = _router.SelectBeforeProvider(new(match.HasVerifiedPreparedAnswer, HasGrounding(match)));
+            var preflight = responseMode == AssistantResponseMode.OpenConversation
+                ? new AiRouteDecision(null, "open_conversation_requires_provider")
+                : _router.SelectBeforeProvider(new(match.HasVerifiedPreparedAnswer, HasGrounding(match)));
             var personalization = _personalization?.Build(entry.Text);
             string? cacheKey = null;
             if (preflight.RequiresProviderAvailability && requestType == AssistantRequestType.DirectKnowledgeQuestion && _answerCache is not null)
@@ -258,7 +272,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             {
                 metrics.ProviderAvailabilityChecks++;
                 availability = await _providers.GetAvailabilityAsync(ct);
-                route = _router.Select(new(match.HasVerifiedPreparedAnswer, HasGrounding(match), availability.LocalAvailable, availability.CloudAvailable, request.UserAllowsCloud, availability.Route.Count > 0));
+                route = _router.Select(new(match.HasVerifiedPreparedAnswer, responseMode == AssistantResponseMode.OpenConversation || HasGrounding(match), availability.LocalAvailable, availability.CloudAvailable, request.UserAllowsCloud, availability.Route.Count > 0));
                 routeReason = DescribeRoute(route, availability, request.UserAllowsCloud);
             }
             else
@@ -299,7 +313,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                         requestType,
                         relevantConversation.Turns,
                         personalization,
-                        _sessionContext.Get()));
+                        _sessionContext.Get(),
+                        responseMode));
                     metrics.ContextTrimmed = builtContext.WasTrimmed;
                     metrics.ContextTargetInputTokens = builtContext.Budget.TargetInputTokens;
                     foreach (var provider in providers)
@@ -319,7 +334,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                             var groundedRequest = builtContext.Request;
                             metrics.RecordLlmCall(groundedRequest);
                             var response = await provider.CreateGroundedAnswerAsync(groundedRequest, ct);
-                            var candidate = _validator.Validate(response.Json, match, request.Server, request.VoiceEnabled);
+                            var candidate = _validator.Validate(response.Json, match, request.Server, request.VoiceEnabled, responseMode);
                             if (candidate.DiagnosticReason != GroundedAnswerValidator.PassedReason)
                             {
                                 _events.Write(new(DateTimeOffset.UtcNow, "Provider response rejected; repairing", State, $"{provider.Id}:{candidate.DiagnosticReason}"));
@@ -327,7 +342,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                                 metrics.RepairCalls++;
                                 metrics.RecordLlmCall(repairRequest);
                                 var repaired = await provider.CreateGroundedAnswerAsync(repairRequest, ct);
-                                candidate = _validator.Validate(repaired.Json, match, request.Server, request.VoiceEnabled);
+                                candidate = _validator.Validate(repaired.Json, match, request.Server, request.VoiceEnabled, responseMode);
                             }
                             if (candidate.DiagnosticReason == GroundedAnswerValidator.PassedReason)
                             {
@@ -348,7 +363,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                         }
                     }
                     Transition(AssistantSessionState.ValidatingAnswer);
-                    if (answer.Decision == AnswerDecision.Abstain)
+                    if (answer.Decision == AnswerDecision.Abstain && responseMode == AssistantResponseMode.GroundedKnowledge)
                         answer = CreateDeterministicAnswer(entry.Text, match, request) with { ProviderId = "knowledge-fallback" };
                 }
             }

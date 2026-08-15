@@ -47,6 +47,8 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
     private string _installationPaths = "Пути LM Studio определяются автоматически.";
     private string _pendingModelKey = "";
     private string _cloudConnectionStatus = "Заполните три поля и проверьте настройки.";
+    private readonly bool _automationMode;
+    private Task? _initialization;
 
     public ProvidersFeatureViewModel(
         ApplicationUiState ui,
@@ -60,6 +62,7 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
         IUiDispatcher dispatcher,
         ApplicationExecutionMode executionMode) : base(ui, workspace)
     {
+        _automationMode = executionMode.IsAutomation;
         _capabilityTester = capabilityTester;
         _engineManager = engineManager;
         _bootstrapInstaller = bootstrapInstaller;
@@ -98,7 +101,12 @@ public sealed class ProvidersFeatureViewModel : FeatureViewModel
                 && !string.IsNullOrWhiteSpace(Settings.Model))
                 PendingModelKey = Settings.Model;
         };
-        if (!executionMode.IsAutomation) _ = RefreshLocalAiAsync();
+    }
+
+    public Task EnsureInitializedAsync()
+    {
+        if (_automationMode) return Task.CompletedTask;
+        return _initialization ??= RefreshLocalAiAsync();
     }
 
     public SettingsEditor Settings => Workspace.Settings;
@@ -654,6 +662,7 @@ public sealed class KnowledgeFeatureViewModel : FeatureViewModel
         RollbackCommand = new AsyncRelayCommand(RollbackAsync);
         ImportCommand = new AsyncRelayCommand(ImportAsync);
         ToggleSourceCommand = new AsyncRelayCommand(ToggleSourceAsync);
+        RefreshDocuments();
     }
 
     public int OfficialArticleCount => Ui.OfficialArticleCount;

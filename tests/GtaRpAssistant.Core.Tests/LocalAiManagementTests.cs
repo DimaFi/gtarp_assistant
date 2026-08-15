@@ -43,6 +43,16 @@ public sealed class LocalAiManagementTests
     }
 
     [Fact]
+    public void TextRecommendation_DoesNotSpendMemoryOnVisionModelEvenWith32GbRam()
+    {
+        var model = LocalAiRecommendedModelCatalog.Recommend(32L * 1024 * 1024 * 1024, needsVision: false);
+
+        Assert.Equal("qwen3-4b-2507", model.Id);
+        Assert.False(model.SupportsVision);
+        Assert.Equal(LocalAiPerformanceProfile.Balanced, model.Profile);
+    }
+
+    [Fact]
     public void BalancedProfile_UsesAutomaticGpuOffload()
     {
         var settings = LocalAiGenerationSettings.For(LocalAiPerformanceProfile.Balanced);

@@ -27,22 +27,44 @@ public sealed partial class ScreenContextController(WindowCaptureService capture
     private async Task RunAsync(CancellationToken cancellationToken)
     {
         ScreenFrame? previous = null;
-        while (!cancellationToken.IsCancellationRequested)
+        var unchangedFrames = 0;
+        try
         {
-            var mode = SettingValues.ScreenObservation(settings.Current);
-            var game = gameMonitor.Current;
-            if (mode == ScreenObservationMode.Off || game is null) { previous = null; await Task.Delay(1000, cancellationToken); continue; }
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var current = await Task.Run(() => capture.CaptureAnalysisFrame(game.MainWindowHandle), cancellationToken);
-                var diff = previous is null ? new ScreenFrameDiff(1, [ScreenRegion.Full]) : differ.Compare(previous, current);
-                previous = current;
-                if (diff.HasMeaningfulChange(settings.Current.ScreenDiffThreshold) && ocr.IsAvailable)
-                    await AnalyzeAsync(game.MainWindowHandle, current.CapturedAt, diff, cancellationToken);
+                var mode = SettingValues.ScreenObservation(settings.Current);
+                var game = gameMonitor.Current;
+                if (mode == ScreenObservationMode.Off || game is null)
+                {
+                    ClearFrame(ref previous);
+                    unchangedFrames = 0;
+                    await Task.Delay(mode == ScreenObservationMode.Off ? 15_000 : 3_000, cancellationToken);
+                    continue;
+                }
+                try
+                {
+                    var current = await Task.Run(() => capture.CaptureAnalysisFrame(game.MainWindowHandle), cancellationToken);
+                    var diff = previous is null ? new ScreenFrameDiff(1, [ScreenRegion.Full]) : differ.Compare(previous, current);
+                    ClearFrame(ref previous);
+                    previous = current;
+                    var changed = diff.HasMeaningfulChange(settings.Current.ScreenDiffThreshold);
+                    unchangedFrames = changed ? 0 : Math.Min(unchangedFrames + 1, 8);
+                    if (changed && ocr.IsAvailable)
+                        await AnalyzeAsync(game.MainWindowHandle, current.CapturedAt, diff, cancellationToken);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException) { logger.LogDebug("Screen observation iteration failed; type={ErrorType}", ex.GetType().Name); }
+                var configuredDelay = mode == ScreenObservationMode.EventTriggered ? 1500 : Math.Clamp(settings.Current.ScreenCaptureIntervalMs, 500, 5000);
+                var adaptiveDelay = Math.Min(5000, configuredDelay + unchangedFrames * 500);
+                await Task.Delay(adaptiveDelay, cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException) { logger.LogDebug("Screen observation iteration failed; type={ErrorType}", ex.GetType().Name); }
-            await Task.Delay(mode == ScreenObservationMode.EventTriggered ? 1500 : Math.Clamp(settings.Current.ScreenCaptureIntervalMs, 500, 5000), cancellationToken);
         }
+        finally { ClearFrame(ref previous); }
+    }
+
+    private static void ClearFrame(ref ScreenFrame? frame)
+    {
+        if (frame is not null) Array.Clear(frame.GrayscalePixels);
+        frame = null;
     }
     private async Task AnalyzeAsync(nint handle, DateTimeOffset capturedAt, ScreenFrameDiff diff, CancellationToken cancellationToken)
     {

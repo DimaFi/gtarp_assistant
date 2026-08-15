@@ -62,7 +62,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         _vision = vision;
         _voiceInteraction = voiceInteraction;
         AddContextCommand = new RelayCommand(AddContext);
-        QuickPromptCommand = new RelayCommand<string>(ApplyQuickPrompt);
+        QuickPromptCommand = new AsyncRelayCommand<string>(ApplyQuickPromptAsync);
         ProcessQuestionCommand = new AsyncRelayCommand(ProcessQuestionAsync);
         StartVoiceCommand = new AsyncRelayCommand(StartVoiceAsync);
         NewConversationCommand = new RelayCommand(NewConversation, () => !IsBusy);
@@ -375,11 +375,11 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         }
     }
 
-    private void ApplyQuickPrompt(string? prompt)
+    private async Task ApplyQuickPromptAsync(string? prompt)
     {
         if (string.IsNullOrWhiteSpace(prompt) || IsBusy) return;
         TranscriptText = prompt.Trim();
-        Ui.PipelineStatus = "Быстрый запрос добавлен. Нажмите «Отправить» или отредактируйте текст.";
+        await ProcessQuestionAsync();
     }
 
     private async Task AnalyzeImageAsync()

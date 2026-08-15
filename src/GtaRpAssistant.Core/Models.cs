@@ -5,6 +5,7 @@ public enum PerformanceProfile { CloudLite, Balanced, LocalHybrid, Custom }
 public enum LocalAiPerformanceProfile { Compact, Balanced, Quality, Custom }
 public enum ConversationRole { User, Assistant }
 public enum AssistantRequestType { DirectKnowledgeQuestion, CurrentSituationQuestion, FollowUpQuestion, RuleRiskQuestion, ProblemSolving, VisionQuestion, GeneralConversation }
+public enum AssistantResponseMode { GroundedKnowledge, OpenConversation }
 public enum ProactiveMode { Off, Strict, Balanced, Experimental }
 public enum AnswerDecision { Show, AskForMoreInformation, Abstain }
 public enum AnswerRoute { Deterministic, ResponseCache, ConfiguredChat, LocalChat, CloudChat, Abstain }
@@ -51,7 +52,8 @@ public sealed record GroundedAnswerRequest(
     string? InvalidResponse = null,
     int? MaxOutputTokens = null,
     string? ConversationSummary = null,
-    AssistantSessionSituationState? SessionState = null);
+    AssistantSessionSituationState? SessionState = null,
+    AssistantResponseMode ResponseMode = AssistantResponseMode.GroundedKnowledge);
 public sealed record GroundedAnswerResponse(string Json);
 public sealed record KnowledgeQuery(string Text, string Server = "all", int Limit = 5);
 public sealed record KnowledgeArticle(string Id, string Title, IReadOnlyList<KnowledgeFact> Facts, DateTimeOffset UpdatedAt, bool Verified, bool Demo);

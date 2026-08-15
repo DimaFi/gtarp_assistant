@@ -16,6 +16,12 @@
    <Button Content="Очистить журнал" Command="{Binding ClearChangesCommand}" HorizontalAlignment="Left" AutomationProperties.AutomationId="Memory.ClearChanges"/>
    </StackPanel>
   </design:FeatureSection>
+  <design:FeatureSection Style="{StaticResource Feature.Section}" Title="Кандидаты памяти" Description="Ассистент замечает только явно сказанные предпочтения. До подтверждения они находятся лишь в RAM, исчезают через 24 часа и не попадают в запросы модели.">
+   <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <ListBox ItemsSource="{Binding Candidates}" SelectedItem="{Binding SelectedCandidate}" MinHeight="90" MaxHeight="180" AutomationProperties.AutomationId="Memory.Candidates"><ListBox.ItemTemplate><DataTemplate><StackPanel Margin="4"><TextBlock Text="{Binding Content}" TextWrapping="Wrap"/><TextBlock Text="{Binding Reason}" Style="{StaticResource Text.Secondary}"/><TextBlock Text="{Binding ExpiresAt, StringFormat=До {0:dd.MM HH:mm}}" Style="{StaticResource Text.Caption}"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
+    <StackPanel Grid.Column="1" Margin="12,0,0,0"><Button Content="Сохранить" Command="{Binding ApproveCandidateCommand}" AutomationProperties.AutomationId="Memory.CandidateApprove"/><Button Content="Не запоминать" Command="{Binding RejectCandidateCommand}" AutomationProperties.AutomationId="Memory.CandidateReject"/><Button Content="Очистить кандидаты" Command="{Binding ClearCandidatesCommand}" Style="{StaticResource Button.Danger}" AutomationProperties.AutomationId="Memory.CandidatesClear"/></StackPanel>
+   </Grid>
+  </design:FeatureSection>
   <design:FeatureSection Style="{StaticResource Feature.Section}" Title="Записи памяти" Description="Эти записи доступны только локальной AI-модели и никогда не считаются игровыми фактами.">
    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.1*"/><ColumnDefinition Width="18"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
     <ListBox ItemsSource="{Binding Memories}" SelectedItem="{Binding Selected}" MinHeight="150" MaxHeight="210" AutomationProperties.AutomationId="Memory.List"><ListBox.ItemTemplate><DataTemplate><StackPanel Margin="4"><TextBlock Text="{Binding Category}" Style="{StaticResource Text.Label}"/><TextBlock Text="{Binding Content}" TextWrapping="Wrap"/><TextBlock Text="{Binding UpdatedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}" Style="{StaticResource Text.Secondary}"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>

@@ -72,6 +72,25 @@ public sealed class UiArchitectureTests
         Assert.Throws<InvalidOperationException>(() => new FeatureRegistry([]));
 
     [Fact]
+    public void FeatureContent_IsCreatedOnlyWhenFirstOpened_AndThenReused()
+    {
+        var creations = 0;
+        var feature = new ShellFeature("lazy", "Lazy", "L", 10, () =>
+        {
+            creations++;
+            return new object();
+        });
+        _ = new FeatureRegistry([feature]);
+
+        Assert.Equal(0, creations);
+        var first = feature.GetContent();
+        var second = feature.GetContent();
+
+        Assert.Equal(1, creations);
+        Assert.Same(first, second);
+    }
+
+    [Fact]
     public void MainViewModel_DependsOnlyOnShellStateRegistryAndLifecycleCoordinator()
     {
         var constructor = Assert.Single(typeof(MainViewModel).GetConstructors());

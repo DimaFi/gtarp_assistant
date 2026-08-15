@@ -123,7 +123,8 @@ public sealed class ResourceBudgetCoordinator : IResourceBudgetCoordinator
             return "workload_already_active";
         if (_snapshot.AvailableRamBytes is long ram && request.EstimatedRamBytes > 0 && ram - request.EstimatedRamBytes < ReserveRam(_snapshot.GtaRunning))
             return "insufficient_ram_reserve";
-        if (_snapshot.AvailableVramBytes is long vram && request.EstimatedVramBytes > 0 && vram - request.EstimatedVramBytes < Gib / 2)
+        if (_snapshot.AvailableVramBytes is long vram && request.EstimatedVramBytes > 0
+            && vram - request.EstimatedVramBytes < ReserveVram(_snapshot.GtaRunning, request.Profile))
             return "insufficient_vram_reserve";
         return null;
     }
@@ -145,6 +146,9 @@ public sealed class ResourceBudgetCoordinator : IResourceBudgetCoordinator
     }
 
     private static long ReserveRam(bool gtaRunning) => gtaRunning ? Gib + Gib / 2 : Gib;
+    private static long ReserveVram(bool gtaRunning, LocalAiPerformanceProfile profile) => !gtaRunning
+        ? Gib / 2
+        : profile == LocalAiPerformanceProfile.Quality ? 4 * Gib : 2 * Gib + Gib / 2;
     private int Active(AssistantWorkloadKind workload) => _active.GetValueOrDefault(workload);
 
     private void Release(AssistantWorkloadKind workload)

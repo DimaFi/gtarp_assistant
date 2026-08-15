@@ -1,4 +1,8 @@
 using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
 using System.Windows.Input;
 using GtaRpAssistant.App.Shell;
 
@@ -19,7 +23,7 @@ public sealed class MainViewModel : ObservableObject
         TogglePauseCommand = new AsyncRelayCommand(_lifecycle.TogglePauseAsync);
 
         NavigationItems = featureRegistry.Features
-            .Select(x => new ShellNavigationItem(x.Id, x.Title, x.Symbol, x.Content, SelectPage))
+            .Select(x => new ShellNavigationItem(x.Id, x.Title, x.Symbol, x.GetContent, SelectPage))
             .ToArray();
         SelectPage(NavigationItems[0]);
         Ui = ui;
@@ -53,6 +57,15 @@ public sealed class MainViewModel : ObservableObject
     {
         foreach (var item in NavigationItems) item.IsSelected = ReferenceEquals(item, selected);
         SelectedPage = selected.Content;
+        if (SelectedPage is FrameworkElement page)
+            _ = page.Dispatcher.BeginInvoke(() => ScrollToTop(page), DispatcherPriority.Loaded);
+    }
+
+    private static void ScrollToTop(DependencyObject root)
+    {
+        if (root is ScrollViewer scrollViewer) scrollViewer.ScrollToTop();
+        for (var index = 0; index < VisualTreeHelper.GetChildrenCount(root); index++)
+            ScrollToTop(VisualTreeHelper.GetChild(root, index));
     }
 }
 

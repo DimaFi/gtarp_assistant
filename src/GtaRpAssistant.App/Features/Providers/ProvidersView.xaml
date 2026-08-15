@@ -15,7 +15,7 @@
                         </StackPanel>
                         <Button Grid.Column="1" Content="Как это работает?" Command="{Binding ShowLocalAiHelpCommand}" AutomationProperties.AutomationId="Providers.LocalAiHelp" />
                     </Grid>
-                    <Border Background="{StaticResource Brush.Input}" BorderBrush="{StaticResource Brush.BorderSubtle}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,14,0,10">
+                    <Border Background="{DynamicResource Brush.Input}" BorderBrush="{DynamicResource Brush.BorderSubtle}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,14,0,10">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                             <StackPanel>
@@ -30,7 +30,7 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-                    <Border Background="{StaticResource Brush.Input}" BorderBrush="{StaticResource Brush.BorderSubtle}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                    <Border Background="{DynamicResource Brush.Input}" BorderBrush="{DynamicResource Brush.BorderSubtle}" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,10">
                         <StackPanel>
                             <TextBlock Text="{Binding ResourceStatus}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.ResourceStatus" />
                             <TextBlock Margin="0,4,0,0" Style="{StaticResource Text.Secondary}" Text="{Binding HardwareGuidance}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.HardwareGuidance" />
@@ -61,7 +61,7 @@
                         <Button Content="Оценить нагрузку" Command="{Binding EstimateResourcesCommand}" AutomationProperties.AutomationId="Providers.EstimateResources" />
                         <Button Content="Скачать" Command="{Binding DownloadModelCommand}" AutomationProperties.AutomationId="Providers.DownloadModel" />
                     </WrapPanel>
-                    <Border Background="{StaticResource Brush.AccentMuted}" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                    <Border Background="{DynamicResource Brush.AccentMuted}" CornerRadius="8" Padding="10" Margin="0,10,0,0">
                         <TextBlock Text="{Binding SetupProgress}" TextWrapping="Wrap" AutomationProperties.AutomationId="Providers.SetupProgress" />
                     </Border>
                     <CheckBox Margin="0,12,0,0" Content="Расширенные настройки" IsChecked="{Binding Settings.LocalAiAdvancedMode}" AutomationProperties.AutomationId="Providers.AdvancedMode" />
@@ -123,7 +123,7 @@
                     <TextBlock Style="{StaticResource Text.Label}" Text="API key — DPAPI CurrentUser" />
                     <PasswordBox components:PasswordBoxBinding.IsEnabled="True" components:PasswordBoxBinding.Password="{Binding ApiKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.ApiKey" />
                     <Button Content="Проверить endpoint" Command="{Binding CheckEndpointCommand}" HorizontalAlignment="Left" AutomationProperties.AutomationId="Providers.CheckEndpoint" />
-                    <Border Background="{StaticResource Brush.SurfaceRaised}" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                    <Border Background="{DynamicResource Brush.SurfaceRaised}" CornerRadius="8" Padding="10" Margin="0,10,0,0">
                         <TextBlock Text="{Binding CapabilityStatus}" TextWrapping="Wrap" Style="{StaticResource Text.Secondary}" AutomationProperties.AutomationId="Providers.CapabilityStatus" />
                     </Border>
                 </StackPanel>
@@ -164,12 +164,15 @@
                         <ComboBoxItem Content="CloudLite" /><ComboBoxItem Content="Balanced" /><ComboBoxItem Content="LocalHybrid" /><ComboBoxItem Content="Custom" />
                     </ComboBox>
                     <TextBlock Margin="0,10,0,2" Style="{StaticResource Text.Label}" Text="Профиль локального AI" />
-                    <ComboBox SelectedIndex="{Binding Settings.LocalAiPerformanceProfile}" AutomationProperties.AutomationId="Providers.LocalAiPerformanceProfile">
-                        <ComboBoxItem Content="Компактный — меньше контекста и задержка" />
-                        <ComboBoxItem Content="Сбалансированный — рекомендуется" />
-                        <ComboBoxItem Content="Качество — больше контекста и времени" />
-                        <ComboBoxItem Content="Пользовательский" />
-                    </ComboBox>
+                    <Slider Minimum="0" Maximum="2" TickFrequency="1" IsSnapToTickEnabled="True"
+                            Value="{Binding Settings.LocalAiPerformanceProfile, UpdateSourceTrigger=PropertyChanged}"
+                            AutomationProperties.AutomationId="Providers.LocalAiPerformanceProfile" />
+                    <Grid Margin="0,0,0,10"><TextBlock Style="{StaticResource Text.Caption}" Text="Экономия · CPU · 2K"/><TextBlock HorizontalAlignment="Center" Style="{StaticResource Text.Caption}" Text="Баланс · 4K"/><TextBlock HorizontalAlignment="Right" Style="{StaticResource Text.Caption}" Text="Качество · 8K"/></Grid>
+                    <TextBlock Style="{StaticResource Text.Label}" Text="Длина ответа" />
+                    <Slider Minimum="0" Maximum="2" TickFrequency="1" IsSnapToTickEnabled="True"
+                            Value="{Binding Settings.LocalAiAnswerLength, UpdateSourceTrigger=PropertyChanged}"
+                            AutomationProperties.AutomationId="Providers.LocalAiAnswerLength" />
+                    <Grid><TextBlock Style="{StaticResource Text.Caption}" Text="Коротко · до 160"/><TextBlock HorizontalAlignment="Center" Style="{StaticResource Text.Caption}" Text="Обычно · до 260"/><TextBlock HorizontalAlignment="Right" Style="{StaticResource Text.Caption}" Text="Подробно · до 420"/></Grid>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Style="{StaticResource Button.Primary}" Content="Сохранить и применить" Command="{Binding SaveSettingsCommand}" Margin="0,6,0,6" AutomationProperties.AutomationId="Providers.Save" />
                     </StackPanel>

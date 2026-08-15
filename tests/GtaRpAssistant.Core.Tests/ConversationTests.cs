@@ -4,6 +4,27 @@ namespace GtaRpAssistant.Core.Tests;
 
 public sealed class ConversationTests
 {
+    [Theory]
+    [InlineData(AssistantRequestType.GeneralConversation)]
+    [InlineData(AssistantRequestType.CurrentSituationQuestion)]
+    [InlineData(AssistantRequestType.ProblemSolving)]
+    public void OpenConversationPolicy_UsesModelForHelpfulManualKnowledgeMisses(AssistantRequestType requestType)
+    {
+        var conversation = new AssistantConversationSnapshot([], null, null);
+
+        Assert.True(AssistantOpenConversationPolicy.CanUseModel(requestType, conversation));
+    }
+
+    [Theory]
+    [InlineData("Мне скучно, поговори со мной.")]
+    [InlineData("Как думаешь, стоит сегодня играть или посмотреть фильм?")]
+    [InlineData("Помоги придумать идею для ролика.")]
+    public void Classifier_RecognizesOpenConversation(string text)
+    {
+        Assert.Equal(AssistantRequestType.GeneralConversation,
+            AssistantRequestClassifier.Classify(text, new([], null, null)));
+    }
+
     [Fact]
     public void Store_RespectsCapacityAndTruncatesTurnData()
     {

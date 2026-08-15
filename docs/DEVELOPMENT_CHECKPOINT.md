@@ -1,5 +1,25 @@
 # GTA RP Assistant — точка продолжения
 
+- Оптимизирован screen-context: прямой GDI downscale без полноразмерного bitmap, adaptive idle backoff до 5 секунд, редкий off-mode wakeup и очистка кадровых буферов.
+- Local AI discovery сделан ленивым и начинается только при первом открытии страницы **AI и модели**; обычный запуск чата больше не проверяет LM Studio/API.
+- Реестр WPF feature pages переведён на lazy creation с кэшированием: неоткрытые страницы и их ViewModel больше не создаются при startup; UI navigation/snapshot contract сохранён.
+- Knowledge rebuild получил SHA-256 fingerprint по составу/версиям и одну SQLite-транзакцию: неизменный каталог пропускает запись индекса, изменённый перестраивается атомарно; schema `user_version=4` добавляет `catalog_metadata`.
+- Собственный `MicroModelHost` остаётся изолированным mock до успешного ADR нового 4B-кандидата; встраивать отклонённые 0.6B/360M модели запрещено quality gate.
+
+## ACTIVE CHECKPOINT — Local AI intelligence Stage 1
+
+Актуально на 15 августа 2026 года; этот раздел дополняет завершённые Smart Assistant Phase 1–4.
+
+- Завершён фактический аудит Local AI: встроенной обязательной Qwen нет; установленная на машине Qwen3-VL 4B Q4_K_M подключается через LM Studio, но во время аудита не была загружена.
+- Устранён архитектурный запрет обычного диалога: ручной knowledge miss для `GeneralConversation` и связанного follow-up теперь проходит через отдельный `open_conversation` mode, bounded context, summary и memory.
+- Строгий GTA grounding не ослаблен: игровые правила/числа/серверные данные остаются facts-only, automatic voice на miss модель не будит.
+- Добавлен 12-case `conversation-model-eval.json` и review-first SFT schema; реальный model latency отложен, потому что во время аудита была запущена GTA5 и свободно только около 5,3 ГБ VRAM.
+- Подробности и измерения: `LOCAL_AI_INTELLIGENCE_STAGE1.md`.
+
+Следующая задача: Phase 5 controlled memory candidate/confirmation flow, затем одинаковый conversation benchmark Qwen3 4B Instruct 2507 и Qwen3-VL 4B при остановленной GTA.
+
+Дополнение текущего среза: Phase 5 candidate/confirmation flow завершена. Кандидаты извлекаются детерминированно только из явных предпочтений, живут 24 часа в RAM, фильтруют чувствительные данные и попадают в SQLite лишь после подтверждения на странице памяти. Balanced target уточнён для 32 ГБ RAM + RTX 3060/4060-класса: text-only 4B Q4 выбирается без VLM, при GTA сохраняется минимум 2,5 ГБ VRAM. Следующая задача — реальный одинаковый model benchmark после остановки GTA, затем read-only tools.
+
 ## ACTIVE CHECKPOINT — Smart Assistant Phase 1–3 и Knowledge Intelligence Phase 4 завершены
 
 Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
@@ -310,6 +330,8 @@
 - соответствующие Core, Provider, App и Integration tests.
 
 ## Завершённый логический этап
+
+Дополнительный UI/performance-аудит 15.08.2026 прошёл по всем feature pages и вспомогательным окнам в серой теме. Compact/expanded overlay и voice confirmation больше не содержат собственной светлой палитры, база знаний заполняет список при первом ленивом открытии, навигация возвращает внутренние scroll viewer к началу страницы, а неактивные действия памяти визуально не выглядят доступными. Получены 12 повторных snapshots; App tests: 66/66, полная сборка: 0 предупреждений и 0 ошибок.
 
 Этап стабилизации Local AI, свободного выбора модели LM Studio, безопасного импорта GGUF и релизной проверки закрыт. Приложение компилируется, проходит все тесты и WPF smoke. Реальный автоматизированный UI E2E подтвердил, что Qwen виден в списке, Nomic Embed отфильтрован, кнопка «Использовать выбранную» проводит capability-test, а выбранная модель и Local Chat route восстанавливаются во втором процессе.
 

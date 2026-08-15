@@ -84,6 +84,7 @@ public sealed record EvaluationCase
     public string Server { get; init; } = "";
     public IReadOnlyList<string> AllowedFactIds { get; init; } = [];
     public bool PromptInjection { get; init; }
+    public string ResponseMode { get; init; } = "grounded_knowledge";
 }
 
 public sealed record EvaluationFact(string Id, string Text, string Server = "");
@@ -198,6 +199,7 @@ public static class BenchmarkValidation
     private static readonly HashSet<string> Tasks = new(StringComparer.Ordinal)
     {
         "intent", "reranking", "grounded_answer", "follow_up", "abstain", "escalation", "prompt_injection",
+        "conversation", "reasoning", "memory_usage", "clarification", "casual_chat",
     };
 
     public static IReadOnlyList<string> Validate(CandidateCatalog catalog)
@@ -239,6 +241,7 @@ public static class BenchmarkValidation
         {
             if (string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.Question)) errors.Add("Every evaluation case needs id and question.");
             if (!Tasks.Contains(item.Task)) errors.Add($"Case '{item.Id}' has unsupported task '{item.Task}'.");
+            if (item.ResponseMode is not ("grounded_knowledge" or "open_conversation")) errors.Add($"Case '{item.Id}' has unsupported responseMode '{item.ResponseMode}'.");
             if (item.Transcript.Count > 6) errors.Add($"Case '{item.Id}' exceeds the 6-line transcript budget.");
             if (item.Facts.Count > 8) errors.Add($"Case '{item.Id}' exceeds the 8-fact budget.");
             if (item.Facts.GroupBy(x => x.Id, StringComparer.Ordinal).Any(x => x.Count() > 1)) errors.Add($"Case '{item.Id}' has duplicate fact ids.");
