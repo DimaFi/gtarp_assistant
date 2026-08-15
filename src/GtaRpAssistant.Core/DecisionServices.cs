@@ -20,11 +20,14 @@ public sealed partial class TranscriptDeduplicator(TimeSpan? window = null, doub
 
     public static string Normalize(string text)
     {
-        var spokenNumbers = SpokenArticleNumberRegex().Replace(text.ToLowerInvariant().Replace('ё', 'е'), match =>
-            $"{NumberWords[match.Groups[1].Value]}.{NumberWords[match.Groups[2].Value]}");
+        var spokenNumbers = CanonicalizeSpokenArticleNumbers(text);
         var normalized = NonWordRegex().Replace(spokenNumbers, " ");
         return WhitespaceRegex().Replace(normalized, " ").Trim();
     }
+
+    public static string CanonicalizeSpokenArticleNumbers(string text) =>
+        SpokenArticleNumberRegex().Replace(text.ToLowerInvariant().Replace('ё', 'е'), match =>
+            $"{NumberWords[match.Groups[1].Value]}.{NumberWords[match.Groups[2].Value]}");
 
     private static readonly IReadOnlyDictionary<string, string> NumberWords = new Dictionary<string, string>(StringComparer.Ordinal)
     {
@@ -55,6 +58,40 @@ public sealed partial class TranscriptDeduplicator(TimeSpan? window = null, doub
     private static partial Regex WhitespaceRegex();
     [GeneratedRegex(@"\b(ноль|один|одна|два|три|четыре|пять|шесть|семь|восемь|девять|десять|одиннадцать|двенадцать|тринадцать|четырнадцать|пятнадцать|шестнадцать|семнадцать|восемнадцать|девятнадцать|двадцать)\s+точка\s+(ноль|один|одна|два|три|четыре|пять|шесть|семь|восемь|девять|десять)\b")]
     private static partial Regex SpokenArticleNumberRegex();
+}
+
+public sealed record LegalArticleReference(string Code, string Number);
+
+public static partial class LegalArticleReferenceExtractor
+{
+    public static IReadOnlyList<LegalArticleReference> Extract(string text)
+    {
+        var canonical = TranscriptDeduplicator.CanonicalizeSpokenArticleNumbers(text);
+        var code = DetectCode(canonical);
+        if (code is null) return [];
+        return ArticleNumberRegex().Matches(canonical)
+            .Select(x => new LegalArticleReference(code, x.Value.Replace(',', '.')))
+            .Distinct()
+            .Take(8)
+            .ToArray();
+    }
+
+    private static string? DetectCode(string value)
+    {
+        var text = value.ToLowerInvariant();
+        if (text.Contains("уголов", StringComparison.Ordinal) || CodeToken(text, "ук")) return "УК";
+        if (text.Contains("процессуал", StringComparison.Ordinal) || CodeToken(text, "пк")) return "ПК";
+        if (text.Contains("административ", StringComparison.Ordinal) || CodeToken(text, "ак")) return "АК";
+        if (text.Contains("дорожн", StringComparison.Ordinal) || CodeToken(text, "дк")) return "ДК";
+        if (text.Contains("трудов", StringComparison.Ordinal) || CodeToken(text, "тк")) return "ТК";
+        if (text.Contains("судебн", StringComparison.Ordinal) || CodeToken(text, "ск")) return "СК";
+        return null;
+    }
+
+    private static bool CodeToken(string text, string code) => Regex.IsMatch(text, $@"(?<![\p{{L}}]){code}(?![\p{{L}}])", RegexOptions.CultureInvariant);
+
+    [GeneratedRegex(@"(?<!\d)\d{1,3}(?:[.,]\d{1,2}){0,2}(?!\d)")]
+    private static partial Regex ArticleNumberRegex();
 }
 
 public sealed class RuleBasedIntentDetector(IEnumerable<string>? gameTerms = null, string wakeWord = "помощник") : IIntentDetector

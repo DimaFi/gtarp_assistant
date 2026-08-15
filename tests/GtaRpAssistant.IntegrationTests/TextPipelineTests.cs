@@ -7,6 +7,40 @@ namespace GtaRpAssistant.IntegrationTests;
 public sealed class TextPipelineTests
 {
     [Fact]
+    public async Task MultipleSpokenEclipseArticles_AreCombinedWithoutAi()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"gta-rp-legal-multi-{Guid.NewGuid():N}.db");
+        try
+        {
+            var source = Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "official", "eclipse-legal-base.json");
+            var articles = await new EclipseLegalReferenceLoader().LoadAsync(source, default);
+            var repository = new SqliteKnowledgeRepository($"Data Source={path}");
+            await repository.InitializeAsync(articles, default);
+            var overlay = new CapturingOverlay();
+            await using var coordinator = new AssistantSessionCoordinator(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector([]), repository,
+                new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), new UnavailableProviderCatalog(), overlay,
+                new TranscriptDeduplicator(), new ProactivePolicy(), new NullEventSink());
+            coordinator.Start(true);
+            var now = DateTimeOffset.UtcNow;
+
+            var answer = await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now,
+                "что означают статьи уголовного кодекса двенадцать точка шесть двенадцать точка один и семнадцать точка четыре", 1),
+                AssistantActivationKind.ManualText, "all", false, false), default);
+
+            Assert.Equal(AnswerDecision.Show, answer!.Decision);
+            Assert.Equal("prepared-answer", answer.ProviderId);
+            Assert.Contains("12.6", answer.Message);
+            Assert.Contains("12.1", answer.Message);
+            Assert.Contains("17.4", answer.Message);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Fact]
     public async Task RealKnowledgeCatalog_AnswersRepresentativeTypedQuestionsWithoutAi()
     {
         var path = Path.Combine(Path.GetTempPath(), $"gta-rp-real-catalog-{Guid.NewGuid():N}.db");

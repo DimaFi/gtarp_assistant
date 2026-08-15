@@ -12,4 +12,7 @@ public sealed class DeduplicatorTests
     [Fact] public void YoAndYe_AreEquivalent() => Assert.Equal(TranscriptDeduplicator.Normalize("Ёлка"), TranscriptDeduplicator.Normalize("елка"));
     [Fact] public void SpokenArticleNumbers_AreNormalizedLikeDigits() =>
         Assert.Equal(TranscriptDeduplicator.Normalize("УК 12.6, 12.1 и 17.4"), TranscriptDeduplicator.Normalize("УК двенадцать точка шесть, двенадцать точка один и семнадцать точка четыре"));
+    [Fact] public void MultipleSpokenCriminalArticles_AreExtracted() =>
+        Assert.Equal([new("УК", "12.6"), new("УК", "12.1"), new("УК", "17.4")],
+            LegalArticleReferenceExtractor.Extract("статьи уголовного кодекса двенадцать точка шесть, двенадцать точка один и семнадцать точка четыре"));
 }

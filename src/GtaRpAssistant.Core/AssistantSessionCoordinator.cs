@@ -187,7 +187,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 ? [conversationGrounding]
                 : inferenceGrounding is not null
                     ? [inferenceGrounding]
-                    : await _knowledge.SearchAsync(new(searchText, request.Server), ct);
+                    : await SearchKnowledgeAsync(searchText, request.Server, ct);
             if (matches.Count == 0 && requestType == AssistantRequestType.FollowUpQuestion && !string.IsNullOrWhiteSpace(relevantConversation.SituationId))
             {
                 var previous = await _knowledge.GetArticleAsync(relevantConversation.SituationId, ct);
@@ -548,6 +548,42 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         {
             ProviderId = prepared ? "prepared-answer" : "knowledge-extractive",
         };
+    }
+
+    private async Task<IReadOnlyList<KnowledgeMatch>> SearchKnowledgeAsync(string searchText, string server, CancellationToken cancellationToken)
+    {
+        var references = LegalArticleReferenceExtractor.Extract(searchText);
+        if (references.Count < 2) return await _knowledge.SearchAsync(new(searchText, server), cancellationToken);
+
+        var selected = new List<KnowledgeMatch>();
+        foreach (var reference in references)
+        {
+            var matches = await _knowledge.SearchAsync(new($"что такое {reference.Code} {reference.Number}", server, 3), cancellationToken);
+            var match = matches.FirstOrDefault(x => x.HasVerifiedPreparedAnswer);
+            if (match is not null && selected.All(x => !string.Equals(x.ArticleId, match.ArticleId, StringComparison.Ordinal))) selected.Add(match);
+        }
+        if (selected.Count != references.Count) return await _knowledge.SearchAsync(new(searchText, server), cancellationToken);
+
+        var facts = selected.SelectMany(x => x.Facts).Where(x => x.Verified).DistinctBy(x => x.Id).ToArray();
+        var lines = selected.Select((x, index) => CompactLegalAnswer(x.PreparedAnswer!, Math.Max(70, 320 / selected.Count))).ToArray();
+        var answer = string.Join(Environment.NewLine, lines);
+        return [new(
+            $"official.eclipse.legal.multi.{string.Join('-', references.Select(x => x.Number.Replace('.', '-')))}",
+            $"Статьи {references[0].Code} Eclipse",
+            1,
+            facts,
+            false,
+            selected.Any(x => x.IsOutdated),
+            answer,
+            true,
+            new(KnowledgeRetrievalMethod.PreparedAnswer, references.Select(x => x.Number).ToArray(), references.Count, 1, false, "multi_legal_exact_match"))];
+    }
+
+    private static string CompactLegalAnswer(string value, int maxLength)
+    {
+        if (value.Length <= maxLength) return value;
+        var boundary = value.LastIndexOf(' ', maxLength);
+        return value[..(boundary > 30 ? boundary : maxLength)].TrimEnd(',', ';', ':', '-', '–') + "…";
     }
 
     private static string FitGroundedMessage(string message, int maxLength)
