@@ -19,6 +19,6 @@ public static class AssistantTokenEstimator
         return FixedPolicyAndSchemaTokens + (int)Math.Ceiling(characters / 3d);
     }
 
-    public static int EstimateOutputBudget(AssistantRequestType requestType) =>
-        requestType == AssistantRequestType.ProblemSolving ? 700 : 420;
+    public static int EstimateOutputBudget(GroundedAnswerRequest request) => request.MaxOutputTokens
+        ?? (request.RequestType == AssistantRequestType.ProblemSolving ? 700 : 420);
 }

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 
 namespace GtaRpAssistant.Core;
@@ -22,6 +21,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IUserPersonalizationContextProvider? _personalization;
     private readonly IScreenContextStore? _screenContext;
     private readonly IAnswerCache? _answerCache;
+    private readonly IAssistantContextBuilder _contextBuilder;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -42,7 +42,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         IAssistantConversationStore? conversation = null,
         IUserPersonalizationContextProvider? personalization = null,
         IScreenContextStore? screenContext = null,
-        IAnswerCache? answerCache = null)
+        IAnswerCache? answerCache = null,
+        IAssistantContextBuilder? contextBuilder = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -59,6 +60,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _personalization = personalization;
         _screenContext = screenContext;
         _answerCache = answerCache;
+        _contextBuilder = contextBuilder ?? new AssistantContextBuilder();
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -251,19 +253,28 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 else
                 {
                     answer = Abstain("All configured providers failed");
-                    var verifiedFacts = GroundingContextSelector.Select(entry.Text, match.Facts);
+                    var builtContext = _contextBuilder.Build(new(
+                        entry.Text,
+                        request.Server,
+                        match,
+                        context,
+                        requestType,
+                        relevantConversation.Turns,
+                        personalization));
+                    metrics.ContextTrimmed = builtContext.WasTrimmed;
+                    metrics.ContextTargetInputTokens = builtContext.Budget.TargetInputTokens;
                     foreach (var provider in providers)
                     {
                         try
                         {
-                            var groundedRequest = new GroundedAnswerRequest(entry.Text, verifiedFacts, request.Server, FormatContext(context), requestType, relevantConversation.Turns, personalization);
+                            var groundedRequest = builtContext.Request;
                             metrics.RecordLlmCall(groundedRequest);
                             var response = await provider.CreateGroundedAnswerAsync(groundedRequest, ct);
                             var candidate = _validator.Validate(response.Json, match, request.Server, request.VoiceEnabled);
                             if (candidate.DiagnosticReason != GroundedAnswerValidator.PassedReason)
                             {
                                 _events.Write(new(DateTimeOffset.UtcNow, "Provider response rejected; repairing", State, $"{provider.Id}:{candidate.DiagnosticReason}"));
-                                var repairRequest = groundedRequest with { IsRepair = true, InvalidResponse = Limit(response.Json, 2000) };
+                                var repairRequest = groundedRequest with { IsRepair = true, InvalidResponse = Limit(response.Json, 900) };
                                 metrics.RepairCalls++;
                                 metrics.RecordLlmCall(repairRequest);
                                 var repaired = await provider.CreateGroundedAnswerAsync(repairRequest, ct);
@@ -408,6 +419,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         public int RepairCalls { get; set; }
         public int EstimatedInputTokens { get; private set; }
         public int EstimatedOutputBudgetTokens { get; private set; }
+        public bool ContextTrimmed { get; set; }
+        public int ContextTargetInputTokens { get; set; }
 
         public void SetRoute(string route, string reason)
         {
@@ -419,7 +432,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         {
             LlmCalls++;
             EstimatedInputTokens += AssistantTokenEstimator.EstimateInput(request);
-            EstimatedOutputBudgetTokens += AssistantTokenEstimator.EstimateOutputBudget(request.RequestType);
+            EstimatedOutputBudgetTokens += AssistantTokenEstimator.EstimateOutputBudget(request);
         }
 
         public AssistantRequestMetrics Complete() => new(
@@ -433,6 +446,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             RepairCalls,
             EstimatedInputTokens,
             EstimatedOutputBudgetTokens,
+            ContextTrimmed,
+            ContextTargetInputTokens,
             LlmCalls == 0,
             Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds);
     }
@@ -476,17 +491,6 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         if (boundary < maxLength / 2) boundary = maxLength;
         return message[..boundary].TrimEnd(' ', ',', ';', ':', '-', '–') + "…";
     }
-    private static string FormatContext(TranscriptContext context)
-    {
-        var result = new StringBuilder();
-        foreach (var entry in context.Entries)
-        {
-            var source = entry.Source == AudioSourceKind.UserMicrophone ? "USER_MIC" : "GAME_AUDIO";
-            result.Append('[').Append(source).Append(' ').Append(entry.StartedAt.ToString("HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)).Append("] ").AppendLine(entry.Text);
-        }
-        return result.ToString();
-    }
-
     private static object AbstainPayload() => new { decision = "abstain", title = GroundedAnswerValidator.SafeAbstainTitle, message = GroundedAnswerValidator.SafeAbstainMessage, usedFactIds = Array.Empty<string>(), needsScreen = false, canSpeak = false };
     private static AssistantAnswer Abstain(string reason) => new(AnswerDecision.Abstain, GroundedAnswerValidator.SafeAbstainTitle, GroundedAnswerValidator.SafeAbstainMessage, [], null, null, false, reason);
     private static string Limit(string value, int maxLength) => value.Length <= maxLength ? value : value[..maxLength];

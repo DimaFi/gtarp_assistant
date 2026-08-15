@@ -7,6 +7,7 @@ Source code is authoritative. Use this file to locate a component, then inspect 
 | Composition root | WPF startup and dependency wiring | `src/GtaRpAssistant.App/App.xaml.cs` | `App`, `ConfigureServices` |
 | Answer pipeline | Single-flight question processing, retrieval, routing and grounding | `src/GtaRpAssistant.Core/AssistantSessionCoordinator.cs` | `AssistantSessionCoordinator` |
 | Intent and context | Local intent classification and relevant transcript selection | `src/GtaRpAssistant.Core/DecisionServices.cs` | `RuleBasedIntentDetector`, `ContextSelector`, `AssistantConversationGrounding` |
+| Model context budget | Bounded verified facts, transcript, turns, memory and output cap | `src/GtaRpAssistant.Core/AssistantContextBuilder.cs` | `IAssistantContextBuilder`, `AssistantContextBuilder`, `AssistantContextBudget` |
 | Knowledge storage | SQLite exact/prepared/FTS retrieval | `src/GtaRpAssistant.Knowledge/SqliteKnowledgeRepository.cs` | `SqliteKnowledgeRepository` |
 | Chat providers | Independent local/cloud chat route construction | `src/GtaRpAssistant.App/ChatProviderCatalog.cs` | `ChatProviderCatalog` |
 | Local AI management | LM Studio discovery, model download/load/import and resource policy | `src/GtaRpAssistant.Infrastructure.Windows/LocalAiEngineManager.cs` | `LmStudioEngineAdapter`, `LocalAiEngineManager` |

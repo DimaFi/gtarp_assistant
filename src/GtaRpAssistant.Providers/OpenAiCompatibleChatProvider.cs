@@ -99,7 +99,9 @@ public sealed class OpenAiCompatibleChatProvider : IChatProvider, IModelIdentifi
         {
             ["model"] = _options.ModelId,
             ["temperature"] = 0,
-            ["max_tokens"] = _options.MaxOutputTokens ?? (request.RequestType == AssistantRequestType.ProblemSolving ? 700 : 420),
+            ["max_tokens"] = Math.Min(
+                _options.MaxOutputTokens ?? (request.RequestType == AssistantRequestType.ProblemSolving ? 700 : 420),
+                request.MaxOutputTokens ?? int.MaxValue),
             ["response_format"] = GroundedResponseFormat,
             ["messages"] = new object[]
             {

@@ -40,7 +40,8 @@ public sealed record GroundedAnswerRequest(
     IReadOnlyList<AssistantConversationTurn>? Conversation = null,
     UserPersonalizationContext? Personalization = null,
     bool IsRepair = false,
-    string? InvalidResponse = null);
+    string? InvalidResponse = null,
+    int? MaxOutputTokens = null);
 public sealed record GroundedAnswerResponse(string Json);
 public sealed record KnowledgeQuery(string Text, string Server = "all", int Limit = 5);
 public sealed record KnowledgeArticle(string Id, string Title, IReadOnlyList<KnowledgeFact> Facts, DateTimeOffset UpdatedAt, bool Verified, bool Demo);
@@ -85,6 +86,8 @@ public sealed record AssistantRequestMetrics(
     int RepairCalls,
     int EstimatedInputTokens,
     int EstimatedOutputBudgetTokens,
+    bool ContextTrimmed,
+    int ContextTargetInputTokens,
     bool AvoidedLlm,
     double DurationMilliseconds);
 public sealed record SessionEvent(DateTimeOffset Timestamp, string Name, AssistantSessionState State, string? Detail = null);

@@ -31,6 +31,24 @@ public sealed class ProviderTests
         await provider.CreateGroundedAnswerAsync(new("q", [], "all", ""), default);
     }
     [Fact]
+    public async Task RequestBudget_CanLowerButNotRaiseConfiguredOutputLimit()
+    {
+        var bodies = new List<string>();
+        var handler = new FakeHandler(async (request, _) =>
+        {
+            bodies.Add(await request.Content!.ReadAsStringAsync());
+            return Json("{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}");
+        });
+        var provider = new OpenAiCompatibleChatProvider(new HttpClient(handler),
+            new(new Uri("http://127.0.0.1:1234/v1"), "model", IsLocal: true, MaxOutputTokens: 150));
+
+        await provider.CreateGroundedAnswerAsync(new("q", [], "all", "", MaxOutputTokens: 90), default);
+        await provider.CreateGroundedAnswerAsync(new("q", [], "all", "", MaxOutputTokens: 300), default);
+
+        Assert.Contains("\"max_tokens\":90", bodies[0]);
+        Assert.Contains("\"max_tokens\":150", bodies[1]);
+    }
+    [Fact]
     public async Task Personalization_IsSentToLocalProviderOnly()
     {
         var memory = new UserPersonalizationContext(

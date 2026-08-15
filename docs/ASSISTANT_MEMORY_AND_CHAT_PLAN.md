@@ -127,6 +127,11 @@ UI и coordinator не обращаются к SQLite напрямую. Пере
 
 ### M6 — ContextBuilder и персонализация — базовый срез завершён
 
+- [x] единый `AssistantContextBuilder` с Balanced input target 1600 tokens и раздельными hard budgets для facts/transcript/turns/memory;
+- [x] request-level output cap 300 tokens, для problem solving 450; профиль модели может дополнительно понизить лимит;
+- [x] текущий вопрос не дублируется внутри untrusted transcript context;
+- [ ] rolling summary старой части диалога и structured session situation state;
+
 - [x] recent turns + до 8 релевантных подтверждённых memories + verified knowledge;
 - [x] память передаётся только локальному AI provider; cloud routes её не получают;
 - [ ] summary старой части диалога и расширенное ранжирование;
