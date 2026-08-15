@@ -78,7 +78,7 @@
 
 ## Phase 4 — Knowledge Intelligence
 
-**Прогресс.** Срез 4A реализован: каждый exact/alias/FTS match получает `KnowledgeRelevanceDiagnostics` с методом retrieval, покрытием терминов, score margin и причиной low confidence. `ISemanticReranker` вызывается только для неоднозначного FTS, только при наличии Embeddings lease и может лишь переупорядочить уже найденные статьи — verified facts он заменить не может. В production адаптер embeddings пока не зарегистрирован, поэтому baseline остаётся SQLite-only и не потребляет дополнительную память. Product benchmark считает semantic-rerank candidates. Следующий срез — локальный embedding adapter и offline relevance dataset gate.
+**Прогресс.** Срезы 4A–4B реализованы: каждый exact/alias/FTS match получает diagnostics, а неоднозначный FTS при наличии Embeddings lease может использовать зарегистрированный локальный OpenAI-compatible adapter. Вызов batch-ограничен, документы имеют bounded RAM-cache, endpoint обязан быть loopback, а сбой сохраняет исходный FTS order. `SemanticRerankPolicy` по-прежнему может переставить только существующие статьи и не меняет verified facts. Добавлен offline paraphrase dataset/gate: semantic top-1 не может регрессировать относительно lexical baseline или выбирать forbidden article. Без указанной embedding-модели baseline остаётся SQLite-only и не потребляет дополнительную память. Phase 4 завершена.
 
 **Цель.** Повысить recall локальной базы, не превращая embeddings в обязательную нагрузку.
 

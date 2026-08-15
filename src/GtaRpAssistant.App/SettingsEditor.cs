@@ -6,6 +6,7 @@ public sealed class SettingsEditor : ObservableObject
     private string _endpoint = "http://127.0.0.1:1234/v1";
     private string _model = "local-model";
     private string _sttModel = "whisper-1";
+    private string _embeddingModel = "";
     private string _cloudEndpoint = "";
     private string _cloudModel = "";
     private string _overlaySeconds = "8";
@@ -50,6 +51,7 @@ public sealed class SettingsEditor : ObservableObject
     public string Endpoint { get => _endpoint; set => Set(ref _endpoint, value); }
     public string Model { get => _model; set => Set(ref _model, value); }
     public string SttModel { get => _sttModel; set => Set(ref _sttModel, value); }
+    public string EmbeddingModel { get => _embeddingModel; set => Set(ref _embeddingModel, value); }
     public string CloudEndpoint { get => _cloudEndpoint; set => Set(ref _cloudEndpoint, value); }
     public string CloudModel { get => _cloudModel; set => Set(ref _cloudModel, value); }
     public string OverlaySeconds { get => _overlaySeconds; set => Set(ref _overlaySeconds, value); }
@@ -96,7 +98,7 @@ public sealed class SettingsEditor : ObservableObject
         var routes = value.ProviderRouting!;
         return new()
         {
-        Server = value.Server, Endpoint = value.Endpoint, Model = value.Model, SttModel = value.SttModel,
+        Server = value.Server, Endpoint = value.Endpoint, Model = value.Model, SttModel = value.SttModel, EmbeddingModel = value.EmbeddingModel,
         CloudEndpoint = value.CloudEndpoint, CloudModel = value.CloudModel, OverlaySeconds = value.OverlaySeconds.ToString(System.Globalization.CultureInfo.InvariantCulture),
         PerformanceProfile = value.PerformanceProfile, ProactiveMode = value.ProactiveMode, AllowCloud = value.AllowCloud, WatchGta = value.WatchGta,
         EnableGameAudio = value.EnableGameAudio, PreferProcessLoopback = value.PreferProcessLoopback, StartWithWindows = value.StartWithWindows,
@@ -124,7 +126,7 @@ public sealed class SettingsEditor : ObservableObject
         var routes = previous.ProviderRouting!;
         var updated = previous with
         {
-        Server = string.IsNullOrWhiteSpace(Server) ? "all" : Server.Trim(), Endpoint = Endpoint.Trim(), Model = Model.Trim(), SttModel = SttModel.Trim(),
+        Server = string.IsNullOrWhiteSpace(Server) ? "all" : Server.Trim(), Endpoint = Endpoint.Trim(), Model = Model.Trim(), SttModel = SttModel.Trim(), EmbeddingModel = EmbeddingModel.Trim(),
         CloudEndpoint = CloudEndpoint.Trim(), CloudModel = CloudModel.Trim(), OverlaySeconds = int.TryParse(OverlaySeconds, out var seconds) ? Math.Clamp(seconds, 2, 60) : 8,
         PerformanceProfile = PerformanceProfile, ProactiveMode = ProactiveMode, AllowCloud = AllowCloud, WatchGta = WatchGta,
         EnableGameAudio = EnableGameAudio, PreferProcessLoopback = PreferProcessLoopback, StartWithWindows = StartWithWindows,

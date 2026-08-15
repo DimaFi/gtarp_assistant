@@ -184,6 +184,27 @@ public sealed class ProviderTests
         Assert.Equal("Видно игровое меню", result.Text);
     }
 
+    [Fact]
+    public async Task Embeddings_BatchesInputsAndRestoresResponseOrder()
+    {
+        var handler = new FakeHandler(async (request, _) =>
+        {
+            using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync());
+            Assert.Equal("embed-model", body.RootElement.GetProperty("model").GetString());
+            Assert.Equal(2, body.RootElement.GetProperty("input").GetArrayLength());
+            return Json("{\"data\":[{\"index\":1,\"embedding\":[0,1]},{\"index\":0,\"embedding\":[1,0]}]}");
+        });
+        var provider = new OpenAiCompatibleEmbeddingProvider(new HttpClient(handler),
+            new(new Uri("http://127.0.0.1:1234/v1"), "embed-model"));
+
+        var vectors = await provider.EmbedAsync(["one", "two"], default);
+
+        Assert.Equal(new float[] { 1, 0 }, vectors[0].ToArray());
+        Assert.Equal(new float[] { 0, 1 }, vectors[1].ToArray());
+        Assert.True(provider.Capabilities.IsLocal);
+        Assert.True(provider.Capabilities.SupportsEmbeddings);
+    }
+
     private static OpenAiCompatibleChatProvider Provider(Func<HttpRequestMessage, HttpResponseMessage> handler) => new(new HttpClient(new FakeHandler((r, _) => Task.FromResult(handler(r)))), new(new Uri("http://127.0.0.1:1234/v1"), "model", Timeout: TimeSpan.FromSeconds(1)));
     private static OpenAiCompatibleChatProvider Provider(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) => new(new HttpClient(new FakeHandler(handler)), new(new Uri("http://127.0.0.1:1234/v1"), "model", Timeout: TimeSpan.FromSeconds(1)));
     private static HttpResponseMessage Json(string value) => new(HttpStatusCode.OK) { Content = new StringContent(value, Encoding.UTF8, "application/json") };

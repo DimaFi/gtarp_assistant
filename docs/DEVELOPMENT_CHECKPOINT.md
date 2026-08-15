@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — Smart Assistant Phase 1–3 и Knowledge Intelligence Phase 4A завершены
+## ACTIVE CHECKPOINT — Smart Assistant Phase 1–3 и Knowledge Intelligence Phase 4 завершены
 
 Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
 
@@ -23,12 +23,13 @@
 - Ручной screen/photo Vision получает профильный idle TTL, поэтому JIT-загруженная VLM не остаётся в памяти бесконечно.
 - На NVIDIA total/free VRAM читается через `nvidia-smi` не чаще раза в 30 секунд с timeout 750 мс; на других GPU значение остаётся unknown и решение опирается на RAM.
 - SQLite retrieval теперь сообщает exact/alias/FTS method, matched terms, score margin и low-confidence reason.
-- Optional semantic reranker запускается только для неоднозначного FTS и при Embeddings lease; он может переупорядочить только существующие article IDs и не меняет verified facts. Production embedding adapter пока не зарегистрирован.
+- Optional semantic reranker запускается только для неоднозначного FTS и при Embeddings lease; production adapter использует отдельную локальную OpenAI-compatible embedding-модель через loopback, batch до 16 текстов и bounded cache до 128 документов. Ошибка прозрачно сохраняет FTS order; verified facts не меняются.
+- Добавлен versioned settings migration и поле `Embedding Model ID` в расширенных настройках. Пустое поле оставляет SQLite-only baseline с нулевой дополнительной RAM; offline paraphrase gate запрещает регрессию top-1 и forbidden result.
 - Исправлен показанный пользователем тупиковый диалог: широкий вопрос о старте заработка получает явно обозначенное предположение о новичке и полезный общий план; follow-up «что тебе нужно?» сохраняет исходную цель и не блокирует ответ обязательными уточнениями.
 - STT больше не показывает бесполезный `InvalidOperationException`: сохраняется сообщение последнего provider, manual voice корректно отменяется, а UI объясняет, что речь не распознана.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
-Следующая задача: Phase 4B — локальный embedding adapter и offline relevance gate, после чего Phase 5 Tool Runtime. Отдельно требуется governance-проверка просроченных knowledge sources.
+Следующая задача: Phase 5 — controlled memory candidate flow, затем ограниченный Tool Runtime. Отдельно требуется governance-проверка просроченных knowledge sources.
 
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 

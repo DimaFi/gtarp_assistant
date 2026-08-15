@@ -4,16 +4,17 @@ namespace GtaRpAssistant.App;
 
 public static class ProviderSettingsMigration
 {
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
     public const string LocalChatId = "legacy-local-chat";
     public const string CloudChatId = "legacy-cloud-chat";
     public const string LocalSttId = "legacy-local-stt";
     public const string CloudSttId = "legacy-cloud-stt";
     public const string LocalVisionId = "legacy-local-vision";
+    public const string LocalEmbeddingId = "legacy-local-embeddings";
     public const string CloudVisionId = "legacy-cloud-vision";
     public const string WindowsTtsId = "windows-tts";
     private static readonly HashSet<string> LegacyIds = new([
-        LocalChatId, CloudChatId, LocalSttId, CloudSttId, LocalVisionId, CloudVisionId, WindowsTtsId,
+        LocalChatId, CloudChatId, LocalSttId, CloudSttId, LocalVisionId, CloudVisionId, LocalEmbeddingId, WindowsTtsId,
     ], StringComparer.OrdinalIgnoreCase);
 
     public static AppSettings Migrate(AppSettings settings)
@@ -44,11 +45,13 @@ public static class ProviderSettingsMigration
         string? stt = null;
         string? localVision = null;
         string? cloudVision = null;
+        string? localEmbedding = null;
 
         if (endpoint is { IsLoopback: true })
         {
             localChat = AddConnection(connections, LocalChatId, "Legacy local Chat", endpoint, settings.Model, "chat-provider-api-key", true);
             localVision = AddConnection(connections, LocalVisionId, "Legacy local Vision", endpoint, VisionModel(settings, settings.Model), "chat-provider-api-key", true);
+            localEmbedding = AddConnection(connections, LocalEmbeddingId, "Local embeddings", endpoint, settings.EmbeddingModel, "chat-provider-api-key", true);
         }
         else if (endpoint is not null && settings.AllowCloud && endpoint.Scheme == Uri.UriSchemeHttps)
         {
@@ -79,7 +82,7 @@ public static class ProviderSettingsMigration
             TextToSpeech = settings.VoiceMode == 1
                 ? new() { Mode = ProviderSelectionMode.Local, PrimaryProviderId = WindowsTtsId }
                 : new(),
-            Embeddings = new(),
+            Embeddings = SingleRoute(localEmbedding, true),
             SituationClassification = new(),
         };
 
@@ -109,6 +112,7 @@ public static class ProviderSettingsMigration
                 Chat = MergeRoute(current.Chat, legacy.Chat),
                 Vision = MergeRoute(current.Vision, legacy.Vision),
                 TextToSpeech = MergeRoute(current.TextToSpeech, legacy.TextToSpeech),
+                Embeddings = MergeRoute(current.Embeddings, legacy.Embeddings),
             },
         };
     }
@@ -164,7 +168,7 @@ public static class ProviderSettingsMigration
     {
         var connections = settings.ProviderConnections!
             .Where(connection => !string.Equals(connection.Id, LocalSttId, StringComparison.OrdinalIgnoreCase))
-            .ToArray();
+            .ToList();
         var routing = settings.ProviderRouting!;
         var stt = routing.SpeechToText;
         if (string.Equals(stt.PrimaryProviderId, LocalSttId, StringComparison.OrdinalIgnoreCase))
@@ -185,11 +189,20 @@ public static class ProviderSettingsMigration
                     .ToArray(),
             };
         }
+        var embeddings = routing.Embeddings;
+        var endpoint = ParseEndpoint(settings.Endpoint);
+        if (!string.IsNullOrWhiteSpace(settings.EmbeddingModel) && endpoint is { IsLoopback: true }
+            && connections.All(x => !string.Equals(x.Id, LocalEmbeddingId, StringComparison.OrdinalIgnoreCase)))
+        {
+            _ = AddConnection(connections, LocalEmbeddingId, "Local embeddings", endpoint, settings.EmbeddingModel, "chat-provider-api-key", true);
+            if (embeddings.Mode == ProviderSelectionMode.Disabled)
+                embeddings = new() { Mode = ProviderSelectionMode.Local, PrimaryProviderId = LocalEmbeddingId };
+        }
         return settings with
         {
             ProviderSettingsVersion = CurrentVersion,
-            ProviderConnections = connections,
-            ProviderRouting = routing with { SpeechToText = stt },
+            ProviderConnections = connections.ToArray(),
+            ProviderRouting = routing with { SpeechToText = stt, Embeddings = embeddings },
         };
     }
 }

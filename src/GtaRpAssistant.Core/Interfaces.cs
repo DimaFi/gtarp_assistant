@@ -35,6 +35,7 @@ public interface IAiRouter
     AnswerRoute Select(AiRoutingContext context);
 }
 public interface IEmbeddingProvider : IAiProvider { Task<ReadOnlyMemory<float>> EmbedAsync(string text, CancellationToken cancellationToken); }
+public interface IBatchEmbeddingProvider : IEmbeddingProvider { Task<IReadOnlyList<ReadOnlyMemory<float>>> EmbedAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken); }
 public interface IGameProcessDetector { Task<GameProcessInfo?> FindAsync(GameProfile profile, CancellationToken cancellationToken); }
 public interface IChatProviderCatalog { Task<ChatProviderAvailability> GetAvailabilityAsync(CancellationToken cancellationToken); }
 public interface IVisionProvider : IAiProvider { Task<VisionAnalysisResult> AnalyzeAsync(VisionAnalysisRequest request, CancellationToken cancellationToken); }

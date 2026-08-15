@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "minimumTop1Rate": 1.0,
+  "cases": [
+    { "query": "хочу возить людей по городу", "expected": "taxi", "distractor": "business", "expectedText": "работа таксиста и перевозка пассажиров", "distractorText": "покупка и управление бизнесом" },
+    { "query": "где трудиться без своей машины", "expected": "starter-job", "distractor": "car-market", "expectedText": "стартовая работа для новичка без транспорта", "distractorText": "рынок покупки личного автомобиля" },
+    { "query": "как не нарушить правила семьи", "expected": "family-rules", "distractor": "family-contract", "expectedText": "правила поведения участника семьи", "distractorText": "семейный контракт и награды" },
+    { "query": "меня ограбили что делать", "expected": "robbery-help", "distractor": "robbery-guide", "expectedText": "безопасные действия жертвы ограбления", "distractorText": "требования к проведению ограбления" }
+  ]
+}

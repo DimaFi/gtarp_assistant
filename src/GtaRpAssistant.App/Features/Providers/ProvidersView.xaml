@@ -118,6 +118,8 @@
                         <StackPanel><TextBlock Style="{StaticResource Text.Label}" Text="Chat Model ID" /><ComboBox ItemsSource="{Binding AvailableModels}" Text="{Binding PendingModelKey, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" IsTextSearchEnabled="True" AutomationProperties.AutomationId="Providers.ChatModel" /></StackPanel>
                         <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource Text.Label}" Text="STT Model ID" /><TextBox Text="{Binding Settings.SttModel}" AutomationProperties.AutomationId="Providers.SttModel" /></StackPanel>
                     </Grid>
+                    <TextBlock Margin="0,10,0,2" Style="{StaticResource Text.Label}" Text="Embedding Model ID (необязательно)" />
+                    <TextBox Text="{Binding Settings.EmbeddingModel}" ToolTip="Локальная embedding-модель LM Studio; запускается только для неоднозначного поиска и вне игры" AutomationProperties.AutomationId="Providers.EmbeddingModel" />
                     <TextBlock Style="{StaticResource Text.Label}" Text="API key — DPAPI CurrentUser" />
                     <PasswordBox components:PasswordBoxBinding.IsEnabled="True" components:PasswordBoxBinding.Password="{Binding ApiKey, Mode=TwoWay}" AutomationProperties.AutomationId="Providers.ApiKey" />
                     <Button Content="Проверить endpoint" Command="{Binding CheckEndpointCommand}" HorizontalAlignment="Left" AutomationProperties.AutomationId="Providers.CheckEndpoint" />

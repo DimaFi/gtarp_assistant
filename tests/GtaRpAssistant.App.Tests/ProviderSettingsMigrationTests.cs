@@ -116,6 +116,23 @@ public sealed class ProviderSettingsMigrationTests
     }
 
     [Fact]
+    public void LocalEmbeddingModel_CreatesIndependentLocalOnlyRoute()
+    {
+        var original = ProviderSettingsMigration.Migrate(new AppSettings());
+        var editor = SettingsEditor.From(original);
+        editor.EmbeddingModel = "nomic-embed-text";
+        editor.EmbeddingsProviderMode = (int)ProviderSelectionMode.Local;
+
+        var updated = editor.ToSettings(null, null, original);
+
+        var connection = Assert.Single(updated.ProviderConnections!, x => x.Id == ProviderSettingsMigration.LocalEmbeddingId);
+        Assert.True(connection.IsLocal);
+        Assert.True(connection.BaseUri.IsLoopback);
+        Assert.Equal("nomic-embed-text", connection.ModelId);
+        Assert.Equal(ProviderSettingsMigration.LocalEmbeddingId, updated.ProviderRouting!.Embeddings.PrimaryProviderId);
+    }
+
+    [Fact]
     public async Task SettingsService_LoadPersistsVersionedMigration()
     {
         var directory = Path.Combine(Path.GetTempPath(), "gta-rp-settings-test-" + Guid.NewGuid().ToString("N"));

@@ -15,6 +15,7 @@ public sealed record AppSettings(
     bool WatchGta = true,
     string? MicrophoneDeviceId = null,
     string SttModel = "whisper-1",
+    string EmbeddingModel = "",
     string? RenderDeviceId = null,
     bool EnableGameAudio = false,
     bool PreferProcessLoopback = true,

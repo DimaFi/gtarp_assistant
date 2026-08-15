@@ -26,6 +26,7 @@
 - подтверждение, что GameAudio никогда не активирует overlay;
 - CloudLite/Balanced/LocalHybrid под нагрузкой и деградация game-audio STT;
 - независимо переключить STT/Chat/Vision/TTS/Embeddings между Disabled/Cloud/Local/Automatic/Custom и убедиться, что изменение одного route не меняет остальные или PerformanceProfile;
+- в расширенных настройках оставить `Embedding Model ID` пустым и убедиться, что обычный поиск работает без загрузки модели; затем указать локальную embedding-модель, выбрать Embeddings=Local и проверить, что неоднозначный запрос не падает при остановленном endpoint и не запускает embeddings при работающей GTA;
 - установить embedded STT pack в стандартный и нестандартный Unicode/space path; проверить valid/corrupted manifest, приоритет локального provider, fallback без пака, повторное использование PID, cancel/timeout kill и idle unload;
 - загрузить старый `settings.json`, проверить появление `ProviderSettingsVersion`, `ProviderConnections` и `ProviderRouting`, сохранение DPAPI references и прежнего cloud opt-in;
 - proactive cooldown: 1/мин, 3/10 мин, topic 2 мин, DND 5 мин/session;

@@ -65,6 +65,7 @@ Release-папка также содержит user-scope скрипты install
 - миграция ошибочных старых STT-настроек: chat-модель LM Studio больше не назначается распознавателем речи; portable STT-пак автоматически обнаруживается рядом с приложением;
 - SQLite/FTS5 knowledge packs, exact/prepared answers, server scope, conflict/outdated checks;
 - provider capabilities/registry и независимые primary/fallback routes для STT, Chat, Vision, TTS и Embeddings;
+- опциональный локальный semantic rerank: неоднозначный FTS-запрос можно перепроверить отдельной embedding-моделью LM Studio; точный поиск остаётся быстрым SQLite-only baseline;
 - версионированная миграция старых endpoint/model-настроек без потери явного cloud opt-in;
 - deterministic → configured Chat route → grounded validator → abstain routing;
 - validator fact IDs, чисел, URL и запрещённой автоматизации;

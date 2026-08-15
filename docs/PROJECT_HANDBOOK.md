@@ -86,6 +86,8 @@ Knowledge и пользовательская история принципиа�
 
 STT, Chat, Vision, TTS и Embeddings имеют независимые маршруты и режимы. `PerformanceProfile` ограничивает ресурсы, но не подменяет выбор local/cloud. Cloud недоступен без явного opt-in.
 
+Semantic rerank реализован отдельной цепочкой `LocalEmbeddingSemanticReranker` → `OpenAiCompatibleEmbeddingProvider` → `EmbeddingSemanticReranker`. Она строится лениво из Embeddings route, принимает только local loopback connection, имеет 30-секундный health cache и при любой recoverable ошибке возвращает пустые scores, сохраняя исходный FTS order.
+
 LM Studio — внешний backend, а не обязательная часть приложения. Пользователь может указать нестандартные пути к `lms.exe`/`LM Studio.exe`, выбрать установленную chat-модель или импортировать GGUF. Новая модель становится активной только после capability-test; прежний маршрут сохраняется при провале.
 
 Embedded STT — отдельный `whisper.cpp` provider в `Infrastructure.Windows`, а не часть LM Studio. `EmbeddedSttPackLocator` проверяет manifest/size/SHA; `WhisperCppSpeechToTextProvider` владеет loopback process, single request, timeout/cancel/memory watchdog и idle unload. Pack строится/устанавливается отдельными `eng/build-stt-pack.ps1` и `eng/install-stt-pack.ps1`, не входит в основной ZIP до PASS русского gate. `GtaRpAssistant.SttBenchmark` записывает consent-based датасет, считает WER/term recall и валидирует отчёты; `eng/compare-stt-candidates.ps1` гарантирует одинаковый dataset SHA/cases, выбирает кандидата по зафиксированной политике и запускает lifecycle только после PASS. Подробности: `EMBEDDED_STT.md`.

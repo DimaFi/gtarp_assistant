@@ -152,6 +152,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<ILocalAiEngineAdapter, LmStudioEngineAdapter>();
         services.AddSingleton<ILocalAiEngineManager, LocalAiEngineManager>();
         services.AddSingleton<IResourceBudgetCoordinator, ResourceBudgetCoordinator>();
+        services.AddSingleton<ISemanticReranker, LocalEmbeddingSemanticReranker>();
         services.AddSingleton<IVideoMemoryTelemetry, NvidiaSmiVideoMemoryTelemetry>();
         services.AddSingleton<IHardwareTelemetry, WindowsHardwareTelemetry>();
         services.AddSingleton<ILocalAiBootstrapInstaller, LmStudioBootstrapInstaller>();
