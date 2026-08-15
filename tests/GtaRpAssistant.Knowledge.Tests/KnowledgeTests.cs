@@ -295,6 +295,26 @@ public sealed class KnowledgeTests : IAsyncLifetime
         Assert.Contains("УК 17.4", match.PreparedAnswer, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("что такое ук 12.1", "official.eclipse.legal.criminal.12-1")]
+    [InlineData("что означает статья 17.4 ук", "official.eclipse.legal.criminal.17-4")]
+    [InlineData("что такое дк 40", "official.eclipse.legal.road.40")]
+    [InlineData("что означает статья 6.2 ук", "official.eclipse.legal.criminal.6-2")]
+    public async Task EclipseLegalBase_IndexesEveryArticleSeparately(string question, string expectedId)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "official", "eclipse-legal-base.json");
+        var articles = await new EclipseLegalReferenceLoader().LoadAsync(path, default);
+        Assert.True(articles.Count > 300, $"Expected full legal index, got {articles.Count} articles.");
+        await Repository.InitializeAsync(articles, default);
+
+        var match = (await Repository.SearchAsync(new(question), default)).First();
+
+        Assert.Equal(expectedId, match.ArticleId);
+        Assert.True(match.HasVerifiedPreparedAnswer);
+        Assert.NotNull(match.PreparedAnswer);
+        Assert.True(match.PreparedAnswer!.Length <= 350);
+    }
+
     [Fact]
     public async Task CommunityReference_LoadsLargeStructuredCatalogWithPlayerLabel()
     {

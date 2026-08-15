@@ -54,7 +54,9 @@ public sealed class KnowledgeCatalogService
     {
         var official = await new KnowledgePackLoader().LoadAsync(Path.Combine(AppContext.BaseDirectory, "knowledge", "packs", "gta5rp"), cancellationToken);
         var community = await new CommunityReferenceLoader().LoadAsync(Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "community"), cancellationToken);
-        _builtIn = official.Concat(community).ToArray();
+        var eclipseLegal = await new EclipseLegalReferenceLoader().LoadAsync(
+            Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "official", "eclipse-legal-base.json"), cancellationToken);
+        _builtIn = official.Concat(community).Concat(eclipseLegal).GroupBy(x => x.Id, StringComparer.Ordinal).Select(x => x.Last()).ToArray();
         await LoadStateAsync(cancellationToken);
         await ReindexAsync(cancellationToken);
         _logger.LogInformation("Knowledge catalog initialized; total={Total}; imported={Imported}; disabled={Disabled}", AllArticles.Count, _imported.Count, _disabled.Count);
