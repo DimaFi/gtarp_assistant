@@ -333,7 +333,7 @@ Web используется лишь когда вопрос явно треб�
 - model estimated residency, context length, GPU layers;
 - workload priority и deadline.
 
-Срез 3A получает системную available/total RAM через Windows `GlobalMemoryStatusEx`, working set/CPU процесса и состояние GTA каждые пять секунд. VRAM остаётся `null`, пока не появится проверенный adapter драйверной telemetry; при `null` применяются RAM и concurrency policies. Давление повышается немедленно, но снижается только после трёх последовательных здоровых samples на каждый уровень. В Compact/Balanced локальные Chat и Vision взаимоисключаются. Cloud leases не резервируют локальную RAM/VRAM. Exact/prepared/cache/FTS маршруты не запрашивают lease и остаются доступны при hard pressure.
+Windows sampler получает системную available/total RAM через `GlobalMemoryStatusEx`, working set/CPU процесса и состояние GTA каждые пять секунд. Для NVIDIA отдельный adapter читает total/free VRAM через статический `nvidia-smi` query, timeout 750 мс и cache 30 секунд; выбирается дискретный adapter с наибольшей total VRAM. Для AMD/Intel VRAM остаётся `null`, и применяются RAM/concurrency policies. Давление повышается немедленно, но снижается только после трёх последовательных здоровых samples на каждый уровень. В Compact/Balanced локальные Chat и Vision взаимоисключаются. Cloud leases не резервируют локальную RAM/VRAM. Exact/prepared/cache/FTS маршруты не запрашивают lease и остаются доступны при hard pressure.
 
 Порядок деградации при игре:
 

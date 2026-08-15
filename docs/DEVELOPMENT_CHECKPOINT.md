@@ -21,9 +21,10 @@
 - Страница Local AI показывает фактически свободную системную RAM, состояние GTA, pressure и честный статус отсутствующей VRAM telemetry; профили получили понятные RAM/VRAM envelopes.
 - В composer добавлена кнопка **Фото**: PNG/JPEG до 12 МБ и 33 Мп проходит preview, локальный OCR-first и только локальный Vision fallback без cloud; buffers очищаются после обработки.
 - Ручной screen/photo Vision получает профильный idle TTL, поэтому JIT-загруженная VLM не остаётся в памяти бесконечно.
+- На NVIDIA total/free VRAM читается через `nvidia-smi` не чаще раза в 30 секунд с timeout 750 мс; на других GPU значение остаётся unknown и решение опирается на RAM.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
-Следующая задача: Phase 3B — проверенная VRAM telemetry, видимые причины деградации и idle unload. После неё — Phase 4 Knowledge Intelligence. Отдельно требуется governance-проверка просроченных knowledge sources.
+Следующая задача: Phase 4 — Knowledge Intelligence с FTS baseline и embeddings только при low confidence и наличии lease. Отдельно требуется governance-проверка просроченных knowledge sources.
 
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 

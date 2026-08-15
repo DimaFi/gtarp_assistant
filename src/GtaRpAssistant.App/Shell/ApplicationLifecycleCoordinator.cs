@@ -256,6 +256,9 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
             {
                 var availableGb = resources.AvailableRamBytes.GetValueOrDefault() / 1024d / 1024d / 1024d;
                 var totalGb = resources.TotalRamBytes.GetValueOrDefault() / 1024d / 1024d / 1024d;
+                var vramText = resources.AvailableVramBytes is long availableVram && resources.TotalVramBytes is long totalVram
+                    ? $"VRAM свободно {availableVram / 1024d / 1024d / 1024d:F1} из {totalVram / 1024d / 1024d / 1024d:F1} ГБ"
+                    : "VRAM telemetry недоступна";
                 var pressure = snapshot.Pressure switch
                 {
                     ResourcePressureLevel.Hard => "критическая",
@@ -263,7 +266,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
                     ResourcePressureLevel.Normal => "нормальная",
                     _ => "неизвестно",
                 };
-                Ui(() => _ui.ResourceStatus = $"Ресурсы: RAM свободно {availableGb:F1} из {totalGb:F1} ГБ · нагрузка {pressure} · GTA {(resources.GtaRunning ? "запущена" : "не запущена")} · VRAM пока без telemetry");
+                Ui(() => _ui.ResourceStatus = $"Ресурсы: RAM свободно {availableGb:F1} из {totalGb:F1} ГБ · {vramText} · нагрузка {pressure} · GTA {(resources.GtaRunning ? "запущена" : "не запущена")}");
             }
             await _audioFeature.ApplyPerformanceAsync(snapshot);
             if (!snapshot.Actions.ExperimentalProactivity && _intent.Mode == ProactiveMode.Experimental)

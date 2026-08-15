@@ -56,7 +56,7 @@
 
 ## Phase 3 — Resource Budget Coordinator
 
-**Прогресс.** Срез 3A реализован: единый `ResourceBudgetCoordinator` выдаёт disposable leases для Chat, Vision, STT, TTS, Embeddings и BackgroundIndexing; Windows sampler раз в пять секунд передаёт системную RAM, working set, CPU и признак запущенной GTA. Введены soft/hard pressure, трёхзамерный hysteresis, RAM/VRAM reserve checks при наличии данных и взаимное исключение локальных Chat/Vision в Compact/Balanced. Chat, manual Vision, STT, TTS и загрузка локальной модели подключены к leases; exact/FTS остаются вне control plane. В 3B начат видимый resource status и аппаратные Compact/Balanced/Quality envelopes. GPU telemetry пока честно обозначается как unavailable. Следующий срез — проверенный VRAM adapter и pressure-driven idle unload.
+**Прогресс.** Срезы 3A–3B реализованы: единый `ResourceBudgetCoordinator` выдаёт disposable leases для Chat, Vision, STT, TTS, Embeddings и BackgroundIndexing; Windows sampler раз в пять секунд передаёт системную RAM, working set, CPU и признак запущенной GTA. Введены soft/hard pressure, трёхзамерный hysteresis, RAM/VRAM reserve checks при наличии данных и взаимное исключение локальных Chat/Vision в Compact/Balanced. Chat, manual Vision, STT, TTS и загрузка локальной модели подключены к leases; exact/FTS остаются вне control plane. UI показывает resource status и аппаратные Compact/Balanced/Quality envelopes. NVIDIA VRAM читается через bounded/cached `nvidia-smi`; AMD/Intel остаются честно unavailable. Chat/manual load/Vision получают idle TTL. Следующий этап — Phase 4 Knowledge Intelligence.
 
 **Цель.** Гарантировать приоритет GTA и предсказуемую деградацию AI.
 
