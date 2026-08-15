@@ -24,6 +24,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IAssistantContextBuilder _contextBuilder;
     private readonly IAssistantSessionContextStore _sessionContext;
     private readonly IResourceBudgetCoordinator _resourceBudget;
+    private readonly ISemanticReranker? _semanticReranker;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -47,7 +48,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         IAnswerCache? answerCache = null,
         IAssistantContextBuilder? contextBuilder = null,
         IAssistantSessionContextStore? sessionContext = null,
-        IResourceBudgetCoordinator? resourceBudget = null)
+        IResourceBudgetCoordinator? resourceBudget = null,
+        ISemanticReranker? semanticReranker = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -67,6 +69,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _contextBuilder = contextBuilder ?? new AssistantContextBuilder();
         _sessionContext = sessionContext ?? new InMemoryAssistantSessionContextStore();
         _resourceBudget = resourceBudget ?? new ResourceBudgetCoordinator();
+        _semanticReranker = semanticReranker;
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -200,7 +203,30 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 return await PresentAsync(Abstain("Knowledge results not found"), request, entry.Text, ct);
             }
 
+            if (_semanticReranker is not null && matches.Count > 1 && matches[0].Relevance?.RequiresSemanticRerank == true)
+            {
+                var leaseResult = await _resourceBudget.TryAcquireAsync(new(
+                    AssistantWorkloadKind.Embeddings,
+                    LocalAiPerformanceProfile.Balanced,
+                    true), ct);
+                if (leaseResult.Granted)
+                {
+                    await using var embeddingLease = leaseResult.Lease!;
+                    try
+                    {
+                        var semanticScores = await _semanticReranker.ScoreAsync(entry.Text, matches, ct);
+                        matches = SemanticRerankPolicy.Apply(matches, semanticScores);
+                        _events.Write(new(DateTimeOffset.UtcNow, "Knowledge candidates reranked", State, $"candidates={matches.Count}"));
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        _events.Write(new(DateTimeOffset.UtcNow, "Semantic rerank unavailable", State, ex.GetType().Name));
+                    }
+                }
+                else _events.Write(new(DateTimeOffset.UtcNow, "Semantic rerank deferred", State, leaseResult.Reason));
+            }
             var match = matches[0];
+            metrics.RecordKnowledge(match);
             _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], match.ArticleId));
             var preflight = _router.SelectBeforeProvider(new(match.HasVerifiedPreparedAnswer, HasGrounding(match)));
             var personalization = _personalization?.Build(entry.Text);
@@ -440,6 +466,10 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         public int EstimatedOutputBudgetTokens { get; private set; }
         public bool ContextTrimmed { get; set; }
         public int ContextTargetInputTokens { get; set; }
+        public string? KnowledgeMethod { get; private set; }
+        public double KnowledgeScore { get; private set; }
+        public double KnowledgeScoreMargin { get; private set; }
+        public bool SemanticRerankCandidate { get; private set; }
 
         public void SetRoute(string route, string reason)
         {
@@ -452,6 +482,14 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             LlmCalls++;
             EstimatedInputTokens += AssistantTokenEstimator.EstimateInput(request);
             EstimatedOutputBudgetTokens += AssistantTokenEstimator.EstimateOutputBudget(request);
+        }
+
+        public void RecordKnowledge(KnowledgeMatch match)
+        {
+            KnowledgeMethod = match.Relevance?.Method.ToString() ?? KnowledgeRetrievalMethod.Conversation.ToString();
+            KnowledgeScore = match.Score;
+            KnowledgeScoreMargin = match.Relevance?.ScoreMargin ?? 1;
+            SemanticRerankCandidate = match.Relevance?.RequiresSemanticRerank == true;
         }
 
         public AssistantRequestMetrics Complete() => new(
@@ -468,7 +506,11 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             ContextTrimmed,
             ContextTargetInputTokens,
             LlmCalls == 0,
-            Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds);
+            Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds,
+            KnowledgeMethod,
+            KnowledgeScore,
+            KnowledgeScoreMargin,
+            SemanticRerankCandidate);
     }
 
     private AssistantAnswer CreateDeterministicAnswer(string question, KnowledgeMatch match, AssistantProcessingRequest request)

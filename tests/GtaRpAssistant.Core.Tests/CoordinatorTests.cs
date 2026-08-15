@@ -48,6 +48,8 @@ public sealed class CoordinatorTests
         Assert.Equal(1, metrics.LlmCalls);
         Assert.True(metrics.EstimatedInputTokens > 0);
         Assert.False(metrics.AvoidedLlm);
+        Assert.NotNull(metrics.KnowledgeMethod);
+        Assert.True(metrics.KnowledgeScore > 0);
     }
 
     [Fact]

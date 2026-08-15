@@ -83,6 +83,9 @@ public sealed record ProductBenchmarkCaseResult
     public int LlmCalls { get; init; }
     public int EstimatedInputTokens { get; init; }
     public int EstimatedOutputBudgetTokens { get; init; }
+    public string? KnowledgeMethod { get; init; }
+    public double KnowledgeScoreMargin { get; init; }
+    public bool SemanticRerankCandidate { get; init; }
 }
 
 public sealed record ProductBenchmarkMetrics
@@ -115,6 +118,7 @@ public sealed record ProductBenchmarkMetrics
     public int LlmCalls { get; init; }
     public int EstimatedInputTokens { get; init; }
     public int EstimatedOutputBudgetTokens { get; init; }
+    public int SemanticRerankCandidates { get; init; }
 }
 
 public sealed record ProductBenchmarkReport

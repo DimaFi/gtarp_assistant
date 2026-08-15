@@ -77,6 +77,21 @@ public sealed class ResourceBudgetCoordinatorTests
     }
 
     [Fact]
+    public async Task SoftPressure_DefersEmbeddingsButAllowsLocalChat()
+    {
+        var coordinator = new ResourceBudgetCoordinator();
+        coordinator.Update(Snapshot(2 * Gib, gta: false));
+
+        var embeddings = await coordinator.TryAcquireAsync(new(AssistantWorkloadKind.Embeddings, LocalAiPerformanceProfile.Balanced, true), default);
+        var chat = await coordinator.TryAcquireAsync(new(AssistantWorkloadKind.Chat, LocalAiPerformanceProfile.Balanced, true), default);
+
+        Assert.Equal(ResourcePressureLevel.Soft, coordinator.Pressure);
+        Assert.False(embeddings.Granted);
+        Assert.True(chat.Granted);
+        chat.Lease!.Dispose();
+    }
+
+    [Fact]
     public async Task CancellationAndDoubleDispose_AreSafe()
     {
         var coordinator = Normal();

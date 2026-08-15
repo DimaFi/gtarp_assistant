@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — Smart Assistant Phase 1–2 и Resource Budget Phase 3A завершены
+## ACTIVE CHECKPOINT — Smart Assistant Phase 1–3 и Knowledge Intelligence Phase 4A завершены
 
 Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
 
@@ -22,9 +22,11 @@
 - В composer добавлена кнопка **Фото**: PNG/JPEG до 12 МБ и 33 Мп проходит preview, локальный OCR-first и только локальный Vision fallback без cloud; buffers очищаются после обработки.
 - Ручной screen/photo Vision получает профильный idle TTL, поэтому JIT-загруженная VLM не остаётся в памяти бесконечно.
 - На NVIDIA total/free VRAM читается через `nvidia-smi` не чаще раза в 30 секунд с timeout 750 мс; на других GPU значение остаётся unknown и решение опирается на RAM.
+- SQLite retrieval теперь сообщает exact/alias/FTS method, matched terms, score margin и low-confidence reason.
+- Optional semantic reranker запускается только для неоднозначного FTS и при Embeddings lease; он может переупорядочить только существующие article IDs и не меняет verified facts. Production embedding adapter пока не зарегистрирован.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
-Следующая задача: Phase 4 — Knowledge Intelligence с FTS baseline и embeddings только при low confidence и наличии lease. Отдельно требуется governance-проверка просроченных knowledge sources.
+Следующая задача: Phase 4B — локальный embedding adapter и offline relevance gate, после чего Phase 5 Tool Runtime. Отдельно требуется governance-проверка просроченных knowledge sources.
 
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 

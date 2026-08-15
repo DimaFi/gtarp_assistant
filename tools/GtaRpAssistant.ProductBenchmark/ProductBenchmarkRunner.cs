@@ -177,6 +177,9 @@ public sealed class ProductBenchmarkRunner
             LlmCalls = requestMetrics?.LlmCalls ?? 0,
             EstimatedInputTokens = requestMetrics?.EstimatedInputTokens ?? 0,
             EstimatedOutputBudgetTokens = requestMetrics?.EstimatedOutputBudgetTokens ?? 0,
+            KnowledgeMethod = requestMetrics?.KnowledgeMethod,
+            KnowledgeScoreMargin = requestMetrics?.KnowledgeScoreMargin ?? 0,
+            SemanticRerankCandidate = requestMetrics?.SemanticRerankCandidate == true,
         };
     }
 
@@ -217,6 +220,7 @@ public sealed class ProductBenchmarkRunner
             LlmCalls = cases.Sum(x => x.LlmCalls),
             EstimatedInputTokens = cases.Sum(x => x.EstimatedInputTokens),
             EstimatedOutputBudgetTokens = cases.Sum(x => x.EstimatedOutputBudgetTokens),
+            SemanticRerankCandidates = cases.Count(x => x.SemanticRerankCandidate),
         };
     }
 
@@ -278,6 +282,7 @@ public sealed class ProductBenchmarkRunner
         builder.AppendLine($"- LLM avoided: {m.AvoidedLlmRate:P2}; cache hit: {m.CacheHitRate:P2}");
         builder.AppendLine($"- Provider checks / LLM calls: {m.ProviderAvailabilityChecks}/{m.LlmCalls}");
         builder.AppendLine($"- Estimated input/output-budget tokens: {m.EstimatedInputTokens}/{m.EstimatedOutputBudgetTokens}");
+        builder.AppendLine($"- Optional semantic-rerank candidates: {m.SemanticRerankCandidates}");
         if (report.GateFailures.Count > 0)
         {
             builder.AppendLine();

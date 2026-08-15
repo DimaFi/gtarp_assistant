@@ -205,6 +205,8 @@ hash(normalized_query, server_scope, knowledge_revision,
 
 Embeddings полезны при низком FTS score или малом margin между кандидатами. Они не нужны на каждом запросе. Начальный вариант:
 
+Реализованный gate помечает только верхний FTS-result, если покрыто меньше 75% значимых query terms либо score margin до следующей статьи меньше 0,05. Exact prepared/alias никогда не требуют semantic rerank. `ISemanticReranker` возвращает только пары article ID/score; неизвестные IDs, NaN и неполный набор игнорируются, поэтому adapter не способен добавить или изменить verified facts. Перед вызовом требуется `Embeddings` lease; при pressure/GTA сохраняется исходный FTS order. Пока production adapter отсутствует, этот путь имеет нулевую стоимость.
+
 1. FTS top 8;
 2. metadata/server/freshness filter;
 3. дешёвый lexical rerank;

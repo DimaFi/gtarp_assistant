@@ -13,7 +13,7 @@ public sealed class KnowledgeTests : IAsyncLifetime
     public Task DisposeAsync() { SqliteConnectionClear(); if (File.Exists(_db)) File.Delete(_db); return Task.CompletedTask; }
     private static void SqliteConnectionClear() => Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
 
-    [Fact] public async Task ExactAlias_FindsArticle() => Assert.Equal("a1", (await Repository.SearchAsync(new("семейный контракт"), default)).Single().ArticleId);
+    [Fact] public async Task ExactAlias_FindsArticle() { var match = (await Repository.SearchAsync(new("семейный контракт"), default)).Single(); Assert.Equal("a1", match.ArticleId); Assert.Equal(KnowledgeRetrievalMethod.ExactAlias, match.Relevance!.Method); Assert.False(match.Relevance.RequiresSemanticRerank); }
     [Fact] public async Task PreparedAnswer_IsFound() { var m = (await Repository.SearchAsync(new("почему не запускается контракт"), default)).Single(); Assert.Equal("Проверьте требования", m.PreparedAnswer); Assert.True(m.HasVerifiedPreparedAnswer); }
     [Fact] public async Task Fts_FindsArticle() => Assert.NotEmpty(await Repository.SearchAsync(new("Контракты"), default));
     [Fact] public async Task FactFts_FindsArticleByFactText() => Assert.Equal("a1", (await Repository.SearchAsync(new("проверить требования"), default)).Single().ArticleId);
@@ -76,6 +76,21 @@ public sealed class KnowledgeTests : IAsyncLifetime
         var match = Assert.Single(matches);
         Assert.Equal("a2", match.ArticleId);
         Assert.False(match.HasConflict);
+        Assert.Equal(KnowledgeRetrievalMethod.FullText, match.Relevance!.Method);
+        Assert.False(match.Relevance.RequiresSemanticRerank);
+    }
+
+    [Fact]
+    public async Task AmbiguousFts_RequestsOptionalSemanticRerank()
+    {
+        var first = Article() with { Id = "a1", Title = "Работа курьера", Aliases = ["курьер"], Summary = "работа транспорт", Facts = [new("f1", "Работа использует транспорт", true)], PreparedAnswers = [] };
+        var second = Article() with { Id = "a2", Title = "Работа дальнобойщика", Aliases = ["дальнобойщик"], Summary = "работа транспорт", Facts = [new("f2", "Работа использует транспорт", true)], PreparedAnswers = [] };
+        await Repository.InitializeAsync([first, second], default);
+
+        var top = (await Repository.SearchAsync(new("работа транспорт"), default)).First();
+
+        Assert.True(top.Relevance!.RequiresSemanticRerank);
+        Assert.Equal("small_top_result_margin", top.Relevance.Reason);
     }
 
     [Fact]

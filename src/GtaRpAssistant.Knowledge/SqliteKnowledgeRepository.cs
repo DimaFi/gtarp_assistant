@@ -54,17 +54,17 @@ public sealed class SqliteKnowledgeRepository(string connectionString) : IKnowle
         var normalized = Normalize(query.Text);
         await using var connection = new SqliteConnection(connectionString);
         await connection.OpenAsync(cancellationToken);
-        var ids = new List<(string Id, double Score, string? Prepared)>();
+        var ids = new List<(string Id, double Score, string? Prepared, KnowledgeRetrievalMethod Method)>();
         await using (var exact = connection.CreateCommand())
         {
-            exact.CommandText = "SELECT article_id, 1.0, answer FROM prepared_answers WHERE pattern=$q UNION ALL SELECT article_id, 0.95, NULL FROM aliases WHERE alias=$q ORDER BY 2 DESC LIMIT $limit";
+            exact.CommandText = "SELECT article_id, 1.0, answer, 'prepared' FROM prepared_answers WHERE pattern=$q UNION ALL SELECT article_id, 0.95, NULL, 'alias' FROM aliases WHERE alias=$q ORDER BY 2 DESC LIMIT $limit";
             exact.Parameters.AddWithValue("$q", normalized); exact.Parameters.AddWithValue("$limit", query.Limit);
-            await using var reader = await exact.ExecuteReaderAsync(cancellationToken); while (await reader.ReadAsync(cancellationToken)) ids.Add((reader.GetString(0), reader.GetDouble(1), reader.IsDBNull(2) ? null : reader.GetString(2)));
+            await using var reader = await exact.ExecuteReaderAsync(cancellationToken); while (await reader.ReadAsync(cancellationToken)) ids.Add((reader.GetString(0), reader.GetDouble(1), reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetString(3) == "prepared" ? KnowledgeRetrievalMethod.PreparedAnswer : KnowledgeRetrievalMethod.ExactAlias));
         }
         if (ids.Count == 0)
         {
             var terms = string.Join(" OR ", SearchTokens(normalized).Select(x => $"\"{x.Replace("\"", "\"\"")}\"*"));
-            if (terms.Length > 0) { await using var fts = connection.CreateCommand(); fts.CommandText = "SELECT article_id, MIN(rank) FROM (SELECT article_id, bm25(article_fts) AS rank FROM article_fts WHERE article_fts MATCH $q UNION ALL SELECT article_id, bm25(fact_fts) AS rank FROM fact_fts WHERE fact_fts MATCH $q) GROUP BY article_id ORDER BY MIN(rank) LIMIT $limit"; fts.Parameters.AddWithValue("$q", terms); fts.Parameters.AddWithValue("$limit", query.Limit); await using var reader = await fts.ExecuteReaderAsync(cancellationToken); while (await reader.ReadAsync(cancellationToken)) ids.Add((reader.GetString(0), Math.Clamp(0.75 - reader.GetDouble(1) / 100, 0, 0.9), null)); }
+            if (terms.Length > 0) { await using var fts = connection.CreateCommand(); fts.CommandText = "SELECT article_id, MIN(rank) FROM (SELECT article_id, bm25(article_fts) AS rank FROM article_fts WHERE article_fts MATCH $q UNION ALL SELECT article_id, bm25(fact_fts) AS rank FROM fact_fts WHERE fact_fts MATCH $q) GROUP BY article_id ORDER BY MIN(rank) LIMIT $limit"; fts.Parameters.AddWithValue("$q", terms); fts.Parameters.AddWithValue("$limit", query.Limit); await using var reader = await fts.ExecuteReaderAsync(cancellationToken); while (await reader.ReadAsync(cancellationToken)) ids.Add((reader.GetString(0), Math.Clamp(0.75 - reader.GetDouble(1) / 100, 0, 0.9), null, KnowledgeRetrievalMethod.FullText)); }
         }
         var results = new List<KnowledgeMatch>();
         foreach (var item in ids.DistinctBy(x => x.Id))
@@ -82,6 +82,23 @@ public sealed class SqliteKnowledgeRepository(string connectionString) : IKnowle
             .ThenBy(x => IsCommunityArticle(x.ArticleId))
             .ThenBy(x => x.ArticleId, StringComparer.Ordinal)
             .ToList();
+        var methods = ids.DistinctBy(x => x.Id).ToDictionary(x => x.Id, x => x.Method, StringComparer.Ordinal);
+        var queryTerms = SearchTokens(normalized).Distinct(StringComparer.Ordinal).ToArray();
+        for (var index = 0; index < results.Count; index++)
+        {
+            var result = results[index];
+            var searchText = await ReadSearchTextAsync(connection, result.ArticleId, cancellationToken);
+            var candidateTerms = SearchTokens(Normalize(searchText)).ToHashSet(StringComparer.Ordinal);
+            var matchedTerms = queryTerms.Where(candidateTerms.Contains).ToArray();
+            var margin = index + 1 < results.Count ? Math.Max(0, result.Score - results[index + 1].Score) : 1;
+            var method = methods.GetValueOrDefault(result.ArticleId, KnowledgeRetrievalMethod.FullText);
+            var coverage = queryTerms.Length == 0 ? 0 : (double)matchedTerms.Length / queryTerms.Length;
+            var needsSemantic = index == 0 && method == KnowledgeRetrievalMethod.FullText && (coverage < .75 || margin < .05);
+            var reason = method != KnowledgeRetrievalMethod.FullText
+                ? "exact_local_match"
+                : needsSemantic ? coverage < .75 ? "low_term_coverage" : "small_top_result_margin" : "fts_confident";
+            results[index] = result with { Relevance = new(method, matchedTerms, queryTerms.Length, margin, needsSemantic, reason) };
+        }
         // Different FTS hits usually contain complementary facts, not contradictory ones.
         // Treat them as a conflict only when the same query matched both articles exactly.
         if (results.Count >= 2 && results[0].Score >= 0.95 && results[1].Score >= 0.95

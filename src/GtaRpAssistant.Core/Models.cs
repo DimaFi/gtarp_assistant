@@ -18,7 +18,15 @@ public sealed record TranscriptEntry(Guid Id, AudioSourceKind Source, DateTimeOf
 public sealed record TranscriptContext(IReadOnlyList<TranscriptEntry> Entries, TranscriptEntry? CurrentUserRequest);
 public sealed record IntentDecision(bool ShouldConsiderHint, string? IntentId, double Confidence, bool ExplicitWakeWord, bool RequiresScreen, string Reason);
 public sealed record KnowledgeFact(string Id, string ArticleId, string Text, bool Verified, DateTimeOffset UpdatedAt, string ServerScope = "all");
-public sealed record KnowledgeMatch(string ArticleId, string Title, double Score, IReadOnlyList<KnowledgeFact> Facts, bool HasConflict, bool IsOutdated, string? PreparedAnswer = null, bool HasVerifiedPreparedAnswer = false);
+public enum KnowledgeRetrievalMethod { Conversation, PreparedAnswer, ExactAlias, FullText }
+public sealed record KnowledgeRelevanceDiagnostics(
+    KnowledgeRetrievalMethod Method,
+    IReadOnlyList<string> MatchedTerms,
+    int QueryTermCount,
+    double ScoreMargin,
+    bool RequiresSemanticRerank,
+    string Reason);
+public sealed record KnowledgeMatch(string ArticleId, string Title, double Score, IReadOnlyList<KnowledgeFact> Facts, bool HasConflict, bool IsOutdated, string? PreparedAnswer = null, bool HasVerifiedPreparedAnswer = false, KnowledgeRelevanceDiagnostics? Relevance = null);
 public sealed record ProblemSolutionDetails(
     string Summary,
     IReadOnlyList<string> Steps,
@@ -91,7 +99,11 @@ public sealed record AssistantRequestMetrics(
     bool ContextTrimmed,
     int ContextTargetInputTokens,
     bool AvoidedLlm,
-    double DurationMilliseconds);
+    double DurationMilliseconds,
+    string? KnowledgeMethod = null,
+    double KnowledgeScore = 0,
+    double KnowledgeScoreMargin = 0,
+    bool SemanticRerankCandidate = false);
 public sealed record SessionEvent(DateTimeOffset Timestamp, string Name, AssistantSessionState State, string? Detail = null);
 public sealed record VisionAnalysisRequest(ReadOnlyMemory<byte> PngImage, string Prompt);
 public sealed record VisionAnalysisResult(string Text);

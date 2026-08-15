@@ -11,6 +11,7 @@ Source code is authoritative. Use this file to locate a component, then inspect 
 | Session situation | RAM-only goal/open question/recent IDs and deterministic rolling summary | `src/GtaRpAssistant.Core/AssistantSessionContext.cs` | `IAssistantSessionContextStore`, `InMemoryAssistantSessionContextStore` |
 | Resource control plane | System pressure, workload leases, hysteresis and deterministic degradation | `src/GtaRpAssistant.Core/ResourceBudgetCoordinator.cs`, `src/GtaRpAssistant.Infrastructure.Windows/WindowsHardwareTelemetry.cs` | `IResourceBudgetCoordinator`, `ResourceBudgetCoordinator`, `IHardwareTelemetry` |
 | Knowledge storage | SQLite exact/prepared/FTS retrieval | `src/GtaRpAssistant.Knowledge/SqliteKnowledgeRepository.cs` | `SqliteKnowledgeRepository` |
+| Optional semantic rerank | Low-confidence FTS gate and fact-preserving candidate reorder | `src/GtaRpAssistant.Core/SemanticReranking.cs` | `ISemanticReranker`, `SemanticRerankPolicy`, `KnowledgeRelevanceDiagnostics` |
 | Chat providers | Independent local/cloud chat route construction | `src/GtaRpAssistant.App/ChatProviderCatalog.cs` | `ChatProviderCatalog` |
 | Local AI management | LM Studio discovery, model download/load/import and resource policy | `src/GtaRpAssistant.Infrastructure.Windows/LocalAiEngineManager.cs` | `LmStudioEngineAdapter`, `LocalAiEngineManager` |
 | Voice orchestration | Microphone session, STT selection, preview and recovery | `src/GtaRpAssistant.App/AudioSessionController.cs` | `AudioSessionController` |
