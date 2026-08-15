@@ -27,6 +27,7 @@
 - CloudLite/Balanced/LocalHybrid под нагрузкой и деградация game-audio STT;
 - независимо переключить STT/Chat/Vision/TTS/Embeddings между Disabled/Cloud/Local/Automatic/Custom и убедиться, что изменение одного route не меняет остальные или PerformanceProfile;
 - в расширенных настройках оставить `Embedding Model ID` пустым и убедиться, что обычный поиск работает без загрузки модели; затем указать локальную embedding-модель, выбрать Embeddings=Local и проверить, что неоднозначный запрос не падает при остановленном endpoint и не запускает embeddings при работающей GTA;
+- на странице «Память» передвинуть четыре personality slider, сохранить и после перезапуска проверить значения и подписи; в «Чате» задать вопрос про заработок, проверить смысловое автоназвание, затем вручную переименовать диалог;
 - установить embedded STT pack в стандартный и нестандартный Unicode/space path; проверить valid/corrupted manifest, приоритет локального provider, fallback без пака, повторное использование PID, cancel/timeout kill и idle unload;
 - загрузить старый `settings.json`, проверить появление `ProviderSettingsVersion`, `ProviderConnections` и `ProviderRouting`, сохранение DPAPI references и прежнего cloud opt-in;
 - proactive cooldown: 1/мин, 3/10 мин, topic 2 мин, DND 5 мин/session;
@@ -60,7 +61,7 @@ Smoke-режим создаёт окно и tray, инициализирует D
 .\eng\capture-ui.ps1 -Executable .\artifacts\publish\win-x64\GtaRpAssistant.App.exe
 ```
 
-Снимки `assistant.png`, `audio.png`, `providers.png`, `behavior.png`, `privacy.png`, `knowledge.png`, `about.png`, `overlay-compact.png`, `overlay-expanded.png`, `vision-preview.png` и `voice-preview.png` сохраняются в `artifacts/ui-snapshots`. Скрипт проверяет наличие и непустой рендер каждого файла. Полный `eng/build.ps1` запускает smoke и capture автоматически, если не указан `-SkipSmoke`.
+Снимки `assistant.png`, `audio.png`, `providers.png`, `behavior.png`, `privacy.png`, `memory.png`, `knowledge.png`, `about.png`, `overlay-compact.png`, `overlay-expanded.png`, `vision-preview.png` и `voice-preview.png` сохраняются в `artifacts/ui-snapshots`. Скрипт проверяет наличие и непустой рендер каждого файла. Полный `eng/build.ps1` запускает smoke и capture автоматически, если не указан `-SkipSmoke`.
 
 WPF smoke дополнительно выполняет compact → expanded → compact → hidden, открывает vision preview для отдельных Cancel/Confirm сценариев и проверяет редактируемый voice preview с подтверждением. Используется сгенерированное тестовое изображение и тестовый transcript: provider не вызывается, сетевой запрос не выполняется.
 

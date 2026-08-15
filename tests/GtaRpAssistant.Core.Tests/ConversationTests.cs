@@ -43,6 +43,27 @@ public sealed class ConversationTests
         Assert.Equal(AssistantRequestType.ProblemSolving, AssistantRequestClassifier.Classify("Контракт не запускается, что проверить?", new([], null, null)));
     }
 
+    [Theory]
+    [InlineData("Подскажи пожалуйста, как мне начать зарабатывать?", "Заработок и работа в GTA RP")]
+    [InlineData("Что делать с машиной на штрафстоянке?", "Транспорт в GTA RP")]
+    [InlineData("Как дрессировать питомца?", "Питомцы и дрессировка")]
+    [InlineData("Где находится больница?", "Где находится больница")]
+    public void ConversationTitle_IsGeneratedFromIntentAndRemainsCompact(string question, string expected) =>
+        Assert.Equal(expected, ConversationTitleGenerator.FromContext(question));
+
+    [Fact]
+    public void Store_AutomaticallyNamesChatButAllowsManualRename()
+    {
+        var store = new InMemoryAssistantConversationStore();
+        store.Add(Turn(DateTimeOffset.UtcNow, "Как мне начать зарабатывать без машины?", "general"));
+        var conversation = Assert.Single(store.ListConversations());
+        Assert.Equal("Заработок и работа в GTA RP", conversation.Title);
+
+        store.RenameConversation(conversation.Id, "Мой план новичка");
+
+        Assert.Equal("Мой план новичка", Assert.Single(store.ListConversations()).Title);
+    }
+
     [Fact]
     public void Store_CanManageMultipleConversations()
     {

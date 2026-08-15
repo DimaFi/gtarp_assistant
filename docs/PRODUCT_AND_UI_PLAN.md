@@ -102,6 +102,7 @@
 - Release-сборка без предупреждений.
 - 226 unit/integration тестов, включая provider route/settings migration, privacy-safe diagnostics, MicroModel lifecycle/TTL/queue/memory guard, benchmark catalog/evaluation gates, Local AI model selection/import и точный поиск по community-справкам.
 - Автоматический WPF startup/navigation/layout smoke-test и PNG snapshot gate для всех feature pages.
+- Страница «Память» входит в обязательный snapshot gate; четыре personality controls показаны snap-slider в одну строку на обычной ширине, а экран разговора однозначно называется «Чат» и отделяет историю/переименование от основного действия.
 - Portable `win-x64` ZIP, manifest и SHA-256.
 - User-scope install, upgrade с backup, rollback, uninstall и lifecycle soak.
 - Ручная QA-матрица для Windows 10/11, DPI, нескольких мониторов, аудио, hotkeys и overlay.

@@ -32,10 +32,14 @@ public sealed class MemoryFeatureViewModel : FeatureViewModel
     public UserMemoryItem? Selected { get => _selected; set { if (!Set(ref _selected, value)) return; if (value is not null) { Draft = value.Content; Category = Categories.First(x => x.Value == value.Category); } RaiseCommands(); } }
     public string Draft { get => _draft; set { if (Set(ref _draft, value)) RaiseCommands(); } }
     public MemoryCategoryOption Category { get => _category; set => Set(ref _category, value); }
-    public int DetailLevel { get => _detailLevel; set => Set(ref _detailLevel, value); }
-    public int HumorLevel { get => _humorLevel; set => Set(ref _humorLevel, value); }
-    public int InitiativeLevel { get => _initiativeLevel; set => Set(ref _initiativeLevel, value); }
-    public int Tone { get => _tone; set => Set(ref _tone, value); }
+    public int DetailLevel { get => _detailLevel; set { if (Set(ref _detailLevel, Math.Clamp(value, 0, 2))) Raise(nameof(DetailLabel)); } }
+    public int HumorLevel { get => _humorLevel; set { if (Set(ref _humorLevel, Math.Clamp(value, 0, 2))) Raise(nameof(HumorLabel)); } }
+    public int InitiativeLevel { get => _initiativeLevel; set { if (Set(ref _initiativeLevel, Math.Clamp(value, 0, 2))) Raise(nameof(InitiativeLabel)); } }
+    public int Tone { get => _tone; set { if (Set(ref _tone, Math.Clamp(value, 0, 2))) Raise(nameof(ToneLabel)); } }
+    public string DetailLabel => new[] { "Кратко", "Сбалансированно", "Подробно" }[DetailLevel];
+    public string HumorLabel => new[] { "Минимум", "Иногда", "Больше" }[HumorLevel];
+    public string InitiativeLabel => new[] { "Только ответ", "Уместно", "Следующие шаги" }[InitiativeLevel];
+    public string ToneLabel => new[] { "Нейтральный", "Мягкий", "Деловой" }[Tone];
     public bool AdaptiveEnabled { get => _adaptiveEnabled; set => Set(ref _adaptiveEnabled, value); }
     public ICommand SaveMemoryCommand { get; } public ICommand NewMemoryCommand { get; } public ICommand DeleteMemoryCommand { get; } public ICommand ClearAllCommand { get; } public ICommand SavePersonalityCommand { get; } public ICommand ResetPersonalityCommand { get; } public ICommand ClearChangesCommand { get; } public ICommand RefreshCommand { get; }
 

@@ -43,7 +43,7 @@ try {
         $process.Dispose()
     }
 
-    foreach ($feature in @('assistant', 'audio', 'providers', 'behavior', 'privacy', 'knowledge', 'about')) {
+    foreach ($feature in @('assistant', 'audio', 'providers', 'behavior', 'privacy', 'memory', 'knowledge', 'about')) {
         $process = Start-Process -FilePath $resolvedExecutable -ArgumentList @('--capture-ui', '--capture-feature', $feature) -PassThru -WindowStyle Hidden
         try {
             if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
@@ -74,7 +74,7 @@ finally {
     }
 }
 
-$expectedSnapshots = @('assistant', 'audio', 'providers', 'behavior', 'privacy', 'knowledge', 'about', 'overlay-compact', 'overlay-expanded', 'voice-preview', 'vision-preview')
+$expectedSnapshots = @('assistant', 'audio', 'providers', 'behavior', 'privacy', 'memory', 'knowledge', 'about', 'overlay-compact', 'overlay-expanded', 'voice-preview', 'vision-preview')
 foreach ($name in $expectedSnapshots) {
     $snapshot = Get-Item -LiteralPath (Join-Path $resolvedOutput "$name.png") -ErrorAction SilentlyContinue
     if ($null -eq $snapshot) { throw "Missing UI snapshot: $name.png." }

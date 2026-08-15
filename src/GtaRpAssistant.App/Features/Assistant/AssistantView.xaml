@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls"
              AutomationProperties.AutomationId="Page.Assistant">
-    <Grid MaxWidth="780" HorizontalAlignment="Center">
+    <Grid MaxWidth="980" HorizontalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -13,6 +13,7 @@
         </Grid.RowDefinitions>
 
         <Grid Margin="4,2,4,14">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -28,21 +29,21 @@
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="17" FontWeight="Bold" Text="✦" />
             </Border>
             <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
-                <TextBlock FontSize="18" FontWeight="SemiBold" Text="GTA RP Assistant" />
-                <TextBlock Style="{StaticResource Text.Caption}" Text="Скажите или напишите вопрос" />
+                <TextBlock FontSize="20" FontWeight="SemiBold" Text="Чат с ассистентом" />
+                <TextBlock Style="{StaticResource Text.Caption}" Text="Новый диалог получает название по первому вопросу — его всегда можно изменить" />
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <ComboBox Width="210" Margin="0,0,6,0" ItemsSource="{Binding Conversations}"
-                          SelectedItem="{Binding SelectedConversation}" DisplayMemberPath="Title"
-                          ToolTip="История чатов — хранится локально"
-                          AutomationProperties.AutomationId="Assistant.ConversationHistory" />
-                <Button Style="{StaticResource Button.Ghost}" Content="Удалить" Command="{Binding DeleteConversationCommand}"
-                        ToolTip="Удалить выбранный чат" AutomationProperties.AutomationId="Assistant.DeleteConversation" />
-                <Button Style="{StaticResource Button.Ghost}" Content="Повторить" Command="{Binding RetryQuestionCommand}"
-                        AutomationProperties.AutomationId="Assistant.Retry" />
-                <Button Style="{StaticResource Button.Ghost}" Content="Новый чат" Command="{Binding NewConversationCommand}"
+                <Button Style="{StaticResource Button.Primary}" Content="＋ Новый чат" Command="{Binding NewConversationCommand}"
                         AutomationProperties.AutomationId="Assistant.NewConversation" />
             </StackPanel>
+            <Grid Grid.Row="1" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="220" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <ComboBox Margin="0,0,8,0" ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}" DisplayMemberPath="Title" ToolTip="История чатов — хранится локально" AutomationProperties.AutomationId="Assistant.ConversationHistory" />
+                <TextBox Grid.Column="1" Margin="0,0,8,0" Text="{Binding ConversationTitleDraft, UpdateSourceTrigger=PropertyChanged}" MaxLength="80" ToolTip="Название выбранного чата" AutomationProperties.AutomationId="Assistant.ConversationTitle" />
+                <Button Grid.Column="2" Style="{StaticResource Button.Ghost}" Content="Переименовать" Command="{Binding RenameConversationCommand}" AutomationProperties.AutomationId="Assistant.RenameConversation" />
+                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Повторить" Command="{Binding RetryQuestionCommand}" AutomationProperties.AutomationId="Assistant.Retry" />
+                <Button Grid.Column="4" Style="{StaticResource Button.Ghost}" Content="Удалить" Command="{Binding DeleteConversationCommand}" ToolTip="Удалить выбранный чат" AutomationProperties.AutomationId="Assistant.DeleteConversation" />
+            </Grid>
         </Grid>
 
         <Grid Grid.Row="1">
@@ -172,8 +173,6 @@
                                 ToolTip="Выбрать PNG или JPEG для локального Vision-анализа после preview" />
                         <Button Style="{StaticResource Button.Ghost}" Content="Контекст" TabIndex="30"
                                 Command="{Binding AddContextCommand}" AutomationProperties.AutomationId="Assistant.AddContext" />
-                        <Button Style="{StaticResource Button.Primary}" Content="Отправить" TabIndex="40"
-                                Command="{Binding ProcessQuestionCommand}" AutomationProperties.AutomationId="Assistant.Ask" />
                         <Button Style="{StaticResource Button.Ghost}" TabIndex="50"
                                 Command="{Binding StartVoiceCommand}" AutomationProperties.AutomationId="Assistant.Voice">
                             <StackPanel Orientation="Horizontal">
@@ -181,6 +180,8 @@
                                 <TextBlock Text="{Binding VoiceButtonText}" />
                             </StackPanel>
                         </Button>
+                        <Button Style="{StaticResource Button.Primary}" Content="Отправить" TabIndex="40"
+                                Command="{Binding ProcessQuestionCommand}" AutomationProperties.AutomationId="Assistant.Ask" />
                     </StackPanel>
                 </Grid>
             </Grid>

@@ -18,6 +18,7 @@ Source code is authoritative. Use this file to locate a component, then inspect 
 | Embedded STT | Verified whisper.cpp pack and lifecycle | `src/GtaRpAssistant.Infrastructure.Windows/EmbeddedSttPack.cs` | `EmbeddedSttPackLocator`, `WhisperCppSpeechToTextProvider` |
 | Overlay | Compact/expanded non-activating in-game presentation | `src/GtaRpAssistant.App/OverlayService.cs` | `OverlayService`, `OverlayWindow` |
 | Conversation history | Temporary or opt-in SQLite chat history | `src/GtaRpAssistant.LocalData/` | `SqliteAssistantConversationStore`, `ConfigurableAssistantConversationStore` |
+| Conversation titles | Compact local intent-based auto-title with user rename override | `src/GtaRpAssistant.Core/LocalAiConversation.cs` | `ConversationTitleGenerator` |
 | Validated answer cache | Versioned cache before provider discovery; RAM or opt-in SQLite | `src/GtaRpAssistant.Core/AnswerCache.cs`, `src/GtaRpAssistant.LocalData/SqliteAnswerCache.cs` | `ConfigurableAnswerCache`, `SqliteAnswerCache`, `AnswerCacheKeyBuilder` |
 | Knowledge sources | Official packs and player-confirmed facts with separate provenance | `knowledge/packs/gta5rp`, `knowledge/reference/community` | JSON articles, facts, prepared answers |
 | Release gate | Build, tests, knowledge/benchmark validation, WPF smoke and package | `eng/build.ps1` | `eng/build.ps1 -Configuration Release -Runtime win-x64` |

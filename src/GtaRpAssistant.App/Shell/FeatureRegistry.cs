@@ -39,7 +39,7 @@ public static class FeatureRegistration
         services.AddSingleton<IUiDispatcher, UiDispatcher>();
         services.AddSingleton<SettingsSaveCoordinator>();
 
-        Add<AssistantFeatureViewModel, AssistantView>(services, "assistant", "Ассистент", "✦", 10);
+        Add<AssistantFeatureViewModel, AssistantView>(services, "assistant", "Чат", "✦", 10);
         Add<AudioFeatureViewModel, AudioView>(services, "audio", "Аудио", "◉", 20);
         Add<ProvidersFeatureViewModel, ProvidersView>(services, "providers", "AI и модели", "AI", 30);
         Add<BehaviorFeatureViewModel, BehaviorView>(services, "behavior", "Поведение", "⌁", 40);

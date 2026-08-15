@@ -39,7 +39,7 @@ public sealed class SqliteAssistantConversationStore : IAssistantConversationSto
             var stored = Sanitize(turn);
             using var connection = OpenConnection();
             using var transaction = connection.BeginTransaction();
-            var title = stored.Role == ConversationRole.User ? TitleFrom(stored.Text) : DefaultTitle;
+            var title = stored.Role == ConversationRole.User ? ConversationTitleGenerator.FromContext(stored.Text) : DefaultTitle;
             EnsureConversation(connection, transaction, _currentConversationId, title, stored.CreatedAt);
 
             using (var command = connection.CreateCommand())
@@ -390,7 +390,6 @@ public sealed class SqliteAssistantConversationStore : IAssistantConversationSto
     }
 
     private static DateTimeOffset ParseDate(string value) => DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
-    private static string TitleFrom(string text) => NormalizeTitle(text);
     private static string NormalizeTitle(string title)
     {
         var normalized = string.Join(' ', title.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).Trim();

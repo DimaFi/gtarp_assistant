@@ -70,7 +70,7 @@ public sealed class InMemoryAssistantConversationStore(int capacity = 16, TimeSp
             var stored = turn with { Text = Limit(turn.Text, 1200), UsedFactIds = turn.UsedFactIds.Take(12).ToArray() };
             conversation.Turns.Add(stored);
             conversation.UpdatedAt = stored.CreatedAt;
-            if (conversation.Title == DefaultTitle && stored.Role == ConversationRole.User) conversation.Title = TitleFrom(stored.Text);
+            if (conversation.Title == DefaultTitle && stored.Role == ConversationRole.User) conversation.Title = ConversationTitleGenerator.FromContext(stored.Text);
             if (conversation.Turns.Count > _capacity) conversation.Turns.RemoveRange(0, conversation.Turns.Count - _capacity);
         }
     }
@@ -154,7 +154,6 @@ public sealed class InMemoryAssistantConversationStore(int capacity = 16, TimeSp
         return current;
     }
     private const string DefaultTitle = "Новый диалог";
-    private static string TitleFrom(string text) => NormalizeTitle(text);
     private static string NormalizeTitle(string title)
     {
         var normalized = string.Join(' ', title.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).Trim();
@@ -167,6 +166,51 @@ public sealed class InMemoryAssistantConversationStore(int capacity = 16, TimeSp
         public DateTimeOffset CreatedAt { get; } = createdAt;
         public DateTimeOffset UpdatedAt { get; set; } = updatedAt;
         public List<AssistantConversationTurn> Turns { get; } = turns;
+    }
+}
+
+public static class ConversationTitleGenerator
+{
+    private const int MaxLength = 56;
+    private static readonly string[] FillerPrefixes =
+    [
+        "пожалуйста", "подскажи пожалуйста", "подскажи", "скажи пожалуйста", "скажи",
+        "можешь рассказать", "расскажи пожалуйста", "расскажи", "я хочу узнать", "хочу узнать",
+    ];
+
+    public static string FromContext(string text)
+    {
+        var normalized = string.Join(' ', (text ?? "").Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)).Trim(' ', '.', ',', '!', '?', ':', ';');
+        if (normalized.Length == 0) return "Новый диалог";
+        var lower = normalized.ToLowerInvariant();
+        foreach (var prefix in FillerPrefixes)
+            if (lower.StartsWith(prefix, StringComparison.Ordinal)
+                && (lower.Length == prefix.Length || char.IsWhiteSpace(lower[prefix.Length]) || char.IsPunctuation(lower[prefix.Length])))
+            {
+                normalized = normalized[prefix.Length..].Trim(' ', '.', ',', '!', '?', ':', ';');
+                lower = normalized.ToLowerInvariant();
+                break;
+            }
+
+        var title = lower switch
+        {
+            _ when ContainsAny(lower, "заработ", "зарабат", "фарм", "деньг", "работ") => "Заработок и работа в GTA RP",
+            _ when ContainsAny(lower, "питом", "дрессиров") => "Питомцы и дрессировка",
+            _ when ContainsAny(lower, "машин", "авто", "транспорт", "штрафстоян") => "Транспорт в GTA RP",
+            _ when ContainsAny(lower, "правил", "наказ", "можно ли", "наруш") => "Правила и ограничения",
+            _ when ContainsAny(lower, "микрофон", "голос", "распозна") => "Голос и микрофон",
+            _ => SentenceTitle(normalized),
+        };
+        return title.Length <= MaxLength ? title : title[..(MaxLength - 1)].TrimEnd() + "…";
+    }
+
+    private static bool ContainsAny(string value, params string[] terms) => terms.Any(value.Contains);
+    private static string SentenceTitle(string value)
+    {
+        var end = value.IndexOfAny(['.', '!', '?', '\n', '\r']);
+        if (end > 0) value = value[..end];
+        value = value.Trim();
+        return value.Length == 0 ? "Новый диалог" : char.ToUpperInvariant(value[0]) + value[1..];
     }
 }
 
