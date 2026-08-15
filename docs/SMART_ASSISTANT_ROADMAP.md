@@ -56,6 +56,8 @@
 
 ## Phase 3 — Resource Budget Coordinator
 
+**Прогресс.** Срез 3A реализован: единый `ResourceBudgetCoordinator` выдаёт disposable leases для Chat, Vision, STT, TTS, Embeddings и BackgroundIndexing; Windows sampler раз в пять секунд передаёт системную RAM, working set, CPU и признак запущенной GTA. Введены soft/hard pressure, трёхзамерный hysteresis восстановления, RAM/VRAM reserve checks при наличии данных и взаимное исключение локальных Chat/Vision в Compact/Balanced. Chat, manual Vision, STT, TTS и загрузка локальной модели подключены к leases; exact/FTS остаются вне control plane. GPU telemetry пока честно обозначается как unavailable. Следующий срез Phase 3B — VRAM adapter, статус причин в UI и idle unload.
+
 **Цель.** Гарантировать приоритет GTA и предсказуемую деградацию AI.
 
 **Затрагивает.** `PerformanceController`, `ProcessPerformanceMonitor`, `LocalAiEngineManager`, Chat/Vision/STT coordinators, settings UI.

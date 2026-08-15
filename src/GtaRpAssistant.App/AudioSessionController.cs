@@ -11,6 +11,7 @@ public sealed class AudioSessionController(
     AssistantSessionCoordinator coordinator,
     ISpeechToTextProviderCatalog speechToTextProviders,
     VoiceInteractionCoordinator voiceInteraction,
+    IResourceBudgetCoordinator resourceBudget,
     ILogger<AudioSessionController> logger) : IAsyncDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -409,6 +410,19 @@ public sealed class AudioSessionController(
                 }
                 try
                 {
+                    var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), value.LocalAiPerformanceProfile)
+                        ? (LocalAiPerformanceProfile)value.LocalAiPerformanceProfile
+                        : LocalAiPerformanceProfile.Balanced;
+                    var leaseResult = await resourceBudget.TryAcquireAsync(new(
+                        AssistantWorkloadKind.SpeechToText,
+                        profile,
+                        provider.Capabilities.IsLocal), operationToken);
+                    if (!leaseResult.Granted)
+                    {
+                        logger.LogInformation("STT deferred by resource budget; provider={Provider}; reason={Reason}", provider.Id, leaseResult.Reason);
+                        continue;
+                    }
+                    await using var workloadLease = leaseResult.Lease!;
                     result = await provider.TranscribeAsync(segment, operationToken);
                     break;
                 }

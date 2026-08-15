@@ -10,14 +10,29 @@ using Microsoft.Win32;
 
 namespace GtaRpAssistant.Infrastructure.Windows;
 
-public sealed class LocalAiEngineManager(IEnumerable<ILocalAiEngineAdapter> adapters) : ILocalAiEngineManager
+public sealed class LocalAiEngineManager(IEnumerable<ILocalAiEngineAdapter> adapters, IResourceBudgetCoordinator? resourceBudget = null) : ILocalAiEngineManager
 {
     private readonly IReadOnlyDictionary<LocalAiEngineKind, ILocalAiEngineAdapter> _adapters = adapters.ToDictionary(x => x.Kind);
+    private readonly IResourceBudgetCoordinator _resourceBudget = resourceBudget ?? new ResourceBudgetCoordinator();
     public IReadOnlyList<LocalAiEngineKind> SupportedEngines => _adapters.Keys.Order().ToArray();
 
     public Task<LocalAiEngineSnapshot> InspectAsync(LocalAiEngineKind engine, Uri endpoint, CancellationToken cancellationToken) => Get(engine).InspectAsync(endpoint, cancellationToken);
     public Task StartServerAsync(LocalAiEngineKind engine, Uri endpoint, CancellationToken cancellationToken) => Get(engine).StartServerAsync(endpoint, cancellationToken);
-    public Task LoadModelAsync(LocalAiEngineKind engine, Uri endpoint, LocalAiLoadRequest request, CancellationToken cancellationToken) => Get(engine).LoadModelAsync(endpoint, request, cancellationToken);
+    public async Task LoadModelAsync(LocalAiEngineKind engine, Uri endpoint, LocalAiLoadRequest request, CancellationToken cancellationToken)
+    {
+        var adapter = Get(engine);
+        var estimate = await adapter.EstimateAsync(request.ModelKey, request, cancellationToken);
+        var leaseResult = await _resourceBudget.TryAcquireAsync(new(
+            AssistantWorkloadKind.Chat,
+            ProfileFor(request.ContextLength),
+            true,
+            estimate.EstimatedRamBytes,
+            estimate.EstimatedVramBytes), cancellationToken);
+        if (!leaseResult.Granted)
+            throw new InvalidOperationException($"Загрузка локальной модели отложена: {leaseResult.Reason}.");
+        await using var workloadLease = leaseResult.Lease!;
+        await adapter.LoadModelAsync(endpoint, request, cancellationToken);
+    }
     public Task UnloadModelAsync(LocalAiEngineKind engine, Uri endpoint, string instanceId, CancellationToken cancellationToken) => Get(engine).UnloadModelAsync(endpoint, instanceId, cancellationToken);
     public Task<LocalAiDownloadProgress> DownloadModelAsync(LocalAiEngineKind engine, Uri endpoint, string modelKey, string? quantization, IProgress<LocalAiDownloadProgress>? progress, CancellationToken cancellationToken) => Get(engine).DownloadModelAsync(endpoint, modelKey, quantization, progress, cancellationToken);
     public Task<LocalAiModelDescriptor> ImportModelAsync(LocalAiEngineKind engine, string filePath, CancellationToken cancellationToken) => Get(engine).ImportModelAsync(filePath, cancellationToken);
@@ -26,6 +41,13 @@ public sealed class LocalAiEngineManager(IEnumerable<ILocalAiEngineAdapter> adap
     private ILocalAiEngineAdapter Get(LocalAiEngineKind engine) => _adapters.TryGetValue(engine, out var adapter)
         ? adapter
         : throw new NotSupportedException($"Local AI engine '{engine}' is not registered.");
+
+    private static LocalAiPerformanceProfile ProfileFor(int contextLength) => contextLength switch
+    {
+        <= 2048 => LocalAiPerformanceProfile.Compact,
+        >= 8192 => LocalAiPerformanceProfile.Quality,
+        _ => LocalAiPerformanceProfile.Balanced,
+    };
 }
 
 public sealed partial class LmStudioEngineAdapter : ILocalAiEngineAdapter, IDisposable

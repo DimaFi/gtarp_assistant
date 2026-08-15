@@ -13,6 +13,7 @@ public sealed class VisionWorkflowService(
     SettingsService settings,
     ISecretStore secrets,
     OverlayService overlay,
+    IResourceBudgetCoordinator resourceBudget,
     ILogger<VisionWorkflowService> logger) : IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -38,6 +39,19 @@ public sealed class VisionWorkflowService(
                 if (!provider.Capabilities.IsLocal && !value.AllowCloud) continue;
                 try
                 {
+                    var profile = Enum.IsDefined(typeof(LocalAiPerformanceProfile), value.LocalAiPerformanceProfile)
+                        ? (LocalAiPerformanceProfile)value.LocalAiPerformanceProfile
+                        : LocalAiPerformanceProfile.Balanced;
+                    var leaseResult = await resourceBudget.TryAcquireAsync(new(
+                        AssistantWorkloadKind.Vision,
+                        profile,
+                        provider.Capabilities.IsLocal), cancellationToken);
+                    if (!leaseResult.Granted)
+                    {
+                        logger.LogInformation("Vision deferred by resource budget; provider={Provider}; reason={Reason}", provider.Id, leaseResult.Reason);
+                        continue;
+                    }
+                    await using var workloadLease = leaseResult.Lease!;
                     logger.LogInformation("Manual vision request confirmed; provider={Provider}; local={Local}; image_bytes={ImageBytes}", provider.Id, provider.Capabilities.IsLocal, png.Length);
                     result = await provider.AnalyzeAsync(new(png, "Опиши видимый интерфейс и сообщения. Не делай выводов о правилах игры."), cancellationToken);
                     break;

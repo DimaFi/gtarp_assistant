@@ -317,7 +317,7 @@ Web используется лишь когда вопрос явно треб�
 
 ## 12. Resource Budget Coordinator
 
-Новый coordinator выдаёт workload lease для `Chat`, `Vision`, `STT`, `Embeddings`, `TTS`, `BackgroundIndexing`. Он не обещает точность ОС, а принимает решение по telemetry и conservative estimates.
+Реализованный `ResourceBudgetCoordinator` выдаёт workload lease для `Chat`, `Vision`, `STT`, `Embeddings`, `TTS`, `BackgroundIndexing`. Он не обещает точность ОС, а принимает решение по telemetry и conservative estimates. Lease освобождается через `Dispose`/`DisposeAsync`; отменённый запрос не занимает слот.
 
 Входы:
 
@@ -327,6 +327,8 @@ Web используется лишь когда вопрос явно треб�
 - GTA detected/running и optional frame-time signal;
 - model estimated residency, context length, GPU layers;
 - workload priority и deadline.
+
+Срез 3A получает системную available/total RAM через Windows `GlobalMemoryStatusEx`, working set/CPU процесса и состояние GTA каждые пять секунд. VRAM остаётся `null`, пока не появится проверенный adapter драйверной telemetry; при `null` применяются RAM и concurrency policies. Давление повышается немедленно, но снижается только после трёх последовательных здоровых samples на каждый уровень. В Compact/Balanced локальные Chat и Vision взаимоисключаются. Cloud leases не резервируют локальную RAM/VRAM. Exact/prepared/cache/FTS маршруты не запрашивают lease и остаются доступны при hard pressure.
 
 Порядок деградации при игре:
 

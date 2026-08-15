@@ -23,6 +23,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
     private readonly IAnswerCache? _answerCache;
     private readonly IAssistantContextBuilder _contextBuilder;
     private readonly IAssistantSessionContextStore _sessionContext;
+    private readonly IResourceBudgetCoordinator _resourceBudget;
     private readonly SemaphoreSlim _singleFlight = new(1, 1);
     private readonly SessionStateMachine _stateMachine = new();
     private CancellationTokenSource _lifetime = new();
@@ -45,7 +46,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         IScreenContextStore? screenContext = null,
         IAnswerCache? answerCache = null,
         IAssistantContextBuilder? contextBuilder = null,
-        IAssistantSessionContextStore? sessionContext = null)
+        IAssistantSessionContextStore? sessionContext = null,
+        IResourceBudgetCoordinator? resourceBudget = null)
     {
         _transcripts = transcripts;
         _intent = intent;
@@ -64,6 +66,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         _answerCache = answerCache;
         _contextBuilder = contextBuilder ?? new AssistantContextBuilder();
         _sessionContext = sessionContext ?? new InMemoryAssistantSessionContextStore();
+        _resourceBudget = resourceBudget ?? new ResourceBudgetCoordinator();
         _stateMachine.StateChanged += (_, state) => _events.Write(new(DateTimeOffset.UtcNow, "Session state changed", state));
     }
 
@@ -272,6 +275,16 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                     {
                         try
                         {
+                            var leaseResult = await _resourceBudget.TryAcquireAsync(new(
+                                AssistantWorkloadKind.Chat,
+                                LocalAiPerformanceProfile.Balanced,
+                                provider.Capabilities.IsLocal), ct);
+                            if (!leaseResult.Granted)
+                            {
+                                _events.Write(new(DateTimeOffset.UtcNow, "Provider deferred by resource budget", State, $"{provider.Id}:{leaseResult.Reason}"));
+                                continue;
+                            }
+                            await using var workloadLease = leaseResult.Lease!;
                             var groundedRequest = builtContext.Request;
                             metrics.RecordLlmCall(groundedRequest);
                             var response = await provider.CreateGroundedAnswerAsync(groundedRequest, ct);

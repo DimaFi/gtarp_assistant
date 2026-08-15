@@ -151,6 +151,8 @@ public partial class App : System.Windows.Application
         services.AddSingleton<ILocalAiPathSettings, WorkspaceLocalAiPathSettings>();
         services.AddSingleton<ILocalAiEngineAdapter, LmStudioEngineAdapter>();
         services.AddSingleton<ILocalAiEngineManager, LocalAiEngineManager>();
+        services.AddSingleton<IResourceBudgetCoordinator, ResourceBudgetCoordinator>();
+        services.AddSingleton<IHardwareTelemetry, WindowsHardwareTelemetry>();
         services.AddSingleton<ILocalAiBootstrapInstaller, LmStudioBootstrapInstaller>();
         services.AddSingleton<ITranscriptDeduplicator, TranscriptDeduplicator>();
         services.AddSingleton<IProactivePolicy, ProactivePolicy>();
@@ -167,7 +169,12 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IMicroModelResourceGuard, MicroModelResourceGuard>();
         services.AddSingleton(MicroModelManagerOptions.CreateDefault(AppContext.BaseDirectory));
         services.AddSingleton<IMicroModelManager, MicroModelManager>();
-        services.AddSingleton(sp => new ProcessPerformanceMonitor(sp.GetRequiredService<PerformanceController>(), () => SettingValues.Performance(sp.GetRequiredService<SettingsService>().Current)));
+        services.AddSingleton(sp => new ProcessPerformanceMonitor(
+            sp.GetRequiredService<PerformanceController>(),
+            () => SettingValues.Performance(sp.GetRequiredService<SettingsService>().Current),
+            hardwareTelemetry: sp.GetRequiredService<IHardwareTelemetry>(),
+            resourceBudget: sp.GetRequiredService<IResourceBudgetCoordinator>(),
+            gtaRunning: () => sp.GetRequiredService<GameSessionMonitor>().Current is not null));
         services.AddSingleton<WindowsStartupService>();
         services.AddSingleton<WindowCaptureService>();
         services.AddSingleton<IScreenFrameDiffer, GridScreenFrameDiffer>();

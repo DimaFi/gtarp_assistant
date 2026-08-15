@@ -3,9 +3,15 @@ using GtaRpAssistant.Core;
 
 namespace GtaRpAssistant.Infrastructure.Windows;
 
-public sealed record ProcessPerformanceSnapshot(double CpuPercent, long WorkingSetBytes, PerformanceActions Actions);
+public sealed record ProcessPerformanceSnapshot(double CpuPercent, long WorkingSetBytes, PerformanceActions Actions, ResourceSnapshot? Resources = null);
 
-public sealed class ProcessPerformanceMonitor(PerformanceController controller, Func<PerformanceProfile> profile, TimeSpan? interval = null) : IAsyncDisposable
+public sealed class ProcessPerformanceMonitor(
+    PerformanceController controller,
+    Func<PerformanceProfile> profile,
+    TimeSpan? interval = null,
+    IHardwareTelemetry? hardwareTelemetry = null,
+    IResourceBudgetCoordinator? resourceBudget = null,
+    Func<bool>? gtaRunning = null) : IAsyncDisposable
 {
     private readonly TimeSpan _interval = interval ?? TimeSpan.FromSeconds(5);
     private CancellationTokenSource? _cancellation;
@@ -36,8 +42,12 @@ public sealed class ProcessPerformanceMonitor(PerformanceController controller, 
             var cpu = elapsed <= TimeSpan.Zero ? 0 : cpuDelta.TotalMilliseconds / elapsed.TotalMilliseconds / Environment.ProcessorCount * 100;
             lastCpu = process.TotalProcessorTime;
             lastAt = now;
-            var actions = controller.Evaluate(profile(), cpu, process.WorkingSet64);
-            SnapshotAvailable?.Invoke(this, new(cpu, process.WorkingSet64, actions));
+            var resources = hardwareTelemetry?.Capture(cpu, process.WorkingSet64, gtaRunning?.Invoke() == true);
+            if (resources is not null) resourceBudget?.Update(resources);
+            var actions = resources is not null && resourceBudget is not null
+                ? controller.Evaluate(profile(), resourceBudget.Pressure)
+                : controller.Evaluate(profile(), cpu, process.WorkingSet64);
+            SnapshotAvailable?.Invoke(this, new(cpu, process.WorkingSet64, actions, resources));
         }
     }
 

@@ -1,6 +1,6 @@
 # GTA RP Assistant — точка продолжения
 
-## ACTIVE CHECKPOINT — Smart Assistant Phase 1A–1B и Phase 2A–2B завершены
+## ACTIVE CHECKPOINT — Smart Assistant Phase 1–2 и Resource Budget Phase 3A завершены
 
 Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
 
@@ -14,10 +14,13 @@
 - Обычный provider output ограничен 300 токенами, problem solving — 450; более строгий model profile сохраняет приоритет.
 - Добавлен RAM-only structured session state: goal, situation, open question, recent article/fact IDs и bounded deterministic rolling summary.
 - Summary/session state передаются только локальному provider; cloud route не получает их и User Memory.
-- Все 372 теста решения после Phase 2B прошли: Core 116, Providers 23, Knowledge 68, Integration 92, App 56, ModelBenchmark 13, ProductBenchmark 4.
+- Добавлен единый resource control plane с disposable leases для Chat, Vision, STT, TTS, Embeddings и BackgroundIndexing.
+- Windows sampler передаёт системную RAM, process CPU/working set и состояние GTA; VRAM остаётся явно неизвестной до проверенного adapter.
+- Soft/hard policies, трёхзамерный hysteresis и mutual exclusion локальных Chat/Vision в Compact/Balanced защищают память от конкурентных пиков.
+- Chat, manual Vision, STT, TTS и загрузка локальной модели используют leases; точная локальная база и кэш не зависят от resource budget.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
-Следующая задача: Phase 3 — Resource Budget Coordinator. Отдельно требуется governance-проверка просроченных knowledge sources.
+Следующая задача: Phase 3B — проверенная VRAM telemetry, видимые причины деградации и idle unload. После неё — Phase 4 Knowledge Intelligence. Отдельно требуется governance-проверка просроченных knowledge sources.
 
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 

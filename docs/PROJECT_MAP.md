@@ -9,6 +9,7 @@ Source code is authoritative. Use this file to locate a component, then inspect 
 | Intent and context | Local intent classification and relevant transcript selection | `src/GtaRpAssistant.Core/DecisionServices.cs` | `RuleBasedIntentDetector`, `ContextSelector`, `AssistantConversationGrounding` |
 | Model context budget | Bounded verified facts, transcript, turns, memory and output cap | `src/GtaRpAssistant.Core/AssistantContextBuilder.cs` | `IAssistantContextBuilder`, `AssistantContextBuilder`, `AssistantContextBudget` |
 | Session situation | RAM-only goal/open question/recent IDs and deterministic rolling summary | `src/GtaRpAssistant.Core/AssistantSessionContext.cs` | `IAssistantSessionContextStore`, `InMemoryAssistantSessionContextStore` |
+| Resource control plane | System pressure, workload leases, hysteresis and deterministic degradation | `src/GtaRpAssistant.Core/ResourceBudgetCoordinator.cs`, `src/GtaRpAssistant.Infrastructure.Windows/WindowsHardwareTelemetry.cs` | `IResourceBudgetCoordinator`, `ResourceBudgetCoordinator`, `IHardwareTelemetry` |
 | Knowledge storage | SQLite exact/prepared/FTS retrieval | `src/GtaRpAssistant.Knowledge/SqliteKnowledgeRepository.cs` | `SqliteKnowledgeRepository` |
 | Chat providers | Independent local/cloud chat route construction | `src/GtaRpAssistant.App/ChatProviderCatalog.cs` | `ChatProviderCatalog` |
 | Local AI management | LM Studio discovery, model download/load/import and resource policy | `src/GtaRpAssistant.Infrastructure.Windows/LocalAiEngineManager.cs` | `LmStudioEngineAdapter`, `LocalAiEngineManager` |

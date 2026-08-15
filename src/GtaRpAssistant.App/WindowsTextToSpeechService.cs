@@ -5,7 +5,7 @@ using NAudio.Wave;
 
 namespace GtaRpAssistant.App;
 
-public sealed class WindowsTextToSpeechService : ITextToSpeechService, IDisposable
+public sealed class WindowsTextToSpeechService(IResourceBudgetCoordinator resourceBudget) : ITextToSpeechService, IDisposable
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly object _activeGate = new();
@@ -28,6 +28,12 @@ public sealed class WindowsTextToSpeechService : ITextToSpeechService, IDisposab
     public async Task SpeakAsync(string text, string? voice, int outputDevice, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
+        var leaseResult = await resourceBudget.TryAcquireAsync(new(
+            AssistantWorkloadKind.TextToSpeech,
+            LocalAiPerformanceProfile.Balanced,
+            true), cancellationToken);
+        if (!leaseResult.Granted) return;
+        await using var workloadLease = leaseResult.Lease!;
         await _gate.WaitAsync(cancellationToken);
         try
         {
