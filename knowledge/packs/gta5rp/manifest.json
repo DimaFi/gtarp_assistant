@@ -4,6 +4,8 @@
   "version": 8,
   "createdAt": "2026-07-18T12:00:00Z",
   "articleFiles": [
+    "articles/official.eclipse.legal.key-articles.json",
+    "articles/official.rules.project.json",
     "articles/official.basics.roleplay.json",
     "articles/official.basics.interactions.json",
     "articles/official.character.documents.json",

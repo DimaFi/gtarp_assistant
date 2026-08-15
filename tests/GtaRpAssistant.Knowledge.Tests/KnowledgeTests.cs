@@ -279,6 +279,23 @@ public sealed class KnowledgeTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task EclipseCriminalArticles_SpokenNumbersResolveToPreparedLocalAnswer()
+    {
+        var directory = Path.Combine(AppContext.BaseDirectory, "knowledge", "packs", "gta5rp");
+        var articles = await new KnowledgePackLoader().LoadAsync(directory, default);
+        await Repository.InitializeAsync(articles, default);
+
+        var question = "лоберте слушай мне нужно узнать что обозначают статьи уголовного кодекса двенадцать точка шесть двенадцать точка один и семнадцать точка четыре на эклипсе";
+        var match = Assert.Single(await Repository.SearchAsync(new(question), default));
+
+        Assert.Equal("official.eclipse.legal.key-articles", match.ArticleId);
+        Assert.True(match.HasVerifiedPreparedAnswer);
+        Assert.Contains("УК 12.1", match.PreparedAnswer, StringComparison.Ordinal);
+        Assert.Contains("УК 12.6", match.PreparedAnswer, StringComparison.Ordinal);
+        Assert.Contains("УК 17.4", match.PreparedAnswer, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task CommunityReference_LoadsLargeStructuredCatalogWithPlayerLabel()
     {
         var directory = Path.Combine(AppContext.BaseDirectory, "knowledge", "reference", "community");

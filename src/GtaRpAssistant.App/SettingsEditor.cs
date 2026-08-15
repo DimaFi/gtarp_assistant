@@ -42,6 +42,7 @@ public sealed class SettingsEditor : ObservableObject
     private bool _voiceAutoSubmit;
     private int _voiceHotkeyMode;
     private bool _embeddedSttEnabled = true;
+    private bool _startMicrophoneOnLaunch;
     private string _embeddedSttPackPath = "";
     private bool _overlayEnabled = true;
     private bool _overlayPinned;
@@ -87,6 +88,7 @@ public sealed class SettingsEditor : ObservableObject
     public bool VoiceAutoSubmit { get => _voiceAutoSubmit; set => Set(ref _voiceAutoSubmit, value); }
     public int VoiceHotkeyMode { get => _voiceHotkeyMode; set => Set(ref _voiceHotkeyMode, value); }
     public bool EmbeddedSttEnabled { get => _embeddedSttEnabled; set => Set(ref _embeddedSttEnabled, value); }
+    public bool StartMicrophoneOnLaunch { get => _startMicrophoneOnLaunch; set => Set(ref _startMicrophoneOnLaunch, value); }
     public string EmbeddedSttPackPath { get => _embeddedSttPackPath; set => Set(ref _embeddedSttPackPath, value); }
     public bool OverlayEnabled { get => _overlayEnabled; set => Set(ref _overlayEnabled, value); }
     public bool OverlayPinned { get => _overlayPinned; set => Set(ref _overlayPinned, value); }
@@ -113,6 +115,7 @@ public sealed class SettingsEditor : ObservableObject
         VoiceAutoSubmit = value.VoiceAutoSubmit,
         VoiceHotkeyMode = value.VoiceHotkeyMode,
         EmbeddedSttEnabled = value.EmbeddedSttEnabled,
+        StartMicrophoneOnLaunch = value.StartMicrophoneOnLaunch,
         EmbeddedSttPackPath = value.EmbeddedSttPackPath,
         OverlayEnabled = value.OverlayEnabled,
         OverlayPinned = value.OverlayPinned,
@@ -140,6 +143,7 @@ public sealed class SettingsEditor : ObservableObject
         VoiceAutoSubmit = VoiceAutoSubmit,
         VoiceHotkeyMode = Enum.IsDefined(typeof(GtaRpAssistant.Core.VoiceInteractionMode), VoiceHotkeyMode) ? VoiceHotkeyMode : 0,
         EmbeddedSttEnabled = EmbeddedSttEnabled,
+        StartMicrophoneOnLaunch = StartMicrophoneOnLaunch,
         EmbeddedSttPackPath = EmbeddedSttPackPath.Trim(),
         OverlayEnabled = OverlayEnabled,
         OverlayPinned = OverlayPinned,

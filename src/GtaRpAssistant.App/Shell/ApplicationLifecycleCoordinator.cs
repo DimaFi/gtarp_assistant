@@ -114,7 +114,7 @@ public sealed class ApplicationLifecycleCoordinator : IAsyncDisposable
         await _performanceMonitor.StartAsync(cancellationToken);
         _screenContext.Start();
 
-        if (!_executionMode.IsAutomation)
+        if (!_executionMode.IsAutomation && _settingsService.Current.StartMicrophoneOnLaunch)
             await _audioFeature.StartWakePhraseListeningAsync();
 
         if (!_audioFeature.IsListening)

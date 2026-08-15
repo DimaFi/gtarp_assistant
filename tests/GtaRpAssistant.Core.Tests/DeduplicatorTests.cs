@@ -10,4 +10,6 @@ public sealed class DeduplicatorTests
     [Fact] public void DifferentText_IsNotDuplicate() => Assert.False(new TranscriptDeduplicator().IsDuplicate(Entry(AudioSourceKind.GameAudio, "другая фраза"), [Entry(AudioSourceKind.UserMicrophone, "привет")]));
     [Fact] public void OutsideWindow_IsNotDuplicate() => Assert.False(new TranscriptDeduplicator().IsDuplicate(Entry(AudioSourceKind.GameAudio, "привет", 3), [Entry(AudioSourceKind.UserMicrophone, "привет")]));
     [Fact] public void YoAndYe_AreEquivalent() => Assert.Equal(TranscriptDeduplicator.Normalize("Ёлка"), TranscriptDeduplicator.Normalize("елка"));
+    [Fact] public void SpokenArticleNumbers_AreNormalizedLikeDigits() =>
+        Assert.Equal(TranscriptDeduplicator.Normalize("УК 12.6, 12.1 и 17.4"), TranscriptDeduplicator.Normalize("УК двенадцать точка шесть, двенадцать точка один и семнадцать точка четыре"));
 }

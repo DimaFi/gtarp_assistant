@@ -82,6 +82,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         ConfirmVoicePreviewCommand = _confirmVoicePreviewCommand;
         CancelVoicePreviewCommand = _cancelVoicePreviewCommand;
         AnalyzeImageCommand = _analyzeImageCommand;
+        ToggleMicrophoneCommand = _audioFeature.ToggleListeningCommand;
         coordinator.StatusChanged += (_, status) => _dispatcher.Invoke(() => Ui.PipelineStatus = status);
         coordinator.AnswerProduced += (_, answer) => _dispatcher.Invoke(() =>
         {
@@ -89,6 +90,11 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
             RefreshConversation();
         });
         audioSession.TranscriptRecognized += (_, text) => _dispatcher.Invoke(() => TranscriptText = text);
+        _audioFeature.RuntimeStateChanged += (_, _) => _dispatcher.Invoke(() =>
+        {
+            Raise(nameof(IsMicrophoneEnabled));
+            Raise(nameof(MicrophoneButtonText));
+        });
         voiceInteraction.StateChanged += (_, snapshot) => _dispatcher.Invoke(() =>
         {
             Raise(nameof(IsVoicePreview));
@@ -119,6 +125,8 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
         ? "Проверьте распознанный текст выше. Он не будет отправлен без подтверждения."
         : string.Empty;
     public string VoiceButtonText => _voiceInteraction.Snapshot.IsActive ? "Остановить" : "Говорить";
+    public bool IsMicrophoneEnabled => _audioFeature.IsListening;
+    public string MicrophoneButtonText => IsMicrophoneEnabled ? "Выключить микрофон" : "Включить микрофон";
     public string PipelineStatus => Ui.PipelineStatus;
     public AssistantAnswer? LastAnswer
     {
@@ -179,6 +187,7 @@ public sealed class AssistantFeatureViewModel : FeatureViewModel
     public ICommand ConfirmVoicePreviewCommand { get; }
     public ICommand CancelVoicePreviewCommand { get; }
     public ICommand AnalyzeImageCommand { get; }
+    public ICommand ToggleMicrophoneCommand { get; }
 
     private AudioSourceKind SelectedSource => SelectedSourceIndex == 1 ? AudioSourceKind.GameAudio : AudioSourceKind.UserMicrophone;
 

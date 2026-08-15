@@ -46,6 +46,7 @@ public sealed record AppSettings(
     bool VoiceAutoSubmit = true,
     int VoiceHotkeyMode = 0,
     bool EmbeddedSttEnabled = true,
+    bool StartMicrophoneOnLaunch = false,
     string EmbeddedSttPackPath = "",
     bool OverlayEnabled = true,
     bool OverlayPinned = false,

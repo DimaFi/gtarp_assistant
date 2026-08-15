@@ -20,9 +20,19 @@ public sealed partial class TranscriptDeduplicator(TimeSpan? window = null, doub
 
     public static string Normalize(string text)
     {
-        var normalized = NonWordRegex().Replace(text.ToLowerInvariant().Replace('ё', 'е'), " ");
+        var spokenNumbers = SpokenArticleNumberRegex().Replace(text.ToLowerInvariant().Replace('ё', 'е'), match =>
+            $"{NumberWords[match.Groups[1].Value]}.{NumberWords[match.Groups[2].Value]}");
+        var normalized = NonWordRegex().Replace(spokenNumbers, " ");
         return WhitespaceRegex().Replace(normalized, " ").Trim();
     }
+
+    private static readonly IReadOnlyDictionary<string, string> NumberWords = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["ноль"] = "0", ["один"] = "1", ["одна"] = "1", ["два"] = "2", ["три"] = "3", ["четыре"] = "4",
+        ["пять"] = "5", ["шесть"] = "6", ["семь"] = "7", ["восемь"] = "8", ["девять"] = "9", ["десять"] = "10",
+        ["одиннадцать"] = "11", ["двенадцать"] = "12", ["тринадцать"] = "13", ["четырнадцать"] = "14", ["пятнадцать"] = "15",
+        ["шестнадцать"] = "16", ["семнадцать"] = "17", ["восемнадцать"] = "18", ["девятнадцать"] = "19", ["двадцать"] = "20",
+    };
 
     private static double Similarity(string left, string right)
     {
@@ -43,6 +53,8 @@ public sealed partial class TranscriptDeduplicator(TimeSpan? window = null, doub
     private static partial Regex NonWordRegex();
     [GeneratedRegex(@"\s+")]
     private static partial Regex WhitespaceRegex();
+    [GeneratedRegex(@"\b(ноль|один|одна|два|три|четыре|пять|шесть|семь|восемь|девять|десять|одиннадцать|двенадцать|тринадцать|четырнадцать|пятнадцать|шестнадцать|семнадцать|восемнадцать|девятнадцать|двадцать)\s+точка\s+(ноль|один|одна|два|три|четыре|пять|шесть|семь|восемь|девять|десять)\b")]
+    private static partial Regex SpokenArticleNumberRegex();
 }
 
 public sealed class RuleBasedIntentDetector(IEnumerable<string>? gameTerms = null, string wakeWord = "помощник") : IIntentDetector

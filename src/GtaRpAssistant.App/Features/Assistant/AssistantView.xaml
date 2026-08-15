@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:design="clr-namespace:GtaRpAssistant.App.DesignSystem.Controls"
              AutomationProperties.AutomationId="Page.Assistant">
-    <Grid MaxWidth="980" HorizontalAlignment="Center">
+    <Grid MaxWidth="1120" HorizontalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -29,8 +29,8 @@
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="17" FontWeight="Bold" Text="✦" />
             </Border>
             <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
-                <TextBlock FontSize="20" FontWeight="SemiBold" Text="Чат с ассистентом" />
-                <TextBlock Style="{StaticResource Text.Caption}" Text="Новый диалог получает название по первому вопросу — его всегда можно изменить" />
+                <TextBlock FontSize="28" FontWeight="SemiBold" Text="Чат" />
+                <TextBlock Style="{StaticResource Text.Caption}" Text="Спросите о GTA RP — сначала проверю локальную базу, затем доступные источники" />
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Style="{StaticResource Button.Primary}" Content="＋ Новый чат" Command="{Binding NewConversationCommand}"
@@ -47,6 +47,7 @@
         </Grid>
 
         <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
             <Border x:Name="WelcomeCard" MaxWidth="560"
                     HorizontalAlignment="Center" VerticalAlignment="Center" Padding="26">
                 <Border.Style>
@@ -69,7 +70,7 @@
                 </StackPanel>
             </Border>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,18,0">
                 <ItemsControl ItemsSource="{Binding Conversation}" VerticalAlignment="Bottom" AutomationProperties.AutomationId="Assistant.Conversation">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -110,6 +111,19 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            <Border Grid.Column="1" Style="{StaticResource Surface.Card}" Margin="0,4,0,4" Padding="16">
+                <StackPanel>
+                    <TextBlock FontSize="16" FontWeight="SemiBold" Text="Подсказки" />
+                    <Button Margin="0,12,0,0" HorizontalContentAlignment="Left" Content="Что нового в обновлении?" />
+                    <Button HorizontalContentAlignment="Left" Content="Лучшие работы для новичка" />
+                    <Button HorizontalContentAlignment="Left" Content="Объяснить статью УК" />
+                    <Button HorizontalContentAlignment="Left" Content="Где сейчас лучше фармить?" />
+                    <Separator Margin="0,14" />
+                    <TextBlock FontSize="14" FontWeight="SemiBold" Text="Источники" />
+                    <TextBlock Margin="0,8,0,0" Style="{StaticResource Text.Caption}" TextWrapping="Wrap"
+                               Text="Локальная база используется первой. Интернет — только с разрешения пользователя." />
+                </StackPanel>
+            </Border>
         </Grid>
 
         <Border Grid.Row="2" Margin="4,8,4,6" AutomationProperties.AutomationId="Assistant.VoicePreview">
@@ -168,6 +182,8 @@
                         <ComboBoxItem Content="Микрофон" /><ComboBoxItem Content="Звук игры" />
                     </ComboBox>
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Style="{StaticResource Button.Ghost}" Content="{Binding MicrophoneButtonText}"
+                                Command="{Binding ToggleMicrophoneCommand}" AutomationProperties.AutomationId="Assistant.ToggleMicrophone" />
                         <Button Style="{StaticResource Button.Ghost}" Content="Фото" TabIndex="25"
                                 Command="{Binding AnalyzeImageCommand}" AutomationProperties.AutomationId="Assistant.AnalyzeImage"
                                 ToolTip="Выбрать PNG или JPEG для локального Vision-анализа после preview" />

@@ -9,6 +9,9 @@
                     <TextBlock Style="{StaticResource Text.Heading}" Text="Устройства" />
                     <TextBlock Margin="0,4,0,12" Style="{StaticResource Text.Secondary}" Text="Выберите микрофон и выход, с которого захватывается звук GTA." />
                     <TextBlock Style="{StaticResource Text.Label}" Text="Микрофон" />
+                    <CheckBox Content="Включать микрофон при запуске приложения"
+                              IsChecked="{Binding Settings.StartMicrophoneOnLaunch}"
+                              AutomationProperties.AutomationId="Audio.StartMicrophoneOnLaunch" />
                     <ComboBox ItemsSource="{Binding Microphones}" SelectedItem="{Binding SelectedMicrophone}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AudioSettingsEnabled}" AutomationProperties.AutomationId="Audio.Microphone" />
                     <StackPanel Orientation="Horizontal">
                         <Button Content="Обновить устройства" Command="{Binding RefreshDevicesCommand}" AutomationProperties.AutomationId="Audio.RefreshDevices" />

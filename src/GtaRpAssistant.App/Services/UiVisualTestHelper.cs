@@ -235,7 +235,9 @@ internal static class UiVisualTestHelper
                 if (Math.Abs(pixel.R - baseline.R) + Math.Abs(pixel.G - baseline.G) + Math.Abs(pixel.B - baseline.B) > 18) different++;
             }
         }
-        if (sampled == 0 || (double)different / sampled < .08)
+        // The wide, light dashboard intentionally has more whitespace than the legacy compact shell.
+        // Four percent still catches blank/failed frames while accepting the 1440px reference layout.
+        if (sampled == 0 || (double)different / sampled < .04)
             throw new InvalidOperationException("Native snapshot does not contain enough rendered UI detail.");
         if (!HasVisibleDetail(bitmap, 0, 0, bitmap.Width, Math.Max(1, bitmap.Height / 7)))
             throw new InvalidOperationException("Native snapshot is missing the application header.");
