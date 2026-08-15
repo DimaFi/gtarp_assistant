@@ -19,11 +19,14 @@ namespace GtaRpAssistant.App;
 
 public partial class App : System.Windows.Application
 {
+    private const string SingleInstanceMutexName = "Local\\GtaRpAssistant.App";
     private Forms.NotifyIcon? _tray;
     private MainWindow? _main;
     private ServiceProvider? _services;
     private bool _isExiting;
     private bool _servicesDisposed;
+    private Mutex? _singleInstanceMutex;
+    private bool _ownsSingleInstanceMutex;
 
     public App()
     {
@@ -35,6 +38,17 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         WindowsAppIdentity.Apply();
+        if (!string.Equals(Environment.GetEnvironmentVariable("GTA_RP_AUTOMATION_MODE"), "1", StringComparison.Ordinal))
+        {
+            _singleInstanceMutex = new Mutex(initiallyOwned: true, SingleInstanceMutexName, out _ownsSingleInstanceMutex);
+            if (!_ownsSingleInstanceMutex)
+            {
+                _singleInstanceMutex.Dispose();
+                _singleInstanceMutex = null;
+                Shutdown();
+                return;
+            }
+        }
         // Hidden WPF windows can expose only their most recently invalidated regions to
         // PrintWindow when hardware composition is enabled.  UI automation needs a
         // complete, deterministic backing surface; production rendering stays untouched.
@@ -432,6 +446,10 @@ public partial class App : System.Windows.Application
             Task.Run(async () => await _services.DisposeAsync()).GetAwaiter().GetResult();
             _servicesDisposed = true;
         }
+        if (_ownsSingleInstanceMutex) _singleInstanceMutex?.ReleaseMutex();
+        _singleInstanceMutex?.Dispose();
+        _singleInstanceMutex = null;
+        _ownsSingleInstanceMutex = false;
         base.OnExit(e);
     }
 

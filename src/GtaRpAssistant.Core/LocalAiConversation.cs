@@ -14,7 +14,7 @@ public sealed record LocalAiGenerationSettings(
     {
         LocalAiPerformanceProfile.Compact => new(2048, 220, TimeSpan.FromSeconds(30), 2, 0, 3, TimeSpan.FromMinutes(2), 1),
         LocalAiPerformanceProfile.Quality => new(8192, 700, TimeSpan.FromSeconds(90), 6, -1, 8, TimeSpan.FromMinutes(10), 1),
-        _ => new(4096, 420, TimeSpan.FromSeconds(60), 4, 0, 6, TimeSpan.FromMinutes(5), 1),
+        _ => new(4096, 420, TimeSpan.FromSeconds(60), 4, -1, 6, TimeSpan.FromMinutes(5), 1),
     };
 }
 

@@ -41,4 +41,12 @@ public sealed class LocalAiManagementTests
         Assert.Equal(threads, settings.CpuThreads);
         Assert.Equal(1, settings.QueueLimit);
     }
+
+    [Fact]
+    public void BalancedProfile_UsesAutomaticGpuOffload()
+    {
+        var settings = LocalAiGenerationSettings.For(LocalAiPerformanceProfile.Balanced);
+
+        Assert.Equal(-1, settings.GpuOffloadLayers);
+    }
 }
