@@ -24,6 +24,8 @@
 - На NVIDIA total/free VRAM читается через `nvidia-smi` не чаще раза в 30 секунд с timeout 750 мс; на других GPU значение остаётся unknown и решение опирается на RAM.
 - SQLite retrieval теперь сообщает exact/alias/FTS method, matched terms, score margin и low-confidence reason.
 - Optional semantic reranker запускается только для неоднозначного FTS и при Embeddings lease; он может переупорядочить только существующие article IDs и не меняет verified facts. Production embedding adapter пока не зарегистрирован.
+- Исправлен показанный пользователем тупиковый диалог: широкий вопрос о старте заработка получает явно обозначенное предположение о новичке и полезный общий план; follow-up «что тебе нужно?» сохраняет исходную цель и не блокирует ответ обязательными уточнениями.
+- STT больше не показывает бесполезный `InvalidOperationException`: сохраняется сообщение последнего provider, manual voice корректно отменяется, а UI объясняет, что речь не распознана.
 - Текущий production dataset gate выявил независимое истечение `validUntil` у большой части knowledge pack на 13–16 августа 2026 года: 528 cases, 21,56% blocking pass. Сроки нельзя продлевать без повторной проверки источников; это не скрывается и не считается успешным gate.
 
 Следующая задача: Phase 4B — локальный embedding adapter и offline relevance gate, после чего Phase 5 Tool Runtime. Отдельно требуется governance-проверка просроченных knowledge sources.

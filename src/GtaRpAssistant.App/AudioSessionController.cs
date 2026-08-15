@@ -400,6 +400,7 @@ public sealed class AudioSessionController(
             if (manualRequest) voiceInteraction.TryMarkTranscribing();
             StatusChanged?.Invoke(this, $"STT {segment.Source}: сегмент {(segment.EndedAt - segment.StartedAt).TotalSeconds:F1} сек…");
             TranscriptResult? result = null;
+            string? lastProviderError = null;
             foreach (var provider in _sttRoute)
             {
                 if (!provider.Capabilities.IsLocal && !value.AllowCloud) continue;
@@ -428,10 +429,11 @@ public sealed class AudioSessionController(
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
+                    lastProviderError = ex.Message;
                     logger.LogWarning("STT provider failed; provider={Provider}; type={ErrorType}", provider.Id, ex.GetType().Name);
                 }
             }
-            if (result is null) throw new InvalidOperationException("Ни один STT provider не обработал сегмент.");
+            if (result is null) throw new InvalidOperationException(lastProviderError ?? "Ни один STT provider не обработал сегмент.");
             var entry = new TranscriptEntry(segment.Id, segment.Source, segment.StartedAt, segment.EndedAt, result.Text, result.Confidence);
             if (entry.Source == AudioSourceKind.GameAudio)
             {
@@ -471,6 +473,12 @@ public sealed class AudioSessionController(
         catch (OperationCanceledException) when (manualRequest && operationToken.IsCancellationRequested)
         {
             StatusChanged?.Invoke(this, "Голосовой вопрос отменён.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogInformation("STT did not produce a transcript; source={Source}; detail={Detail}", segment.Source, ex.Message);
+            if (manualRequest) CancelManualVoiceRequest(ex.Message);
+            StatusChanged?.Invoke(this, $"Речь не распознана: {ex.Message}");
         }
         catch (Exception ex)
         {

@@ -188,6 +188,36 @@ public static partial class AssistantConversationGrounding
     private static partial Regex MemoryQuestionRegex();
 }
 
+public static partial class AssistantInferenceGrounding
+{
+    public static KnowledgeMatch? TryCreate(string question, AssistantRequestType requestType, AssistantSessionContextSnapshot session)
+    {
+        var normalized = TranscriptDeduplicator.Normalize(question);
+        var earning = EarningRegex().IsMatch(normalized);
+        var asksWhatIsNeeded = requestType == AssistantRequestType.FollowUpQuestion && ClarificationRegex().IsMatch(normalized)
+            && EarningRegex().IsMatch(TranscriptDeduplicator.Normalize(session.State.Goal ?? ""));
+        if (!earning && !asksWhatIsNeeded) return null;
+
+        const string articleId = "assistant.inference.getting-started";
+        var updatedAt = new DateTimeOffset(2026, 8, 15, 0, 0, 0, TimeSpan.Zero);
+        var answer = asksWhatIsNeeded
+            ? "Я могу продолжить и без уточнений: предположу, что вы новичок, у вас пока мало денег и нет личного транспорта. Для более точного маршрута полезны уровень персонажа, наличие транспорта, стартовый бюджет и предпочитаемый стиль — спокойная работа, вождение или активные задания."
+            : "Предположу, что вы только начали, у вас низкий уровень, мало денег и нет личного транспорта. Начните с любой доступной стартовой работы, выполните несколько полных циклов, сохраните резерв и затем сравните доступные варианты по времени и удобству. Если назовёте уровень и транспорт, я подберу более конкретный маршрут.";
+        return new(articleId, "Стартовый план заработка", .92,
+            [
+                new("assistant.inference.assumption", articleId, "Если пользователь не указал прогресс, разрешено явно предположить стартовый уровень, малый бюджет и отсутствие личного транспорта.", true, updatedAt),
+                new("assistant.inference.questions", articleId, "Для персонализации маршрута полезны уровень, транспорт, бюджет и предпочитаемый стиль игры; отсутствие этих данных не должно блокировать общий план.", true, updatedAt),
+            ], false, false, answer, true,
+            new(KnowledgeRetrievalMethod.Conversation, [], 0, 1, false, "explicit_assumption_guidance"));
+    }
+
+    [GeneratedRegex(@"\b(?:как\s+(?:мне\s+)?начать\s+зарабатывать|с\s+чего\s+начать\s+(?:зарабатывать|играть)|как\s+(?:новичку\s+)?заработать|хочу\s+зарабатывать|заработок\s+для\s+новичка)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex EarningRegex();
+
+    [GeneratedRegex(@"\b(?:что\s+(?:тебе|нужно)|какие\s+данные|что\s+уточнить|что\s+ты\s+хочешь\s+знать)\b", RegexOptions.IgnoreCase)]
+    private static partial Regex ClarificationRegex();
+}
+
 public sealed partial class GroundedAnswerValidator
 {
     public const string PassedReason = "Ответ прошёл проверку";

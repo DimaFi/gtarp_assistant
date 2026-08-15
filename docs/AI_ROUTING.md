@@ -4,6 +4,7 @@
 
 ```text
 verified prepared answer
+→ explicit assumption guidance for supported broad goals/follow-ups
 → sufficient verified grounding + healthy local provider
 → sufficient verified grounding + healthy allowed cloud provider
 → abstain
@@ -18,3 +19,5 @@ Health provider кешируется на 30 секунд. `CloudLite` не за
 Модели получают отдельно `VERIFIED_FACTS` и недоверенный transcript context. Ответ обязан быть structured JSON и проходит `GroundedAnswerValidator`. Валидатор отклоняет неизвестные fact IDs, неподтверждённые числа/URL, устаревшие или конфликтующие источники и предложения автоматизации.
 
 Автоматическая подсказка с `abstain` не показывается. Ручной запрос получает честное сообщение о недостатке данных.
+
+Knowledge miss больше не означает обязательный отказ для поддерживаемых широких целей. `AssistantInferenceGrounding` может явно предположить стартовые условия пользователя и дать общий план без provider call. Предположения всегда называются предположениями и касаются цели/стратегии; цены, правила, уровни доступа и наказания по-прежнему нельзя додумывать. Follow-up вроде «что тебе нужно?» использует сохранённую цель предыдущего вопроса и предлагает продолжить с допущениями, а уточнения делает необязательными.

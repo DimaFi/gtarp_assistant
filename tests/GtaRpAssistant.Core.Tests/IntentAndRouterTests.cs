@@ -112,4 +112,14 @@ public sealed class IntentAndRouterTests
     [InlineData("придумай правило сервера")]
     public void ConversationGrounding_DoesNotReplaceGameKnowledge(string question) =>
         Assert.Null(AssistantConversationGrounding.TryCreate(question));
+
+    [Fact]
+    public void InferenceGrounding_AssumesBeginnerInsteadOfBlockingBroadEarningQuestion()
+    {
+        var match = AssistantInferenceGrounding.TryCreate("как мне начать зарабатывать в гта пять рп", AssistantRequestType.GeneralConversation,
+            new("", new(null, null, null, [], [], DateTimeOffset.UtcNow)));
+        Assert.NotNull(match);
+        Assert.Contains("Предположу", match.PreparedAnswer);
+        Assert.True(match.HasVerifiedPreparedAnswer);
+    }
 }

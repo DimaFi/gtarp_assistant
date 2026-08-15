@@ -180,9 +180,14 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 ? $"{entry.Text} {relevantConversation.Turns.LastOrDefault(x => x.Role == ConversationRole.User)?.Text}"
                 : entry.Text;
             var conversationGrounding = AssistantConversationGrounding.TryCreate(entry.Text);
-            var matches = conversationGrounding is null
-                ? await _knowledge.SearchAsync(new(searchText, request.Server), ct)
-                : [conversationGrounding];
+            var inferenceGrounding = conversationGrounding is null
+                ? AssistantInferenceGrounding.TryCreate(entry.Text, requestType, _sessionContext.Get())
+                : null;
+            var matches = conversationGrounding is not null
+                ? [conversationGrounding]
+                : inferenceGrounding is not null
+                    ? [inferenceGrounding]
+                    : await _knowledge.SearchAsync(new(searchText, request.Server), ct);
             if (matches.Count == 0 && requestType == AssistantRequestType.FollowUpQuestion && !string.IsNullOrWhiteSpace(relevantConversation.SituationId))
             {
                 var previous = await _knowledge.GetArticleAsync(relevantConversation.SituationId, ct);

@@ -53,6 +53,31 @@ public sealed class CoordinatorTests
     }
 
     [Fact]
+    public async Task BroadEarningQuestion_AndClarifyingFollowUp_UseExplicitAssumptionsWithoutProvider()
+    {
+        var overlay = new FakeOverlay();
+        var provider = new FakeProvider();
+        var catalog = new FakeCatalog(provider);
+        await using var coordinator = Create(overlay, catalog, prepared: false);
+        coordinator.Start(true);
+
+        async Task<AssistantAnswer?> Ask(string text)
+        {
+            var now = DateTimeOffset.UtcNow;
+            return await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now, text, 1),
+                AssistantActivationKind.ManualText, "all", false, false), default);
+        }
+
+        var first = await Ask("как мне начать зарабатывать в гта пять рп");
+        var second = await Ask("что тебе нужно чтобы дать мне подсказку");
+
+        Assert.Contains("Предположу", first!.Message);
+        Assert.Contains("могу продолжить и без уточнений", second!.Message);
+        Assert.Equal(0, provider.Calls);
+        Assert.Equal(0, catalog.AvailabilityCalls);
+    }
+
+    [Fact]
     public async Task RepeatedGroundedQuestion_UsesValidatedCacheBeforeProviderDiscovery()
     {
         var overlay = new FakeOverlay();
