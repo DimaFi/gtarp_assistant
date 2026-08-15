@@ -272,13 +272,20 @@ public partial class App : System.Windows.Application
                 if (_main is not null) await _main.TogglePauseAsync();
                 break;
             case TrayCommand.Exit:
-                _isExiting = true;
-                await DisposeServicesAsync();
-                Dispatcher.Invoke(() => { _main?.Close(); Shutdown(); });
+                await RequestExitAsync();
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(command), command, null);
         }
+    }
+
+    public async Task RequestExitAsync()
+    {
+        if (_isExiting) return;
+        _isExiting = true;
+        await DisposeServicesAsync();
+        _main?.Close();
+        Shutdown();
     }
 
     private void ValidateTrayContract()

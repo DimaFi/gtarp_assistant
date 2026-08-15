@@ -5,6 +5,7 @@ using System.Windows.Automation;
 using System.Windows.Interop;
 using GtaRpAssistant.App.Services;
 using GtaRpAssistant.App.Shell;
+using GtaRpAssistant.App.DesignSystem;
 using GtaRpAssistant.Core;
 
 namespace GtaRpAssistant.App;
@@ -15,17 +16,21 @@ public partial class MainWindow : Window
     private readonly IAppDialogService _dialogs;
     private readonly ApplicationExecutionMode _executionMode;
     private readonly SettingsService _settings;
+    private readonly SettingsWorkspace _workspace;
+    private readonly ThemeService _themes;
     private HwndSource? _source;
     private GlobalVoiceHotkeyHook? _voiceHook;
     private bool _voiceHotkeyRegistered;
     private bool _globalInputConfigured;
 
-    public MainWindow(MainViewModel viewModel, IAppDialogService dialogs, ApplicationExecutionMode executionMode, SettingsService settings)
+    public MainWindow(MainViewModel viewModel, IAppDialogService dialogs, ApplicationExecutionMode executionMode, SettingsService settings, SettingsWorkspace workspace, ThemeService themes)
     {
         _viewModel = viewModel;
         _dialogs = dialogs;
         _executionMode = executionMode;
         _settings = settings;
+        _workspace = workspace;
+        _themes = themes;
         InitializeComponent();
         if (executionMode.IsAutomation)
         {
@@ -38,6 +43,20 @@ public partial class MainWindow : Window
         DataContext = viewModel;
         SourceInitialized += OnSourceInitialized;
         Closed += (_, _) => UnregisterGlobalInput();
+    }
+
+    private async void ToggleTheme_Click(object sender, RoutedEventArgs e)
+    {
+        var next = _themes.Current == ApplicationTheme.Gray ? ApplicationTheme.Light : ApplicationTheme.Gray;
+        _themes.Apply((int)next);
+        _workspace.Settings.AppearanceTheme = (int)next;
+        await _settings.SaveAsync(_settings.Current with { AppearanceTheme = (int)next }, CancellationToken.None);
+    }
+
+    private async void ExitApplication_Click(object sender, RoutedEventArgs e)
+    {
+        IsEnabled = false;
+        await ((App)System.Windows.Application.Current).RequestExitAsync();
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
