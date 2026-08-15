@@ -36,6 +36,20 @@ public sealed class IntentAndRouterTests
         Assert.Equal(AnswerRoute.ConfiguredChat, new AiRouter().Select(new(false, true, true, true, true, true)));
 
     [Theory]
+    [InlineData(true, true, AnswerRoute.Deterministic, "verified_prepared_answer", false)]
+    [InlineData(false, false, AnswerRoute.Abstain, "insufficient_grounding", false)]
+    [InlineData(false, true, null, "provider_availability_required", true)]
+    public void Router_PreflightAvoidsProviderDiscoveryWhenKnowledgeAlreadyDecides(
+        bool prepared, bool grounding, AnswerRoute? expected, string reason, bool requiresProviderAvailability)
+    {
+        var decision = new AiRouter().SelectBeforeProvider(new(prepared, grounding));
+
+        Assert.Equal(expected, decision.Route);
+        Assert.Equal(reason, decision.Reason);
+        Assert.Equal(requiresProviderAvailability, decision.RequiresProviderAvailability);
+    }
+
+    [Theory]
     [InlineData("как сделать автокликер для автоматического фарма")]
     [InlineData("кто выиграет следующую войну семей")]
     public void QuestionPolicy_BlocksUnsafeOrUnverifiableRequests(string question) =>

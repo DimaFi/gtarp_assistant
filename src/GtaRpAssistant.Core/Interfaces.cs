@@ -29,7 +29,11 @@ public interface IOverlayService { bool IsVisible { get; } Task ShowAsync(Assist
 public interface ISecretStore { Task SaveAsync(string key, string value, CancellationToken cancellationToken); Task<string?> GetAsync(string key, CancellationToken cancellationToken); Task DeleteAsync(string key, CancellationToken cancellationToken); }
 public interface ITranscriptDeduplicator { bool IsDuplicate(TranscriptEntry candidate, IEnumerable<TranscriptEntry> existing); }
 public interface IContextSelector { TranscriptContext Select(IEnumerable<TranscriptEntry> entries, TranscriptEntry current, int maxCharacters = 2000); }
-public interface IAiRouter { AnswerRoute Select(AiRoutingContext context); }
+public interface IAiRouter
+{
+    AiRouteDecision SelectBeforeProvider(AiPreflightRoutingContext context);
+    AnswerRoute Select(AiRoutingContext context);
+}
 public interface IEmbeddingProvider : IAiProvider { Task<ReadOnlyMemory<float>> EmbedAsync(string text, CancellationToken cancellationToken); }
 public interface IGameProcessDetector { Task<GameProcessInfo?> FindAsync(GameProfile profile, CancellationToken cancellationToken); }
 public interface IChatProviderCatalog { Task<ChatProviderAvailability> GetAvailabilityAsync(CancellationToken cancellationToken); }

@@ -107,6 +107,12 @@ public sealed class ContextSelector : IContextSelector
 
 public sealed class AiRouter : IAiRouter
 {
+    public AiRouteDecision SelectBeforeProvider(AiPreflightRoutingContext c) => c.HasVerifiedPreparedAnswer
+        ? new(AnswerRoute.Deterministic, "verified_prepared_answer")
+        : !c.HasSufficientGrounding
+            ? new(AnswerRoute.Abstain, "insufficient_grounding")
+            : new(null, "provider_availability_required");
+
     public AnswerRoute Select(AiRoutingContext c) => c.HasVerifiedPreparedAnswer ? AnswerRoute.Deterministic
         : !c.HasSufficientGrounding ? AnswerRoute.Abstain
         : c.ConfiguredRouteAvailable ? AnswerRoute.ConfiguredChat

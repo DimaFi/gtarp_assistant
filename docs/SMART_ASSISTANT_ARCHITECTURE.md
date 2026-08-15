@@ -475,6 +475,8 @@ Debug panel (opt-in) показывает `route`, selected facts/memories, budg
 
 Первым этапом должен быть **Fast Knowledge Path & Budget Telemetry**, а не новая память, web или vision. Он даёт измеримый выигрыш на всех уже поддерживаемых вопросах и уменьшает нагрузку GPT‑5VP без ухудшения качества.
 
+Статус первого среза: ранний preflight route и request-level telemetry реализованы. Prepared answers больше не инициируют проверку каталога/health локальной модели. Versioned response cache, confidence/cost в полном route decision и агрегаты product benchmark остаются следующей отдельной задачей.
+
 Конкретно следующий этап:
 
 1. перенести deterministic route до `GetAvailabilityAsync`;

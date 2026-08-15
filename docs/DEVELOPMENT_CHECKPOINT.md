@@ -1,5 +1,16 @@
 # GTA RP Assistant — точка продолжения
 
+## ACTIVE CHECKPOINT — Smart Assistant Phase 1A завершён
+
+Актуально на 15 августа 2026 года; эта секция новее исторических checkpoint ниже.
+
+- `AiRouter.SelectBeforeProvider` завершает prepared/insufficient-grounding маршруты до discovery и health-check AI-провайдеров.
+- Verified prepared answer не вызывает `IChatProviderCatalog.GetAvailabilityAsync` и не может разбудить GPT‑5VP/LM Studio.
+- Каждый запрос пишет структурированные `AssistantRequestMetrics`: route/reason, provider availability checks, LLM/repair calls, консервативную оценку input/output tokens, avoided-LLM и total latency.
+- Core: 108/108 тестов; интеграционный `TextPipelineTests`: 4/4.
+
+Следующая отдельная задача: Smart Assistant Phase 1B — versioned response cache, cache invalidation по knowledge revision и агрегаты LLM-avoidance/cache-hit в product benchmark.
+
 ## ACTIVE CHECKPOINT — voice/chat/UI stabilization завершён, public STT quality gate открыт
 
 Актуально на 3 августа 2026 года. Это единственная активная точка продолжения; разделы ниже сохранены как исторический журнал и не определяют следующий этап.

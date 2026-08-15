@@ -44,6 +44,11 @@ public sealed record GroundedAnswerRequest(
 public sealed record GroundedAnswerResponse(string Json);
 public sealed record KnowledgeQuery(string Text, string Server = "all", int Limit = 5);
 public sealed record KnowledgeArticle(string Id, string Title, IReadOnlyList<KnowledgeFact> Facts, DateTimeOffset UpdatedAt, bool Verified, bool Demo);
+public sealed record AiPreflightRoutingContext(bool HasVerifiedPreparedAnswer, bool HasSufficientGrounding);
+public sealed record AiRouteDecision(AnswerRoute? Route, string Reason)
+{
+    public bool RequiresProviderAvailability => Route is null;
+}
 public sealed record AiRoutingContext(bool HasVerifiedPreparedAnswer, bool HasSufficientGrounding, bool LocalAvailable, bool CloudAvailable, bool UserAllowsCloud, bool ConfiguredRouteAvailable = false);
 public sealed record GroundedAnswerPayload(
     string Decision,
@@ -69,6 +74,17 @@ public sealed record ChatProviderAvailability(
     public IReadOnlyList<IChatProvider> Route => ConfiguredRoute ?? [];
 }
 public sealed record AssistantProcessingRequest(TranscriptEntry Entry, AssistantActivationKind Activation, string Server, bool UserAllowsCloud, bool VoiceEnabled);
+public sealed record AssistantRequestMetrics(
+    Guid RequestId,
+    string Route,
+    string RouteReason,
+    int ProviderAvailabilityChecks,
+    int LlmCalls,
+    int RepairCalls,
+    int EstimatedInputTokens,
+    int EstimatedOutputBudgetTokens,
+    bool AvoidedLlm,
+    double DurationMilliseconds);
 public sealed record SessionEvent(DateTimeOffset Timestamp, string Name, AssistantSessionState State, string? Detail = null);
 public sealed record VisionAnalysisRequest(ReadOnlyMemory<byte> PngImage, string Prompt);
 public sealed record VisionAnalysisResult(string Text);

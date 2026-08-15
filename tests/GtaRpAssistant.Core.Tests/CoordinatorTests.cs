@@ -10,14 +10,23 @@ public sealed class CoordinatorTests
     {
         var overlay = new FakeOverlay();
         var provider = new FakeProvider();
-        await using var coordinator = Create(overlay, provider, prepared: true);
+        var catalog = new FakeCatalog(provider);
+        var events = new CapturingEvents();
+        await using var coordinator = Create(overlay, catalog, prepared: true, events: events);
         coordinator.Start(true);
         var now = DateTimeOffset.UtcNow;
         var answer = await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now, "почему контракт не запускается", 1), AssistantActivationKind.ManualText, "all", false, false), default);
         Assert.Equal(AnswerDecision.Show, answer!.Decision);
         Assert.Equal(0, provider.Calls);
+        Assert.Equal(0, catalog.AvailabilityCalls);
         Assert.Single(overlay.Answers);
         Assert.Equal(AssistantSessionState.Listening, coordinator.State);
+        var metrics = events.SingleMetrics();
+        Assert.Equal(nameof(AnswerRoute.Deterministic), metrics.Route);
+        Assert.Equal("verified_prepared_answer", metrics.RouteReason);
+        Assert.True(metrics.AvoidedLlm);
+        Assert.Equal(0, metrics.ProviderAvailabilityChecks);
+        Assert.Equal(0, metrics.EstimatedInputTokens);
     }
 
     [Fact]
@@ -25,12 +34,20 @@ public sealed class CoordinatorTests
     {
         var overlay = new FakeOverlay();
         var provider = new FakeProvider();
-        await using var coordinator = Create(overlay, provider, prepared: false);
+        var catalog = new FakeCatalog(provider);
+        var events = new CapturingEvents();
+        await using var coordinator = Create(overlay, catalog, prepared: false, events: events);
         coordinator.Start(true);
         var now = DateTimeOffset.UtcNow;
         var answer = await coordinator.ProcessAsync(new(new(Guid.NewGuid(), AudioSourceKind.UserMicrophone, now, now, "почему контракт не запускается", 1), AssistantActivationKind.ManualText, "all", false, false), default);
         Assert.Equal(AnswerDecision.Show, answer!.Decision);
         Assert.Equal(1, provider.Calls);
+        Assert.Equal(1, catalog.AvailabilityCalls);
+        var metrics = events.SingleMetrics();
+        Assert.Equal(1, metrics.ProviderAvailabilityChecks);
+        Assert.Equal(1, metrics.LlmCalls);
+        Assert.True(metrics.EstimatedInputTokens > 0);
+        Assert.False(metrics.AvoidedLlm);
     }
 
     [Fact]
@@ -157,11 +174,11 @@ public sealed class CoordinatorTests
     private static AssistantSessionCoordinator Create(FakeOverlay overlay, FakeProvider provider, bool prepared)
         => Create(overlay, new FakeCatalog(provider), prepared);
 
-    private static AssistantSessionCoordinator Create(FakeOverlay overlay, IChatProviderCatalog catalog, bool prepared, IUserPersonalizationContextProvider? personalization = null, IScreenContextStore? screenContext = null)
+    private static AssistantSessionCoordinator Create(FakeOverlay overlay, IChatProviderCatalog catalog, bool prepared, IUserPersonalizationContextProvider? personalization = null, IScreenContextStore? screenContext = null, ISessionEventSink? events = null)
     {
         var fact = new KnowledgeFact("f", "a", "Проверьте актуальные требования", true, DateTimeOffset.UtcNow);
         var knowledge = new FakeKnowledge(new("a", "Контракт", 1, [fact], false, false, prepared ? "Проверьте актуальные требования" : null, prepared));
-        return new(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector(["контракт"]), knowledge, new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(), new ProactivePolicy(), new NullEvents(), personalization: personalization, screenContext: screenContext);
+        return new(new(TimeSpan.FromMinutes(3)), new RuleBasedIntentDetector(["контракт"]), knowledge, new ContextSelector(), new AiRouter(), new GroundedAnswerValidator(), catalog, overlay, new TranscriptDeduplicator(), new ProactivePolicy(), events ?? new NullEvents(), personalization: personalization, screenContext: screenContext);
     }
 
     private sealed class FakeKnowledge(KnowledgeMatch match) : IKnowledgeRepository
@@ -178,7 +195,12 @@ public sealed class CoordinatorTests
     }
     private sealed class FakeCatalog(FakeProvider provider) : IChatProviderCatalog
     {
-        public Task<ChatProviderAvailability> GetAvailabilityAsync(CancellationToken cancellationToken) => Task.FromResult(new ChatProviderAvailability(provider, null, true, false));
+        public int AvailabilityCalls { get; private set; }
+        public Task<ChatProviderAvailability> GetAvailabilityAsync(CancellationToken cancellationToken)
+        {
+            AvailabilityCalls++;
+            return Task.FromResult(new ChatProviderAvailability(provider, null, true, false));
+        }
     }
     private sealed class RouteCatalog(IReadOnlyList<IChatProvider> providers) : IChatProviderCatalog
     {
@@ -222,6 +244,16 @@ public sealed class CoordinatorTests
         canSpeak = false,
     }));
     private sealed class NullEvents : ISessionEventSink { public void Write(SessionEvent sessionEvent) { } }
+    private sealed class CapturingEvents : ISessionEventSink
+    {
+        public List<SessionEvent> Items { get; } = [];
+        public void Write(SessionEvent sessionEvent) => Items.Add(sessionEvent);
+        public AssistantRequestMetrics SingleMetrics()
+        {
+            var detail = Assert.Single(Items.Where(x => x.Name == "Assistant request metrics")).Detail;
+            return JsonSerializer.Deserialize<AssistantRequestMetrics>(detail!)!;
+        }
+    }
     private sealed class FakePersonalization : IUserPersonalizationContextProvider
     {
         public bool ApplyExplicitFeedback(string userText) => false;

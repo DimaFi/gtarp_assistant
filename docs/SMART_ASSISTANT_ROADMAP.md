@@ -1,6 +1,6 @@
 # Smart RP Assistant — последовательный roadmap
 
-Статус: план после аудита, 15 августа 2026 года. Roadmap намеренно не реализуется в рамках текущей задачи. Каждый этап — самостоятельный вертикальный срез с измеримым пользовательским результатом.
+Статус: активный план, 15 августа 2026 года. Первый срез Phase 1 реализован; каждый следующий срез выполняется отдельной задачей с измеримым пользовательским результатом.
 
 ## Принципы порядка
 
@@ -11,6 +11,8 @@
 5. Vision, proactivity и web включать только после privacy, quality и performance gates.
 
 ## Phase 1 — Fast Knowledge Path & Budget Telemetry
+
+**Прогресс.** Срез 1A завершён: `AiRouter` выполняет preflight до discovery провайдеров; verified prepared answer и недостаточный grounding не вызывают `GetAvailabilityAsync`. Введены `AiRouteDecision`, `AssistantRequestMetrics` и консервативный `AssistantTokenEstimator`; session events фиксируют route/reason, проверки каталога, LLM/repair calls, token estimates и latency. Следующий срез 1B — versioned response cache и benchmark counters.
 
 **Цель.** Типовые вопросы получают ответ из SQLite/prepared/cache без health-check, загрузки или вызова GPT‑5VP.
 

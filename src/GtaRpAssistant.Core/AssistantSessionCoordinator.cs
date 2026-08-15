@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
@@ -100,6 +101,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _lifetime.Token);
         var ct = linked.Token;
         await _singleFlight.WaitAsync(ct);
+        var metrics = new RequestMetricsState(request.Entry.Id, Stopwatch.GetTimestamp());
         try
         {
             var entry = request.Entry;
@@ -110,7 +112,11 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 foreach (var duplicate in existing.Where(x => x.Source == AudioSourceKind.GameAudio && _deduplicator.IsDuplicate(entry, [x]))) _transcripts.Remove(duplicate.Id);
             }
             _transcripts.Add(entry);
-            if (entry.Source == AudioSourceKind.GameAudio) return null;
+            if (entry.Source == AudioSourceKind.GameAudio)
+            {
+                metrics.SetRoute("context-only", "game_audio_is_not_a_user_request");
+                return null;
+            }
             _personalization?.ApplyExplicitFeedback(entry.Text);
 
             if (!_proactive.CanProcess(request.Activation, entry.Text, DateTimeOffset.UtcNow, out var policyReason))
@@ -135,6 +141,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
 
             if (AssistantQuestionPolicy.TryGetBlockReason(entry.Text, out var blockedReason))
             {
+                metrics.SetRoute("policy-block", "question_policy_rejected");
                 _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], entry.Text));
                 Transition(AssistantSessionState.ValidatingAnswer);
                 return await PresentAsync(Abstain(blockedReason), request, entry.Text, ct);
@@ -142,6 +149,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
 
             if (ScreenQuestionClassifier.NeedsScreenContext(entry.Text) && _screenContext?.GetFresh(DateTimeOffset.UtcNow) is { } screen)
             {
+                metrics.SetRoute("screen-context", "fresh_local_screen_observation");
                 _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], "screen-context"));
                 Transition(AssistantSessionState.ValidatingAnswer);
                 return await PresentAsync(ScreenContextAnswerFactory.Create(screen), request, "screen-context", ct);
@@ -167,6 +175,7 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
             _events.Write(new(DateTimeOffset.UtcNow, "Knowledge results found", State, matches.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             if (matches.Count == 0)
             {
+                metrics.SetRoute("knowledge-miss", "verified_knowledge_not_found");
                 _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], entry.Text));
                 Transition(AssistantSessionState.ValidatingAnswer);
                 if (request.Activation == AssistantActivationKind.AutomaticVoice)
@@ -180,8 +189,23 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
 
             var match = matches[0];
             _conversation.Add(new(Guid.NewGuid(), DateTimeOffset.UtcNow, ConversationRole.User, entry.Text, null, null, [], match.ArticleId));
-            var availability = await _providers.GetAvailabilityAsync(ct);
-            var route = _router.Select(new(match.HasVerifiedPreparedAnswer, HasGrounding(match), availability.LocalAvailable, availability.CloudAvailable, request.UserAllowsCloud, availability.Route.Count > 0));
+            var preflight = _router.SelectBeforeProvider(new(match.HasVerifiedPreparedAnswer, HasGrounding(match)));
+            ChatProviderAvailability? availability = null;
+            AnswerRoute route;
+            string routeReason;
+            if (preflight.RequiresProviderAvailability)
+            {
+                metrics.ProviderAvailabilityChecks++;
+                availability = await _providers.GetAvailabilityAsync(ct);
+                route = _router.Select(new(match.HasVerifiedPreparedAnswer, HasGrounding(match), availability.LocalAvailable, availability.CloudAvailable, request.UserAllowsCloud, availability.Route.Count > 0));
+                routeReason = DescribeRoute(route, availability, request.UserAllowsCloud);
+            }
+            else
+            {
+                route = preflight.Route!.Value;
+                routeReason = preflight.Reason;
+            }
+            metrics.SetRoute(route.ToString(), routeReason);
             AssistantAnswer answer;
             if (route == AnswerRoute.Deterministic)
             {
@@ -193,9 +217,9 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                 Transition(AssistantSessionState.GeneratingAnswer);
                 var providers = route switch
                 {
-                    AnswerRoute.ConfiguredChat => availability.Route,
-                    AnswerRoute.LocalChat when availability.Local is not null => [availability.Local],
-                    AnswerRoute.CloudChat when availability.Cloud is not null => [availability.Cloud],
+                    AnswerRoute.ConfiguredChat => availability!.Route,
+                    AnswerRoute.LocalChat when availability!.Local is not null => [availability.Local],
+                    AnswerRoute.CloudChat when availability!.Cloud is not null => [availability.Cloud],
                     _ => [],
                 };
                 if (providers.Count == 0)
@@ -212,12 +236,15 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
                         try
                         {
                             var groundedRequest = new GroundedAnswerRequest(entry.Text, verifiedFacts, request.Server, FormatContext(context), requestType, relevantConversation.Turns, _personalization?.Build(entry.Text));
+                            metrics.RecordLlmCall(groundedRequest);
                             var response = await provider.CreateGroundedAnswerAsync(groundedRequest, ct);
                             var candidate = _validator.Validate(response.Json, match, request.Server, request.VoiceEnabled);
                             if (candidate.DiagnosticReason != GroundedAnswerValidator.PassedReason)
                             {
                                 _events.Write(new(DateTimeOffset.UtcNow, "Provider response rejected; repairing", State, $"{provider.Id}:{candidate.DiagnosticReason}"));
                                 var repairRequest = groundedRequest with { IsRepair = true, InvalidResponse = Limit(response.Json, 2000) };
+                                metrics.RepairCalls++;
+                                metrics.RecordLlmCall(repairRequest);
                                 var repaired = await provider.CreateGroundedAnswerAsync(repairRequest, ct);
                                 candidate = _validator.Validate(repaired.Json, match, request.Server, request.VoiceEnabled);
                             }
@@ -272,6 +299,8 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
         }
         finally
         {
+            var completedMetrics = metrics.Complete();
+            _events.Write(new(DateTimeOffset.UtcNow, "Assistant request metrics", State, JsonSerializer.Serialize(completedMetrics)));
             _singleFlight.Release();
         }
     }
@@ -329,6 +358,54 @@ public sealed class AssistantSessionCoordinator : IAsyncDisposable
 
     private void Status(string value) => StatusChanged?.Invoke(this, value);
     private static bool HasGrounding(KnowledgeMatch match) => match.Facts.Any(x => x.Verified) && !match.HasConflict && !match.IsOutdated;
+    private static string DescribeRoute(AnswerRoute route, ChatProviderAvailability availability, bool userAllowsCloud) => route switch
+    {
+        AnswerRoute.ConfiguredChat => "configured_provider_route_available",
+        AnswerRoute.LocalChat => "local_provider_available",
+        AnswerRoute.CloudChat => "cloud_provider_available_and_allowed",
+        AnswerRoute.Deterministic when availability.CloudAvailable && !userAllowsCloud => "cloud_not_allowed_grounded_fallback",
+        AnswerRoute.Deterministic => "no_provider_grounded_fallback",
+        AnswerRoute.Abstain => "insufficient_grounding",
+        _ => "router_decision",
+    };
+
+    private sealed class RequestMetricsState(Guid requestId, long startedTimestamp)
+    {
+        private string _route = "unresolved";
+        private string _routeReason = "request_not_routed";
+
+        public int ProviderAvailabilityChecks { get; set; }
+        public int LlmCalls { get; private set; }
+        public int RepairCalls { get; set; }
+        public int EstimatedInputTokens { get; private set; }
+        public int EstimatedOutputBudgetTokens { get; private set; }
+
+        public void SetRoute(string route, string reason)
+        {
+            _route = route;
+            _routeReason = reason;
+        }
+
+        public void RecordLlmCall(GroundedAnswerRequest request)
+        {
+            LlmCalls++;
+            EstimatedInputTokens += AssistantTokenEstimator.EstimateInput(request);
+            EstimatedOutputBudgetTokens += AssistantTokenEstimator.EstimateOutputBudget(request.RequestType);
+        }
+
+        public AssistantRequestMetrics Complete() => new(
+            requestId,
+            _route,
+            _routeReason,
+            ProviderAvailabilityChecks,
+            LlmCalls,
+            RepairCalls,
+            EstimatedInputTokens,
+            EstimatedOutputBudgetTokens,
+            LlmCalls == 0,
+            Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds);
+    }
+
     private AssistantAnswer CreateDeterministicAnswer(string question, KnowledgeMatch match, AssistantProcessingRequest request)
     {
         var prepared = !string.IsNullOrWhiteSpace(match.PreparedAnswer);
